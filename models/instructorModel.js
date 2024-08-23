@@ -1,0 +1,55 @@
+const mongoose = require("mongoose");
+const bycrypt = require("bcryptjs");
+
+const instructorSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: Number,
+      required: true,
+    },
+    description: {
+      type: String,
+    },
+    active: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    type: {
+      type: String,
+      default: "instructor"
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+instructorSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bycrypt.compare(enteredPassword, this.password);
+};
+
+instructorSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    next();
+  }
+  const salt = await bycrypt.genSalt(10);
+  this.password = await bycrypt.hash(this.password, salt);
+});
+
+const Instructor = mongoose.model("Instructor", instructorSchema);
+
+module.exports = Instructor;

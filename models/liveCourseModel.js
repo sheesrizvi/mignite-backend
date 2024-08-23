@@ -1,0 +1,67 @@
+const mongoose = require("mongoose");
+
+const livecourseSchema = mongoose.Schema(
+  {
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "category",
+      req: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    shortDescription: {
+      type: String,
+      required: true,
+    },
+    details: {
+      type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    discount: {
+      type: Number,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    batchSize: {
+      type: Boolean,
+      required: true,
+    },
+    requirement: {
+      type: String,
+      required: true,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    schedule: [
+      {
+        type: Date,
+        required: true,
+      },
+    ],
+    liveSections: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "LiveSection",
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const LiveCourse = mongoose.model("LiveCourse", livecourseSchema);
+
+module.exports = LiveCourse;
