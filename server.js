@@ -5,6 +5,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const instructorRoutes = require("./routes/instructorRoutes");
 const sectionRoutes = require("./routes/sectionRoutes");
 const courseRoutes = require("./routes/courseRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
 
 // const upload = require("./routes/upload");
 // const userRoutes = require("./routes/userRoutes");
@@ -25,6 +26,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/instructor", instructorRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/section", sectionRoutes);
+app.use("/api/category", categoryRoutes);
 
 // app.use("/api/send", send);
 // app.use("/api/rnPushTokens", rnPushTokens);

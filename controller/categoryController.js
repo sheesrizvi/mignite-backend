@@ -16,6 +16,7 @@ const createCategory = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
 const getCategoryByType = asyncHandler(async (req, res) => {
   const { type } = req.query;
 
