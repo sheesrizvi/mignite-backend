@@ -11,10 +11,10 @@ const livecourseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    shortDescription: {
-      type: String,
-      required: true,
-    },
+    // shortDescription: {
+    //   type: String,
+    //   required: true,
+    // },
     details: {
       type: String,
       required: true,

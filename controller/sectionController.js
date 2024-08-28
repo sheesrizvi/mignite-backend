@@ -5,7 +5,6 @@ const Course = require("../models/coursesModel");
 const createSection = asyncHandler(async (req, res) => {
   const { name, course, description, type, srNumber, video, assignment } =
     req.body;
-
   if (video && type == "video") {
     const section = await Section.create({
       name,
@@ -50,7 +49,7 @@ const createSection = asyncHandler(async (req, res) => {
 const getSectionsByCourse = asyncHandler(async (req, res) => {
   const { course } = req.query;
 
-  const sections = await Section.find({ course: course });
+  const sections = await Section.find({ course: course }).populate("assignment").sort(srNumber);
   if (sections) {
     res.status(201).json(sections);
   } else {
@@ -65,17 +64,21 @@ const deleteSection = asyncHandler(async (req, res) => {
 
   const f1 = sub.video;
   // delete video algorithm
-  //   if (f1) {
-  //     const fileName = f1.split("//")[1].split("/")[1];
+    if (f1) {
+      const fileName = f1.split("//")[1].split("/")[1];
 
-  //     const command = new DeleteObjectCommand({
-  //       Bucket: process.env.AWS_BUCKET,
-  //       Key: fileName,
-  //     });
-  //     const response = await s3.send(command);
-  //   }
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET,
+        Key: fileName,
+      });
+      const response = await s3.send(command);
+    }
   /// need to delete inside section or dont allow user to delete course but sections
   await Section.deleteOne({ course: req.query.id });
+  const updateCourse = await Course.update(
+    { _id: sub.course },
+    { $pull: { sections: sub._id } }
+  );
   res.json("deleted");
 });
 

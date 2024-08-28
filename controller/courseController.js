@@ -34,7 +34,7 @@ const createCourse = asyncHandler(async (req, res) => {
 const getCoursesByCategory = asyncHandler(async (req, res) => {
   const { category } = req.query;
 
-  const courses = await Course.find({ category: category });
+  const courses = await Course.find({ category: category }).populate('instructor sections');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -45,7 +45,7 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
 const getCoursesByInstructor = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
 
-  const courses = await Course.find({ instructor: instructor });
+  const courses = await Course.find({ instructor: instructor }).populate('instructor sections');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -54,7 +54,7 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
   }
 });
 const getCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({});
+  const courses = await Course.find({}).populate('instructor sections');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -65,7 +65,9 @@ const getCourses = asyncHandler(async (req, res) => {
 const deleteCourse = asyncHandler(async (req, res) => {
   const subid = req.query.id;
   const sub = await Course.findById(subid);
-
+if (sub.sections.length !==0){
+  res.json("Delete all sections of this course first").status(404)
+} else {
   const f1 = sub.image;
 
   if (f1) {
@@ -77,10 +79,10 @@ const deleteCourse = asyncHandler(async (req, res) => {
     });
     const response = await s3.send(command);
   }
-  /// need to delete inside section or dont allow user to delete course but sections
-  await Section.deleteMany({ course: req.query.id });
   await Course.deleteOne({ _id: req.query.id });
   res.json("deleted");
+}
+  
 });
 const updateCourse = asyncHandler(async (req, res) => {
   const {

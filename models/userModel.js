@@ -16,27 +16,50 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    aboutme: {
+      type: String,
+    },
+    aspiration: {
+      type: String,
+    },
+    expectation: {
+      type: String,
+    },
     phone: {
       type: Number,
       required: true,
     },
-    shippingAddress: {
+    age: {
+      type: Number,
+      required: true,
+    },
+    education: {
+      type: String,
+      required: true,
+    },
+    address: {
       address: { type: String },
       street: { type: String },
       zone: { type: String },
       landmark: { type: String },
       area: { type: String },
-      mobileNumber: { type: Number },
-      email: { type: String },
     },
-
+    country: {
+      type: String,
+    },
+    gender: {
+      type: String,
+    },
     pushToken: {
+      type: String,
+    },
+    profile: {
       type: String,
     },
     active: {
       type: Boolean,
       required: true,
-      default: true
+      default: true,
     },
   },
   {

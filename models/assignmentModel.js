@@ -6,24 +6,32 @@ const assignmentSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    type: {
-      type: String,
-      required: true,
-      enum: ["mcq", "image"],
-    },
-    image: {
-      type: String,
-      required: true,
-    },
+    // type: {
+    //   type: String,
+    //   required: true,
+    //   enum: ["mcq", "image"],
+    // },
+    // image: {
+    //   type: String,
+    //   required: true,
+    // },
     course: {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: true
+      required: true,
+    },
+    level: {
+      type: String,
+      required: true,
+    },
+    number: {
+      type: Number,
+      required: true,
     },
     section: {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Section",
-      required: true
+      required: true,
     },
     questions: [
       {
@@ -32,7 +40,7 @@ const assignmentSchema = mongoose.Schema(
           required: true,
         },
         options: [{ type: String }],
-        answer: { type: String, required: true },
+        correctAnswer: { type: String, required: true },
         hint: { type: String, required: true },
       },
     ],
