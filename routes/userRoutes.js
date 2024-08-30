@@ -1,14 +1,14 @@
 const express = require("express");
-// const { registerInstructor, authInstructor } = require("../controller/instructiorController");
+const { registerUser, authUser } = require("../controller/userController");
 
 
 const router = express.Router();
 
 //admin
-// router.route("/register").post(registerInstructor);
-// router.route("/login").post(authInstructor);
+router.route("/register").post(registerUser);
+router.route("/login").post(authUser);
 
-//seller
+
 
 
 module.exports = router;

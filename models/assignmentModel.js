@@ -31,7 +31,6 @@ const assignmentSchema = mongoose.Schema(
     section: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Section",
-      required: true,
     },
     questions: [
       {
@@ -41,7 +40,7 @@ const assignmentSchema = mongoose.Schema(
         },
         options: [{ type: String }],
         correctAnswer: { type: String, required: true },
-        hint: { type: String, required: true },
+        hint: { type: String },
       },
     ],
   },

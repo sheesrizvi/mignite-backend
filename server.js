@@ -6,9 +6,8 @@ const instructorRoutes = require("./routes/instructorRoutes");
 const sectionRoutes = require("./routes/sectionRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
-
 // const upload = require("./routes/upload");
-// const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");
 
 const cors = require("cors");
 
@@ -22,7 +21,7 @@ app.use(
 
 app.use(express.json());
 app.use("/api/admin", adminRoutes);
-// app.use("/api/user", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/instructor", instructorRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/section", sectionRoutes);
