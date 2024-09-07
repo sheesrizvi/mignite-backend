@@ -81,7 +81,7 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
     const { callId , meetingData} = await createMeeting(instructor._id, time)
     
     const checkCouseExist = await LiveCourse.findById(courseId) 
-    console.log(callId, meetingData)
+    
     if(!checkCouseExist){
       return res.status(404).send({status: false, message: 'No Such Courses Exist'})
   
