@@ -1,6 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const { generateTokenInstructor } = require("../utils/generateToken.js");
 const Instructor = require("../models/instructorModel.js");
+const { createMeeting } = require("../middleware/meetingLinkGenerate.js");
+const LiveSection = require("../models/liveSectionModel.js");
+const LiveCourse = require("../models/liveCourseModel.js");
+const Course = require("../models/coursesModel.js");
 
 
 // @desc    Auth user & get token
@@ -21,7 +25,7 @@ const authInstructor = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(401);
-    throw new Error("Invalid email or password");
+    throw new Error("Invalid Email or Password");
   }
 });
 
@@ -30,7 +34,7 @@ const authInstructor = asyncHandler(async (req, res) => {
 //@access   Public
 
 const registerInstructor = asyncHandler(async (req, res) => {
-  const { name, email, password, description } = req.body;
+  const { name, email, password, description, phone } = req.body;
 
   const userExists = await Instructor.findOne({ email });
 
@@ -60,7 +64,50 @@ const registerInstructor = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Instruction Course Section Link Generation
+// @route   POST /api/instructor/createmeeting/:courseId
+//@access   Protected
+
+const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
+  try{
+    const now = new Date();
+    const courseId  = req.params.courseId
+    const instructor = req.user
+    let {srNumber, name, type, time} = req.body
+    
+    if(!time) {
+      time = new Date(now.getTime() + 1 * 60 * 1000) // Adding for now will remove later just for testing time part 
+    }
+    const { callId , meetingData} = await createMeeting(instructor._id, time)
+    
+    const checkCouseExist = await LiveCourse.findById(courseId) 
+    
+    if(!checkCouseExist){
+      return res.status(404).send({status: false, message: 'No Such Courses Exist'})
+  
+    }
+    let newLiveSection = new LiveSection({
+      liveCourse: courseId,
+      srNumber,
+      name,
+      type,
+      link: callId,
+      time
+    })
+    newLiveSection =await newLiveSection.save()
+
+    // await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
+    return res.status(200).send({status: true, newLiveSection})
+  }
+ 
+
+  catch(e) {
+    return res.status(400).send({message: e, status: false})
+  }
+})
+
 module.exports = {
   authInstructor,
   registerInstructor,
+  courseMeetingLinkGenerate
 };
