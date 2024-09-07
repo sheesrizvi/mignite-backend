@@ -10,6 +10,8 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const userRoutes = require("./routes/userRoutes");
 
 const cors = require("cors");
+const LiveSection = require("./models/liveSectionModel");
+const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
 const app = express();
 const source = process.env.MONGO_URI;
@@ -36,6 +38,21 @@ mongoose
   .catch((err) => console.log("DB connection error", err));
 
 const PORT = process.env.PORT || 8000;
+
+async function loadAndScheduleMeetings() {
+  const futureMeetings = await LiveSection.find({ time: { $gt: new Date() } });
+  futureMeetings.forEach(meeting => {
+    scheduleMeeting(meeting.link, meeting.time);
+  });
+}
+
+(async () => {
+  await loadAndScheduleMeetings();
+})();
+
 app.listen(PORT, () => {
   console.log(`Successfully served on port: ${PORT}.`);
 });
+
+
+
