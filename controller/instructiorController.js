@@ -78,14 +78,17 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
     if(!time) {
       time = new Date(now.getTime() + 1 * 60 * 1000) // Adding for now will remove later just for testing time part 
     }
+    if(!instructor){
+      return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
+    }
+
     const { callId , meetingData} = await createMeeting(instructor._id, time)
-    
     const checkCouseExist = await LiveCourse.findById(courseId) 
     
-    if(!checkCouseExist){
-      return res.status(404).send({status: false, message: 'No Such Courses Exist'})
+    // if(!checkCouseExist){
+    //   return res.status(404).send({status: false, message: 'No Such Courses Exist'})
   
-    }
+    // }
     let newLiveSection = new LiveSection({
       liveCourse: courseId,
       srNumber,
@@ -97,7 +100,7 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
     newLiveSection =await newLiveSection.save()
 
     // await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
-    return res.status(200).send({status: true, newLiveSection})
+     return res.status(200).send({status: true, newLiveSection})
   }
  
 
