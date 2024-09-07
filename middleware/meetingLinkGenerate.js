@@ -26,7 +26,7 @@ const createMeeting = asyncHandler(async (instructorId, time) => {
   const call = client.video.call('livestream', callId);
   const meetingData = await call.getOrCreate({
     data: {
-      created_by_id: instructorId,
+     created_by_id: instructorId,
       members: [] 
     }
   });
