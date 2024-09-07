@@ -80,11 +80,12 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
     }
     const { callId , meetingData} = await createMeeting(instructor._id, time)
     
-    // const checkCouseExist = await LiveCourse.findById(courseId) // 
-    // if(!checkCouseExist){
-    //   return res.status(404).send({status: false, message: 'No Such Course Exist'})
+    const checkCouseExist = await LiveCourse.findById(courseId) 
+    console.log(callId, meetingData)
+    if(!checkCouseExist){
+      return res.status(404).send({status: false, message: 'No Such Courses Exist'})
   
-    // }
+    }
     let newLiveSection = new LiveSection({
       liveCourse: courseId,
       srNumber,
@@ -95,7 +96,7 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
     })
     newLiveSection =await newLiveSection.save()
 
-    //await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
+    // await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
     return res.status(200).send({status: true, newLiveSection})
   }
  
