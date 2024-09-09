@@ -5,8 +5,7 @@ const { createMeeting } = require("../middleware/meetingLinkGenerate.js");
 const LiveSection = require("../models/liveSectionModel.js");
 const LiveCourse = require("../models/liveCourseModel.js");
 const Course = require("../models/coursesModel.js");
-
-
+const mongoose = require('mongoose')
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 //  @access   Public
@@ -71,36 +70,38 @@ const registerInstructor = asyncHandler(async (req, res) => {
 const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
   try{
     const now = new Date();
-    const courseId  = req.params.courseId
-    const instructor = req.user
+    //const courseId  = req.params.courseId
+    // const instructor = req.user
     let {srNumber, name, type, time} = req.body
     
     if(!time) {
-      time = new Date(now.getTime() + 1 * 60 * 1000) // Adding for now will remove later just for testing time part 
+      time = new Date(now.getTime() + 2 * 60 * 1000) // Adding for now will remove later just for testing time part 
     }
-    if(!instructor){
-      return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
-    }
+    // if(!instructor){
+    //   return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
+    // }
+    const newObjectId = new mongoose.Types.ObjectId();
 
-    const { callId , meetingData} = await createMeeting(instructor._id, time)
-    const checkCouseExist = await LiveCourse.findById(courseId) 
-    
+    const { callId , meetingData} = await createMeeting(1234567, time)
+    //const checkCouseExist = await LiveCourse.findById(courseId) 
+
     // if(!checkCouseExist){
     //   return res.status(404).send({status: false, message: 'No Such Courses Exist'})
   
     // }
-    let newLiveSection = new LiveSection({
-      liveCourse: courseId,
-      srNumber,
-      name,
-      type,
-      link: callId,
-      time
-    })
-    newLiveSection =await newLiveSection.save()
+    
+    // let newLiveSection = new LiveSection({
+    //   liveCourse: courseId,
+    //   srNumber,
+    //   name,
+    //   type,
+    //   link: callId,
+    //   time
+    // })
+    // newLiveSection =await newLiveSection.save()
 
     // await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
-     return res.status(200).send({status: true, newLiveSection})
+     return res.status(200).send({status: true, callId, meetingData})
   }
  
 
