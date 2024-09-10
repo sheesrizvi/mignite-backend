@@ -4,12 +4,17 @@ const livecourseSchema = mongoose.Schema(
   {
     category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "category",
+      ref: "Category",
       req: true,
     },
     name: {
       type: String,
       required: true,
+    },
+    instructor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Instructor",
+      req: true,
     },
     // shortDescription: {
     //   type: String,
@@ -52,7 +57,6 @@ const livecourseSchema = mongoose.Schema(
     liveSections: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
         ref: "LiveSection",
       },
     ],

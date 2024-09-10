@@ -6,6 +6,10 @@ const instructorRoutes = require("./routes/instructorRoutes");
 const sectionRoutes = require("./routes/sectionRoutes");
 const courseRoutes = require("./routes/courseRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const liveCourseRoutes = require("./routes/liveCourseRoute")
+const liveSectionRoutes = require("./routes/liveSectionRoutes.js")
+const meetingRoutes = require("./routes/meetingRoutes.js")
+const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 // const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
 
@@ -14,7 +18,7 @@ const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
 const app = express();
-const source = process.env.MONGO_URI;
+const source = process.env.MONGO_URL;
 app.use(
   cors({
     origin: "*",
@@ -28,7 +32,11 @@ app.use("/api/instructor", instructorRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/section", sectionRoutes);
 app.use("/api/category", categoryRoutes);
-
+app.use("/api/livecourse", liveCourseRoutes)
+app.use("/api/livesection",  liveSectionRoutes)
+app.use("/api/meeting", meetingRoutes)
+app.use(notFound)
+app.use(errorHandler)
 // app.use("/api/send", send);
 // app.use("/api/rnPushTokens", rnPushTokens);
 
