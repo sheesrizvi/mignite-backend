@@ -26,7 +26,7 @@ const createSection = asyncHandler(async (req, res) => {
     });
 
     if (section) {
-      const updateCourse = await Course.update(
+      const updateCourse = await Course.updateOne(
         { _id: course },
         { $push: { sections: section._id } }
       );
@@ -36,22 +36,25 @@ const createSection = asyncHandler(async (req, res) => {
       throw new Error("Error");
     }
   } else {
+
     const assignment = await Assignment.create({
       name,
       course,
       level,
       number,
-      questions
+      questions,
+
+
     })
     const section = await Section.create({
       name,
       course,
       description,
       srNumber,
-      assignment,
+      assignment, type
     });
     if (section) {
-      const updateCourse = await Course.update(
+      const updateCourse = await Course.updateOne(
         { _id: course },
         { $push: { sections: section._id } }
       );

@@ -21,7 +21,7 @@ const courseSchema = mongoose.Schema(
     },
     details: {
       type: String,
-      required: true,
+      // required: true,
     },
     price: {
       type: Number,
@@ -34,7 +34,7 @@ const courseSchema = mongoose.Schema(
     requirement: {
       type: String,
       required: true,
-    },  
+    },
     sections: [
       {
         type: mongoose.Schema.Types.ObjectId,

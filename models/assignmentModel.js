@@ -6,15 +6,6 @@ const assignmentSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    // type: {
-    //   type: String,
-    //   required: true,
-    //   enum: ["mcq", "image"],
-    // },
-    // image: {
-    //   type: String,
-    //   required: true,
-    // },
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -34,12 +25,12 @@ const assignmentSchema = mongoose.Schema(
     },
     questions: [
       {
-        text: {
+        question_text: {
           type: String,
           required: true,
         },
-        options: [{ type: String }],
-        correctAnswer: { type: String, required: true },
+        Options: [{ type: String }],
+        correct_answer: { type: String, required: true },
         hint: { type: String },
       },
     ],
