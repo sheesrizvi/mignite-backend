@@ -103,7 +103,6 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
         return res.status(400).send({status: false, message: 'Please provide sectionId'})
     }
     const liveSectionDetails = await LiveSection.findById(sectionId) 
-    console.log(liveSectionDetails)
     if(!liveSectionDetails) {
      return res.status(400).send({status: false, message: 'No Live Section Found '})
     }
@@ -118,32 +117,55 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
     return res.status(200).send({status: true, message: 'Section deleted successfully'})
 })
 
-// const editLiveSection = asyncHandler(async (req, res) => {
-//     const instructor = req.user;
-//     const {
-//         sectionId, 
-//         liveCourse,
-//         name,
-//         description,
-//         type,
-//         srNumber,
-//         startTime,
-//         endTime,
-//         duration,
-//       } = req.body;
-//       const livesectionObj = await LiveSection.findById(sectionId)
-//       if(!livesectionObj) {
-//         return res.status(400).send({status: true, message: 'Live Section not found for this section id'})
-//       }
-//       if(livesectionObj.instructor.toString() !== instructor._id.toString()) {
-//         return res.status(400).send({status: false, message: 'Instructor not authorized to update this section'})
-//       }
-//       if(type === "live") {
-//         const {callId, meetingData} = await createMeeting(instructor._id, startTime)
+const editLiveSection = asyncHandler(async (req, res) => {
+    const instructor = req.user;
+   
+    const {
+        sectionId,
+        liveCourse,
+        name,
+        description,
+        type,
+        srNumber,
+        startTime,
+        endTime,
+        duration,
+      } = req.body;
+      const livesectionObj = await LiveSection.findById(sectionId)
+    
+      if(!livesectionObj) {
+        return res.status(400).send({status: true, message: 'Live Section not found for this section id'})
+      }
+      if(livesectionObj.instructor.toString() !== instructor._id.toString()) {
+        return res.status(400).send({status: false, message: 'Instructor not authorized to update this section'})
+      }
+      if(type === "live") {
 
-//       }
+        let updatedFields = {
+            liveCourse: liveCourse || livesectionObj.liveCourse,
+            name: name || livesectionObj.name,
+            description: description || livesectionObj.description,
+            type: type || livesectionObj.type,
+            srNumber: srNumber || livesectionObj.srNumber,
+            startTime: startTime || livesectionObj.startTime,
+            endTime: endTime || livesectionObj.endTime,
+            duration: duration || livesectionObj.duration,
+          };
+          if (startTime && startTime !== section.startTime) {
+            const { callId } = await createMeeting(instructor._id, startTime);
+            updatedFields.link = callId; 
+          }
 
-// })
+        section = await LiveSection.findByIdAndUpdate(sectionId, updatedFields, { new: true });
+
+        if (section) {
+            res.status(200).send({ status: true, message: "Section updated", section });
+          } else {
+            res.status(500).send({ status: false, message: "Error updating section" });
+          } 
+    }
+
+})
 
 const getLiveSectionDetails = asyncHandler(async (req, res) => {
    const { sectionId } = req.query
@@ -161,5 +183,6 @@ module.exports = {
   createLiveSection,
   deleteLiveSection,
   getLiveSectionsByCourse,
-  getLiveSectionDetails
+  getLiveSectionDetails,
+  editLiveSection
 };

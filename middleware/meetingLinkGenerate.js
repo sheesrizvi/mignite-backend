@@ -5,8 +5,8 @@ const client = new StreamClient(process.env.STREAM_SECRET_ACCESS_KEY, process.en
 const schedule = require('node-schedule');
 
 const generateLiveStreamToken = asyncHandler(async (req, res) => {
-  const { userId } = req.query
-  const streamToken = client.createToken(userId)
+  const { id } = req.query
+  const streamToken = client.createToken(id)
   return res.send({streamToken})  
 })
 
@@ -53,7 +53,6 @@ const endMeeting = asyncHandler(async (callId) => {
 const createMeeting = asyncHandler(async (instructorId, time) => {
   const callId = 'meeting-id-' + Math.random().toString(36).slice(2, 11);
   const call = client.video.call('livestream', callId)
-  console.log(call)
   const meetingData = await call.getOrCreate({
         data: {
          created_by_id: instructorId,
