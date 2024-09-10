@@ -3,16 +3,16 @@ const mongoose = require("mongoose");
 const sectionSchema = mongoose.Schema(
   {
     course: {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
       req: true
     },
     srNumber: {
-      type: Number, 
+      type: Number,
       req: true
     },
     description: {
-      type: String, 
+      type: String,
       req: true
     },
     name: {
@@ -28,7 +28,7 @@ const sectionSchema = mongoose.Schema(
       type: String,
     },
     assignment: {
-      type: mongoose.Schema.Types.ObjectId, 
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Assignment",
     },
   },
