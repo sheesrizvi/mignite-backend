@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { instructor } = require("../middleware/authMiddleware");
 
 const liveSectionSchema = mongoose.Schema(
   {
@@ -7,6 +8,9 @@ const liveSectionSchema = mongoose.Schema(
       ref: "LiveCourse",
       req: true
     },
+    description: {
+      type: String,
+    }, 
     srNumber: {
       type: Number, 
       req: true
@@ -18,13 +22,26 @@ const liveSectionSchema = mongoose.Schema(
     type: {
       type: String,
       required: true,
-      enum: ["live", "assignment"]
+      enum: ['live', 'assignment']
     },
     link: {
       type: String,
     },
-    time: { 
+    startTime: { 
       type: Date,
+      required: true
+    },
+    endTime: {
+      type: Date,
+      required: true
+    },
+    duration: {
+      type: Date,
+      required: true
+    },
+    instructor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Instructor'
     },
     assignment: {
       type: mongoose.Schema.Types.ObjectId, 

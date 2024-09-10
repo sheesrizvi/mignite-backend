@@ -71,18 +71,17 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
   try{
     const now = new Date();
     //const courseId  = req.params.courseId
-    // const instructor = req.user
+     const instructor = req.user
     let {srNumber, name, type, time} = req.body
     
     if(!time) {
       time = new Date(now.getTime() + 2 * 60 * 1000) // Adding for now will remove later just for testing time part 
     }
-    // if(!instructor){
-    //   return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
-    // }
-    const newObjectId = new mongoose.Types.ObjectId();
+    if(!instructor){
+      return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
+    }
 
-    const { callId , meetingData} = await createMeeting(1234567, time)
+    const { callId , meetingData} = await createMeeting(instructor._id, time)
     //const checkCouseExist = await LiveCourse.findById(courseId) 
 
     // if(!checkCouseExist){
@@ -106,6 +105,7 @@ const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
  
 
   catch(e) {
+    console.log(e)
     return res.status(400).send({message: e, status: false})
   }
 })
