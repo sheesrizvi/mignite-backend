@@ -13,7 +13,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
       batchSize,
       requirement,
       startDate,
-      schedule,
+      endDate,
     } = req.body;
     const instructor = req.user
     const liveCourse = await LiveCourse.create({
@@ -26,7 +26,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
       batchSize,
       requirement,
       startDate,
-      schedule,
+      endDate,
       instructor : instructor._id,
     });
   
@@ -97,7 +97,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
       batchSize,
       requirement,
       startDate,
-      schedule,
+      endDate,
       liveSections,
     } = req.body;
     const instructor = req.user
@@ -120,7 +120,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     liveCourse.batchSize = batchSize || liveCourse.batchSize;
     liveCourse.requirement = requirement || liveCourse.requirement;
     liveCourse.startDate = startDate || liveCourse.startDate;
-    liveCourse.schedule = schedule || liveCourse.schedule;
+    liveCourse.endDate = endDate || liveCourse.endDate;
     liveCourse.liveSections = liveSections || liveCourse.liveSections;
     liveCourse.instructor = instructor._id || liveCourse.instructor
     const updatedLiveCourse = await liveCourse.save();

@@ -12,7 +12,7 @@ const startLiveMeeting = asyncHandler(async (req, res) => {
 
    const liveSection =  await LiveSection.findOne({instructor: instructor._id, link: meetingId})
    if(!liveSection) {
-    return res.status(400).send({status: false, message: "Section not found for this meeting"})
+    return res.status(400).send({status: false, message: "LiveSection Not Found with this instructor for given meeting link"})
    }
    if(liveSection) {
         const result = await startMeeting(meetingId)
@@ -34,7 +34,7 @@ const endLiveMeeting = asyncHandler(async (req, res) => {
 
    const liveSection =  await LiveSection.findOne({instructor: instructor._id, link: meetingId})
    if(!liveSection) {
-    return res.status(400).send({status: false, message: "Section not found for this meeting"})
+    return res.status(400).send({status: false, message: "LiveSection Not Found with this instructor for given meeting link"})
    }
    if(liveSection) {
         const result = await endMeeting(meetingId)

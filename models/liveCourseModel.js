@@ -48,12 +48,11 @@ const livecourseSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
-    schedule: [
-      {
-        type: Date,
-        required: true,
-      },
-    ],
+    endDate: {
+      type: Date,
+      required: true,
+    },
+   
     liveSections: [
       {
         type: mongoose.Schema.Types.ObjectId,

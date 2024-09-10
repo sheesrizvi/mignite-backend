@@ -38,7 +38,11 @@ const instructor = asyncHandler(async (req, res, next) => {
     if (!token) return res.status(403).send("Access denied. Login Required");
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     req.user = await Instructor.findById(decoded.id);
+    if(!req.user) {
+      return res.status(400).send({status: false, message: 'Instructor not authorized'})
+    }
     next();
   } catch (error) {
     res.status(400).send("Invalid token");
