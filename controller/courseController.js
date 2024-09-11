@@ -34,7 +34,14 @@ const createCourse = asyncHandler(async (req, res) => {
 const getCoursesByCategory = asyncHandler(async (req, res) => {
   const { category } = req.query;
 
-  const courses = await Course.find({ category: category }).populate('instructor sections');
+  const courses = await Course.find({ category: category }).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -45,7 +52,14 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
 const getCoursesByInstructor = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
 
-  const courses = await Course.find({ instructor: instructor }).populate('instructor sections');
+  const courses = await Course.find({ instructor: instructor }).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -54,7 +68,14 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
   }
 });
 const getCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({}).populate('instructor sections');
+  const courses = await Course.find({}).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -65,24 +86,24 @@ const getCourses = asyncHandler(async (req, res) => {
 const deleteCourse = asyncHandler(async (req, res) => {
   const subid = req.query.id;
   const sub = await Course.findById(subid);
-if (sub.sections.length !==0){
-  res.json("Delete all sections of this course first").status(404)
-} else {
-  const f1 = sub.image;
+  if (sub.sections.length !== 0) {
+    res.json("Delete all sections of this course first").status(404)
+  } else {
+    const f1 = sub.image;
 
-  if (f1) {
-    const fileName = f1.split("//")[1].split("/")[1];
+    if (f1) {
+      const fileName = f1.split("//")[1].split("/")[1];
 
-    const command = new DeleteObjectCommand({
-      Bucket: process.env.AWS_BUCKET,
-      Key: fileName,
-    });
-    const response = await s3.send(command);
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.AWS_BUCKET,
+        Key: fileName,
+      });
+      const response = await s3.send(command);
+    }
+    await Course.deleteOne({ _id: req.query.id });
+    res.json("deleted");
   }
-  await Course.deleteOne({ _id: req.query.id });
-  res.json("deleted");
-}
-  
+
 });
 const updateCourse = asyncHandler(async (req, res) => {
   const {

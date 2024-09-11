@@ -43,9 +43,10 @@ const createSection = asyncHandler(async (req, res) => {
       level,
       number,
       questions,
-
-
     })
+
+    console.log(assignment, 'assignment')
+
     const section = await Section.create({
       name,
       course,
