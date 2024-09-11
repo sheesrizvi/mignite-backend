@@ -52,7 +52,12 @@ const livecourseSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
-   
+   plan: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Plan'
+    }
+   ],
     liveSections: [
       {
         type: mongoose.Schema.Types.ObjectId,

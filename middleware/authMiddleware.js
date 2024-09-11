@@ -3,6 +3,7 @@ const Admin = require("../models/adminModel");
 const asyncHandler = require("express-async-handler");
 
 const Instructor = require("../models/instructorModel");
+const User = require("../models/userModel");
 
 const auth = asyncHandler(async (req, res, next) => {
   try {
@@ -12,6 +13,9 @@ const auth = asyncHandler(async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     req.user = await Admin.findById(decoded.id);
+    if(!req.user) {
+      return res.status(400).send({status: false, message: 'Not Authorized'})
+    }
     next();
   } catch (error) {
     res.status(400).send("Invalid token");
@@ -26,6 +30,9 @@ const admin = asyncHandler(async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await Admin.findById(decoded.id);
+    if(!req.user) {
+      return res.status(400).send({status: false, message: 'Admin not Found'})
+    }
     next();
   } catch (error) {
     res.status(400).send("Invalid token");
@@ -49,10 +56,26 @@ const instructor = asyncHandler(async (req, res, next) => {
   }
 });
 
+const isUser = asyncHandler(async (req, res, next) => {
+  try {
+    const token = req.header("x-auth-token");
+    if (!token) return res.status(403).send("Access denied. Login Required");
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = await User.findById(decoded.id);
+    if(!req.user) {
+      return res.status(400).send({status: false, message: 'User not authorized'})
+    }
+    next();
+  } catch (error) {
+    res.status(400).send("Invalid token");
+  }
+});
 
 module.exports = {
   admin,
   auth,
-  instructor
+  instructor,
+  isUser
 };

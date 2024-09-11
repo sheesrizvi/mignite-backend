@@ -23,6 +23,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
   if(!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime || !duration) {
     return res.status(400).send({status: true, message: "All Fields are required!"})
   }
+  if(!instructor || !liveCourse) {
+    return res.status(400).send({message: 'Either Instructor or LiveCourse Field is invalid'})
+  }
+  const courseExistByInstructor = await LiveCourse.findOne({_id: liveCourse, instructor: instructor._id})
+  if(!courseExistByInstructor) {
+    return res.status(400).send({status: false, message: 'Course not exist by Instructor'})
+  }
 
   if (type == "live") {
 
@@ -42,7 +49,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
 
     if (section) {
       const updateCourse = await LiveCourse.findOneAndUpdate(
-        { _id: liveCourse },
+        { _id: liveCourse, instructor: instructor._id },
         { $push: { liveSections: section._id } }
       );
       res.status(201).json(section);
@@ -131,14 +138,23 @@ const editLiveSection = asyncHandler(async (req, res) => {
         endTime,
         duration,
       } = req.body;
+
       const livesectionObj = await LiveSection.findById(sectionId)
     
       if(!livesectionObj) {
         return res.status(400).send({status: true, message: 'Live Section not found for this section id'})
       }
+
+
       if(livesectionObj.instructor.toString() !== instructor._id.toString()) {
         return res.status(400).send({status: false, message: 'Instructor not authorized to update this section'})
       }
+
+      const courseExistByInstructor = await LiveCourse.findOne({_id: liveCourse, instructor: instructor._id})
+      if(!courseExistByInstructor) {
+        return res.status(400).send({status: false, message: 'Course not exist by Instructor'})
+      }
+
       if(type === "live") {
 
         let updatedFields = {

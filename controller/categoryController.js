@@ -56,6 +56,7 @@ const deleteCategory = asyncHandler(async (req, res) => {
   await Category.deleteOne({ _id: req.query.id });
   res.json("deleted");
 });
+
 const updateCategory = asyncHandler(async (req, res) => {
     const {id, name, type, image } = req.body;
   const category = await Category.findById({id});

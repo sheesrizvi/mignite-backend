@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bycrypt = require("bcryptjs");
+const { Subscription } = require("./subscriptionModel");
 
 const userSchema = mongoose.Schema(
   {
@@ -61,6 +62,12 @@ const userSchema = mongoose.Schema(
       required: true,
       default: true,
     },
+    subscriptions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subscription'
+      }
+    ]
   },
   {
     timestamps: true,
