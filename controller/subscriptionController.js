@@ -7,6 +7,7 @@ const { Plan } = require('../models/planModel')
 const createSubscription = asyncHandler(async (req, res) => {
     const userId = req.user._id
     let { planId, duration, startDate, totalPriceFromClient } = req.body;
+
     const user = await User.findById(userId)
     if(!user) {
         return res.status(400).send({status: false, message: 'User not exist '})
@@ -15,27 +16,22 @@ const createSubscription = asyncHandler(async (req, res) => {
     if (!plan) {
         return res.status(400).json({ status: true, message: 'Plan not found' });
     }
-    if(!userId || !planId || !duration || !startDate) {
+    if(!userId || !planId || !duration || !startDate || !totalPriceFromClient) {
         return res.status(400).json({status: false, message: 'Mandatory Fields are required'})
     }
 
-    let calculatedTotalPrice = plan.price * duration;
-    if (plan.discount) {
-        calculatedTotalPrice -= (calculatedTotalPrice * plan.discount) / 100;
-    }
+   
     let endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + duration);
-
-    if(calculatedTotalPrice !== totalPriceFromClient) {
-        // return res.status(400).send({status: false, messge: 'Total Price not matched})
-    }
+    endDate.setMonth(endDate.getMonth() + duration);
+   
+   
     let subscription = new Subscription({
         user: userId,
         plan: planId,
         duration,
         startDate,
         endDate,
-        totalPrice: calculatedTotalPrice,
+        totalPrice: totalPriceFromClient,
     });
     await subscription.save();
     const subscriptionId = subscription._id;
@@ -47,59 +43,69 @@ const createSubscription = asyncHandler(async (req, res) => {
 
 
 const editSubscription = asyncHandler(async (req, res) => {
-//     const { subscriptionId, planId, duration, autoRenew } = req.body;
+    const userId = req.user._id
+    const { subscriptionId, planId, duration, autoRenew, totalPrice, status } = req.body;
   
-//     const existingSubscription = await Subscription.findById(subscriptionId).populate('plan');
-//     if (!existingSubscription) {
-//       return res.status(400).json({ status: false, message: 'Subscription not found' });
-//     }
-  
-//     let newPlan = null;
-//     if (planId) {
-//       newPlan = await Plan.findById(planId);
-//       if (!newPlan) {
-//         return res.status(400).json({ status: false, message: 'Plan not found' });
-//       }
-//     }
-  
-//     let updateData = {};
-  
-//     if (!planId && duration) {
-//       const previousPrice = existingSubscription.totalPrice;
-//       const remainingDays = Math.ceil((existingSubscription.endDate - new Date()) / (1000 * 60 * 60 * 24));
-//       const previousPlanPrice = existingSubscription.plan.price;
-  
-//       const remainingPrice = remainingDays * (previousPlanPrice / existingSubscription.duration);
-  
-//       let newTotalPrice = remainingPrice;
-//       if (planId) {
-//         const newPlanPrice = newPlan.price;
-//         const newDiscount = newPlan.discount || 0;
-//         newTotalPrice += (newPlanPrice * duration) * (1 - newDiscount / 100);
-//       } else {
-//         newTotalPrice += (previousPlanPrice * duration) * (1 - existingSubscription.plan.discount / 100);
-//       }
-  
-//       updateData = {
-//         duration: duration,
-//         endDate: new Date(existingSubscription.endDate.setDate(existingSubscription.endDate.getDate() + duration)),
-//         totalPrice: newTotalPrice,
-//       };
-//     }
-  
-//     if (planId && duration) {
-//       const newPlanPrice = newPlan.price;
-//       const newDiscount = newPlan.discount || 0;
-  
-//     }
-  
-//     if (!planId && !duration) {
-//       updateData = { autoRenew };
-//     }
-  
-//     const updatedSubscription = await Subscription.findByIdAndUpdate(subscriptionId, updateData, { new: true });
-//     res.status(200).json(updatedSubscription);
+    const existingSubscription = await Subscription.findOne({user: userId, _id: subscriptionId})
+    if (!existingSubscription) {
+      return res.status(400).json({ status: false, message: 'Subscription not found' });
+    }
+   
+    if(existingSubscription.plan.toString() !== planId.toString() && duration && totalPrice)  {
+        let newPlan = null;
+        if (planId) {
+          newPlan = await Plan.findById(planId);
+          if (!newPlan) {
+            return res.status(400).json({ status: false, message: 'Plan not found' });
+          }
+        }
+        const updateData = {};
+        let endDate = new Date();        
+        endDate.setMonth(endDate.getMonth() + duration)
+
+        updateData.startDate = new Date()
+        updateData.endDate = endDate
+        updateData.duration = duration
+        updateData.autoRenew = autoRenew
+        updateData.totalPrice = totalPrice
+        updateData.plan = planId
+        updateData.user = userId
+        updateData.status = status || existingSubscription.status
+        const newSubscription= await Subscription.findOneAndUpdate({user: userId, _id: subscriptionId}, updateData, {new: true})
+        return res.status(200).send({status: true, message: 'Subscription updated successfully', 'newSubscription': newSubscription})
+    } 
+    else if(existingSubscription.plan.toString() === planId.toString() && duration && totalPrice) {
+       
+        let endDate = existingSubscription.endDate;        
+        endDate.setMonth(endDate.getMonth() + duration)
+       
+        existingSubscription.startDate = existingSubscription.startDate
+        existingSubscription.user = existingSubscription.user
+        existingSubscription.plan = existingSubscription.plan
+        existingSubscription.duration = existingSubscription.duration + duration
+        existingSubscription.totalPrice = totalPrice  
+        existingSubscription.endDate = endDate
+        existingSubscription.autoRenew = autoRenew || existingSubscription.autoRenew
+        existingSubscription.status = status || existingSubscription.status
+        const newSubscription= await Subscription.findOneAndUpdate({user: userId, _id: subscriptionId}, existingSubscription, {new: true})
+        return res.status(200).send({status: true, message: 'Subscription updated successfully', 'newerSubscription': newSubscription})
+    } else {
+        existingSubscription.startDate = existingSubscription.startDate 
+        existingSubscription.user = existingSubscription.user
+        existingSubscription.plan = existingSubscription.plan
+        existingSubscription.duration = existingSubscription.duration
+        existingSubscription.totalPrice = existingSubscription.totalPrice  
+        existingSubscription.endDate = existingSubscription.endDate
+        existingSubscription.autoRenew = autoRenew || existingSubscription.autoRenew
+        existingSubscription.status = status || existingSubscription.status
+        await existingSubscription.save()
+        return res.status(200).send({status: true, message: 'Subscription updated successfully', 'updatedexistedSubscription': existingSubscription})
+    }
+   
   });
+
+
+
 
 const deleteSubscription = asyncHandler(async (req, res) => {
     const { id } = req.query;

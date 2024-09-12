@@ -126,7 +126,7 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
 
 const editLiveSection = asyncHandler(async (req, res) => {
     const instructor = req.user;
-   
+    
     const {
         sectionId,
         liveCourse,
@@ -138,9 +138,8 @@ const editLiveSection = asyncHandler(async (req, res) => {
         endTime,
         duration,
       } = req.body;
-
       const livesectionObj = await LiveSection.findById(sectionId)
-    
+      
       if(!livesectionObj) {
         return res.status(400).send({status: true, message: 'Live Section not found for this section id'})
       }
@@ -167,7 +166,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
             endTime: endTime || livesectionObj.endTime,
             duration: duration || livesectionObj.duration,
           };
-          if (startTime && startTime !== section.startTime) {
+          if (startTime && startTime !== livesectionObj.startTime) {
             const { callId } = await createMeeting(instructor._id, startTime);
             updatedFields.link = callId; 
           }

@@ -19,15 +19,21 @@ const createCategory = asyncHandler(async (req, res) => {
 
 const getCategoryByType = asyncHandler(async (req, res) => {
   const { type } = req.query;
+  
 
-  const category = await Category.find({ type });
-  if (category) {
-    res.status(201).json(category);
-  } else {
-    res.status(404);
-    throw new Error("Error");
-  }
+  if (typeof type !== 'string') {
+    return res.status(400).json({ error: 'Invalid type format' });
+}
+
+  const categories = await Category.find({ type });
+  
+  if (categories.length > 0) {
+    res.status(200).json(categories);
+} else {
+    res.status(404).json({ error: 'Category not found' });
+}
 });
+
 const getCategory = asyncHandler(async (req, res) => {
   const category = await Category.find({});
   if (category) {
@@ -38,6 +44,7 @@ const getCategory = asyncHandler(async (req, res) => {
   }
 });
 const deleteCategory = asyncHandler(async (req, res) => {
+    
     const subid = req.query.id;
   const sub = await Category.findById(subid);
 
@@ -58,13 +65,16 @@ const deleteCategory = asyncHandler(async (req, res) => {
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
-    const {id, name, type, image } = req.body;
-  const category = await Category.findById({id});
-  if (category) {
-    category.name == name;
-    category.type == type;
-    category.image == image ? image : category.image;
-    const updatedCategory = await category.save();
+  const {id, name, type, image } = req.body;
+
+  const categories = await Category.find({_id: id});
+  
+  if (categories.length > 0) {
+    categories[0].name = name;
+    categories[0].type = type;
+    categories[0].image = image ? image : categories[0].image;
+    const updatedCategory = await categories[0].save();
+    
     res.json(updatedCategory);
   } else {
     res.status(404);

@@ -52,6 +52,9 @@ const livecourseSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
+    image: {
+      type: String
+    },
    plan: [
     {
       type: mongoose.Schema.Types.ObjectId,

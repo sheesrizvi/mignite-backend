@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const { Plan } = require('../models/planModel')
 const LiveCourse = require('../models/liveCourseModel')
 const { Subscription } = require("../models/subscriptionModel")
+
 const createPlan = asyncHandler(async (req, res) => {
     const {name, price, durationInMonths, discount , features, courses} = req.body
     if(!name || !price || !durationInMonths) {
@@ -65,8 +66,10 @@ const deletePlan = asyncHandler(async (req, res) => {
 })
 
 const updatePlan = asyncHandler(async (req, res) => {
+    
     const { planId } = req.params
-    const {name, price, durationInMonhs, discount , features, courses} = req.body
+    
+    const {name, price, durationInMonths, discount , features, courses} = req.body
     
     if(!planId){
         return res.status(400).send({status: false, message: 'Plan id is required'})
@@ -79,7 +82,7 @@ const updatePlan = asyncHandler(async (req, res) => {
 
     planToUpdate.name = name || planToUpdate.name
     planToUpdate.price = price || planToUpdate.price
-    planToUpdate.durationInMonhs = durationInMonhs || planToUpdate.durationInMonhs
+    planToUpdate.durationInMonths = durationInMonths || planToUpdate.durationInMonths
     planToUpdate.discount = discount || planToUpdate.discount
     planToUpdate.features = [...new Set([...planToUpdate.features || [], ...(features || [])])]
     planToUpdate.courses = [...new Set([...planToUpdate.courses || [], ...(courses || [])])];

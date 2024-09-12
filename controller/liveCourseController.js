@@ -1,10 +1,12 @@
 const asyncHandler = require("express-async-handler");
 const LiveCourse = require("../models/liveCourseModel");
 const { instructor } = require("../middleware/authMiddleware");
+const Category = require("../models/category");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
     const {
       name,
+      image,
       category,
       details,
       price,
@@ -16,9 +18,15 @@ const createLiveCourse = asyncHandler(async (req, res) => {
       endDate,
     } = req.body;
     const instructor = req.user
+    const categories = await Category.find({_id: category})
+    
+    if(categories.length === 0) {
+      return res.status(404).send({status: false, message: 'No Such Category Exist'})
+    }
     const liveCourse = await LiveCourse.create({
       name,
       category,
+      image,
       details,
       price,
       discount,
@@ -92,6 +100,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
       category,
       details,
       price,
+      image,
       discount,
       description,
       batchSize,
@@ -111,6 +120,15 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     if(liveCourse.instructor.toString() !== instructor._id.toString()) {
       return res.status(400).send({status: false, message: 'Instructor not authorized to delete this course'})
     }
+
+    if(category) {
+      const categories = await Category.find({_id: category})
+    
+    if(categories.length === 0) {
+      return res.status(404).send({status: false, message: 'No Such Category Exist'})
+    }
+    }
+
     liveCourse.name = name || liveCourse.name;
     liveCourse.category = category || liveCourse.category;
     liveCourse.details = details || liveCourse.details;
@@ -123,8 +141,9 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     liveCourse.endDate = endDate || liveCourse.endDate;
     liveCourse.liveSections = liveSections || liveCourse.liveSections;
     liveCourse.instructor = instructor._id || liveCourse.instructor
+    liveCourse.image = image || liveCourse.image
     const updatedLiveCourse = await liveCourse.save();
-    res.json(updatedLiveCourse);
+    return res.json(updatedLiveCourse);
   });
   
   module.exports = {
