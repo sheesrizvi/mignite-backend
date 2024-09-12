@@ -1,6 +1,18 @@
 const asyncHandler = require("express-async-handler");
 const Course = require("../models/coursesModel");
 const Section = require("../models/sectionModel");
+const { S3Client } = require("@aws-sdk/client-s3");
+const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+
+const config = {
+  region: process.env.AWS_BUCKET_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+  },
+};
+
+const s3 = new S3Client(config);
 
 const createCourse = asyncHandler(async (req, res) => {
   const {
@@ -85,9 +97,15 @@ const getCourses = asyncHandler(async (req, res) => {
 });
 const deleteCourse = asyncHandler(async (req, res) => {
   const subid = req.query.id;
+
+
+
   const sub = await Course.findById(subid);
+
   if (sub.sections.length !== 0) {
-    res.json("Delete all sections of this course first").status(404)
+
+    res.status(404).json("Delete all sections of this course first")
+
   } else {
     const f1 = sub.image;
 
@@ -101,7 +119,8 @@ const deleteCourse = asyncHandler(async (req, res) => {
       const response = await s3.send(command);
     }
     await Course.deleteOne({ _id: req.query.id });
-    res.json("deleted");
+
+    res.status(200).json("deleted");
   }
 
 });
