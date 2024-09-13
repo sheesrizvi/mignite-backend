@@ -14,9 +14,13 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     batchSize,
     requirement,
     startDate,
-    endDate,
+    endDate, image,
+    instructor
   } = req.body;
-  const instructor = req.user
+
+  // console.log(req.body)
+
+
   const liveCourse = await LiveCourse.create({
     name,
     category,
@@ -28,7 +32,8 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     requirement,
     startDate,
     endDate,
-    instructor: instructor._id,
+    instructor,
+    image
   });
 
   if (liveCourse) {

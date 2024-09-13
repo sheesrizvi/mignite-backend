@@ -36,7 +36,7 @@ const liveSectionSchema = mongoose.Schema(
       required: true
     },
     duration: {
-      type: Date,
+      type: String,
       required: true
     },
     instructor: {

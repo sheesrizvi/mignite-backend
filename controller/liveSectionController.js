@@ -8,7 +8,7 @@ const { createMeeting } = require("../middleware/meetingLinkGenerate");
 
 const createLiveSection = asyncHandler(async (req, res) => {
 
-  const instructor = req.user
+
   const {
     liveCourse,
     name,
@@ -16,24 +16,38 @@ const createLiveSection = asyncHandler(async (req, res) => {
     type,
     srNumber,
     startTime,
-    endTime,
-    duration,
+    endTime, instructor
   } = req.body;
 
-  if (!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime || !duration) {
+  if (!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime) {
     return res.status(400).send({ status: true, message: "All Fields are required!" })
   }
   if (!instructor || !liveCourse) {
     return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
   }
-  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor._id })
+  const course = await LiveCourse.findById(liveCourse)
+  console.log(liveCourse)
+  console.log(course.instructor, instructor.id)
+  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor.id })
   if (!courseExistByInstructor) {
     return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
   }
 
+  const startMeetingTime = new Date(startTime);
+  const endMeetingTime = new Date(endTime);
+  if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
+    console.error("Invalid Time(s)");
+    return NaN;
+  }
+
+  const differenceInMilliseconds = endMeetingTime - startMeetingTime;
+  let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
+  durationInHours = durationInHours.toString()
+  console.log(durationInHours)
+
   if (type == "live") {
 
-    const { callId, meetingData } = await createMeeting(instructor._id, startTime)
+    const { callId, meetingData } = await createMeeting(instructor.id, startTime)
     const section = await LiveSection.create({
       liveCourse,
       name,
@@ -43,13 +57,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
       link: callId,
       startTime,
       endTime,
-      duration,
-      instructor: instructor._id
+      duration: durationInHours,
+      instructor: instructor.id
     });
 
     if (section) {
       const updateCourse = await LiveCourse.findOneAndUpdate(
-        { _id: liveCourse, instructor: instructor._id },
+        { _id: liveCourse, instructor: instructor.id },
         { $push: { liveSections: section._id } }
       );
       res.status(201).json(section);
@@ -113,7 +127,7 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
   if (!liveSectionDetails) {
     return res.status(400).send({ status: false, message: 'No Live Section Found ' })
   }
-  if (liveSectionDetails.instructor.toString() !== instructor._id.toString()) {
+  if (liveSectionDetails.instructor.toString() !== instructor.id.toString()) {
     return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this section' })
   }
   await LiveSection.findByIdAndDelete(sectionId)
@@ -138,7 +152,6 @@ const editLiveSection = asyncHandler(async (req, res) => {
     endTime,
     duration,
   } = req.body;
-
   const livesectionObj = await LiveSection.findById(sectionId)
 
   if (!livesectionObj) {
@@ -146,11 +159,11 @@ const editLiveSection = asyncHandler(async (req, res) => {
   }
 
 
-  if (livesectionObj.instructor.toString() !== instructor._id.toString()) {
+  if (livesectionObj.instructor.toString() !== instructor.id.toString()) {
     return res.status(400).send({ status: false, message: 'Instructor not authorized to update this section' })
   }
 
-  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor._id })
+  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor.id })
   if (!courseExistByInstructor) {
     return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
   }
@@ -167,8 +180,8 @@ const editLiveSection = asyncHandler(async (req, res) => {
       endTime: endTime || livesectionObj.endTime,
       duration: duration || livesectionObj.duration,
     };
-    if (startTime && startTime !== section.startTime) {
-      const { callId } = await createMeeting(instructor._id, startTime);
+    if (startTime && startTime !== livesectionObj.startTime) {
+      const { callId } = await createMeeting(instructor.id, startTime);
       updatedFields.link = callId;
     }
 

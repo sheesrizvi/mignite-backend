@@ -82,16 +82,16 @@ const isAdminorInstructor = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log(decoded.type)
-    if(decoded.type === 'admin') {
-      
+    if (decoded.type === 'admin') {
+
       req.user = await Admin.findById(decoded.id);
-    } 
-    if(decoded.type === 'instructor') {
+    }
+    if (decoded.type === 'instructor') {
       req.user = await Instructor.findById(decoded.id);
     }
-    
-    if(!req.user) {
-      return res.status(400).send({status: false, message: 'Not authorized'})
+
+    if (!req.user) {
+      return res.status(400).send({ status: false, message: 'Not authorized' })
     }
     next();
   } catch (error) {

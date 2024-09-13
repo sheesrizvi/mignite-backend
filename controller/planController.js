@@ -67,13 +67,26 @@ const deletePlan = asyncHandler(async (req, res) => {
 })
 
 const updatePlan = asyncHandler(async (req, res) => {
+
   const { planId } = req.params
-  const { name, price, durationInMonhs, discount, features, courses } = req.body
+
+  const { name, price, durationInMonths, discount, features, courses } = req.body
 
   if (!planId) {
     return res.status(400).send({ status: false, message: 'Plan id is required' })
   }
   const planToUpdate = await Plan.findById(planId)
+
+  if (!planToUpdate) {
+    return res.status(400).send({ status: true, message: 'Plan not found' })
+  }
+
+  planToUpdate.name = name || planToUpdate.name
+  planToUpdate.price = price || planToUpdate.price
+  planToUpdate.durationInMonths = durationInMonths || planToUpdate.durationInMonths
+  planToUpdate.discount = discount || planToUpdate.discount
+  planToUpdate.features = [...new Set([...planToUpdate.features || [], ...(features || [])])]
+  planToUpdate.courses = [...new Set([...planToUpdate.courses || [], ...(courses || [])])];
 
   if (!planToUpdate) {
     return res.status(400).send({ status: true, message: 'Plan not found' })

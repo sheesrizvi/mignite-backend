@@ -12,7 +12,7 @@ const meetingRoutes = require("./routes/meetingRoutes.js")
 const planRoutes = require("./routes/planRoutes.js")
 const subscriptionRoutes = require("./routes/subscriptionRoutes.js")
 const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
-// const upload = require("./routes/upload");
+const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
 
 const cors = require("cors");
@@ -38,6 +38,7 @@ app.use("/api/livecourse", liveCourseRoutes)
 app.use("/api/livesection", liveSectionRoutes)
 app.use("/api/meeting", meetingRoutes)
 app.use("/api/plans", planRoutes)
+app.use("/api/upload", upload)
 app.use("/api/subscriptions", subscriptionRoutes)
 app.use(notFound)
 app.use(errorHandler)
