@@ -3,14 +3,14 @@ const LiveSection = require("../models/liveSectionModel")
 const asyncHandler = require("express-async-handler")
 
 const startLiveMeeting = asyncHandler(async (req, res) => {
-    const instructor = req.user
-    const { meetingId } = req.query
+    
+    const { meetingId, instructor } = req.query
 
     if (!meetingId) {
         return res.status(400).send({ status: true, message: 'Not a Valid Link ' })
     }
 
-    const liveSection = await LiveSection.findOne({ instructor: instructor._id, link: meetingId })
+    const liveSection = await LiveSection.findOne({ instructor , link: meetingId })
     if (!liveSection) {
         return res.status(400).send({ status: false, message: "LiveSection Not Found with this instructor for given meeting link" })
     }
@@ -25,14 +25,14 @@ const startLiveMeeting = asyncHandler(async (req, res) => {
 
 
 const endLiveMeeting = asyncHandler(async (req, res) => {
-    const instructor = req.user
-    const { meetingId } = req.query
+   
+    const { meetingId, instructor } = req.query
 
     if (!meetingId) {
         return res.status(400).send({ status: true, message: 'Not a Valid Link ' })
     }
 
-    const liveSection = await LiveSection.findOne({ instructor: instructor._id, link: meetingId })
+    const liveSection = await LiveSection.findOne({ instructor , link: meetingId })
     if (!liveSection) {
         return res.status(400).send({ status: false, message: "LiveSection Not Found with this instructor for given meeting link" })
     }
