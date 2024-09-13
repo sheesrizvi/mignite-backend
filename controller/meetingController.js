@@ -4,7 +4,7 @@ const asyncHandler = require("express-async-handler")
 
 const startLiveMeeting = asyncHandler(async (req, res) => {
     
-    const { meetingId, instructor } = req.query
+    const { meetingId, instructor } = req.body
 
     if (!meetingId) {
         return res.status(400).send({ status: true, message: 'Not a Valid Link ' })
@@ -26,7 +26,7 @@ const startLiveMeeting = asyncHandler(async (req, res) => {
 
 const endLiveMeeting = asyncHandler(async (req, res) => {
    
-    const { meetingId, instructor } = req.query
+    const { meetingId, instructor } = req.body
 
     if (!meetingId) {
         return res.status(400).send({ status: true, message: 'Not a Valid Link ' })
