@@ -6,9 +6,9 @@ const router = express.Router();
 
 const multerS3 = require("multer-s3");
 
-const { admin, auth } = require("../middleware/authmiddleware");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { auth, admin } = require("../middleware/authMiddleware");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,

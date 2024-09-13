@@ -16,13 +16,12 @@ const livecourseSchema = mongoose.Schema(
       ref: "Instructor",
       req: true,
     },
-    // shortDescription: {
-    //   type: String,
-    //   required: true,
-    // },
     details: {
       type: String,
-      required: true,
+      // required: true,
+    },
+    image: {
+      type: String,
     },
     price: {
       type: Number,
@@ -30,7 +29,7 @@ const livecourseSchema = mongoose.Schema(
     },
     discount: {
       type: Number,
-      required: true,
+      // required: true,
     },
     description: {
       type: String,
@@ -52,12 +51,12 @@ const livecourseSchema = mongoose.Schema(
       type: Date,
       required: true,
     },
-   plan: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Plan'
-    }
-   ],
+    plan: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Plan'
+      }
+    ],
     liveSections: [
       {
         type: mongoose.Schema.Types.ObjectId,

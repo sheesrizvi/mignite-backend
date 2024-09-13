@@ -7,26 +7,26 @@ const schedule = require('node-schedule');
 const generateLiveStreamToken = asyncHandler(async (req, res) => {
   const { id } = req.query
   const streamToken = client.createToken(id)
-  return res.send({streamToken})  
+  return res.send({ streamToken })
 })
 
 
 const scheduleMeeting = asyncHandler(async (callId, startTime) => {
-    schedule.scheduleJob(startTime, () => {
-      startMeeting(callId);
-    });
-  })
+  schedule.scheduleJob(startTime, () => {
+    startMeeting(callId);
+  });
+})
 
 async function startMeeting(callId) {
-    const call = client.video.call('livestream', callId);
-  
-    await call.goLive({
-      start_hls: true,
-      start_recording: true
-    });
-    console.log('Meeting is now live!');
-    return true
-  }
+  const call = client.video.call('livestream', callId);
+
+  await call.goLive({
+    start_hls: true,
+    start_recording: true
+  });
+  console.log('Meeting is now live!');
+  return true
+}
 
 const endMeeting = asyncHandler(async (callId) => {
   const call = client.video.call('livestream', callId);
@@ -54,23 +54,23 @@ const createMeeting = asyncHandler(async (instructorId, time) => {
   const callId = 'meeting-id-' + Math.random().toString(36).slice(2, 11);
   const call = client.video.call('livestream', callId)
   const meetingData = await call.getOrCreate({
-        data: {
-         created_by_id: instructorId,
-         members: []
-        }
-      });
+    data: {
+      created_by_id: instructorId,
+      members: []
+    }
+  });
   scheduleMeeting(callId, time);
-  return {callId, meetingData}
+  return { callId, meetingData }
 
 })
 
 
 module.exports = {
-    createMeeting,
-    scheduleMeeting,
-    generateLiveStreamToken,
-    startMeeting,
-    endMeeting,
-    client
+  createMeeting,
+  scheduleMeeting,
+  generateLiveStreamToken,
+  startMeeting,
+  endMeeting,
+  client
 }
 
