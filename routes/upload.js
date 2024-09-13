@@ -6,7 +6,7 @@ const router = express.Router();
 
 const multerS3 = require("multer-s3");
 
-const { admin, auth } = require("../middleware/authmiddleware");
+const { isAdminorInstructor } = require("../middleware/authMiddleware.js");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
 
@@ -47,7 +47,7 @@ router.post("/uploadMultiple", upload.array("image", 150), async (req, res) => {
 
 router.post(
   "/uploadSingleImage",
-  auth,
+  isAdminorInstructor,
   upload.single("image"),
   async (req, res) => {
     const result = req.file;
@@ -56,7 +56,7 @@ router.post(
   }
 );
 
-router.delete("/deleteImage", admin, async (req, res) => {
+router.delete("/deleteImage", isAdminorInstructor, async (req, res) => {
   const image = req.query.image;
   // console.log(image);
 
