@@ -16,11 +16,10 @@ const createLiveSection = asyncHandler(async (req, res) => {
     type,
     srNumber,
     startTime,
-    endTime,
-    duration,
+    endTime
   } = req.body;
 
-  if(!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime || !duration) {
+  if(!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime ) {
     return res.status(400).send({status: true, message: "All Fields are required!"})
   }
   if(!instructor || !liveCourse) {
@@ -30,7 +29,17 @@ const createLiveSection = asyncHandler(async (req, res) => {
   if(!courseExistByInstructor) {
     return res.status(400).send({status: false, message: 'Course not exist by Instructor'})
   }
+  
+  const startMeetingTime = new Date(startTime);
+  const endMeetingTime = new Date(endTime);
+  if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
+    console.error("Invalid Time(s)");
+    return NaN;
+  }
 
+  const differenceInMilliseconds = endMeetingTime - startMeetingTime;
+  let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
+  durationInHours = durationInHours.toString()
   if (type == "live") {
 
     const {callId, meetingData} = await createMeeting(instructor._id, startTime)
@@ -43,7 +52,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
         link: callId,
         startTime,
         endTime,
-        duration,
+        duration: durationInHours,
         instructor: instructor._id
     });
 
@@ -135,8 +144,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
         type,
         srNumber,
         startTime,
-        endTime,
-        duration,
+        endTime
       } = req.body;
       const livesectionObj = await LiveSection.findById(sectionId)
       
@@ -154,6 +162,24 @@ const editLiveSection = asyncHandler(async (req, res) => {
         return res.status(400).send({status: false, message: 'Course not exist by Instructor'})
       }
 
+      let durationInHours
+
+      if(startTime || endTime) {
+
+         const startMeetingTime = new Date(startTime || livesectionObj.startTime);
+          const endMeetingTime = new Date(endTime || livesectionObj.endTime);
+          if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
+            console.error("Invalid Time(s)");
+            return NaN;
+          }
+
+          const differenceInMilliseconds = endMeetingTime - startMeetingTime;
+          durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
+          durationInHours = durationInHours.toString()
+              
+
+      }
+
       if(type === "live") {
 
         let updatedFields = {
@@ -164,7 +190,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
             srNumber: srNumber || livesectionObj.srNumber,
             startTime: startTime || livesectionObj.startTime,
             endTime: endTime || livesectionObj.endTime,
-            duration: duration || livesectionObj.duration,
+            duration: durationInHours || livesectionObj.duration,
           };
           if (startTime && startTime !== livesectionObj.startTime) {
             const { callId } = await createMeeting(instructor._id, startTime);
