@@ -4,6 +4,7 @@ const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
+ 
   const {
     name,
     category,
@@ -72,7 +73,7 @@ const getLiveCourses = asyncHandler(async (req, res) => {
 
 const deleteLiveCourse = asyncHandler(async (req, res) => {
   const { id } = req.query;
-  const instructor = req.user
+  const {instructor} = req.body
 
   const liveCourse = await LiveCourse.findById(id);
 
@@ -80,7 +81,7 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Live course not found");
   }
-  if (liveCourse.instructor.toString() !== instructor._id.toString()) {
+  if (liveCourse.instructor.toString() !== instructor?.toString()) {
     return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this course' })
   }
   if (liveCourse.liveSections.length !== 0) {
@@ -105,17 +106,18 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     liveSections,
+    instructor
   } = req.body;
-  const instructor = req.user
+  
   const liveCourse = await LiveCourse.findById(id);
 
   if (!liveCourse) {
     res.status(404);
     throw new Error("Live course not found");
   }
-
-  if (liveCourse.instructor.toString() !== instructor._id.toString()) {
-    return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this course' })
+  
+  if (liveCourse.instructor.toString() !== instructor?.toString()) {
+    return res.status(400).send({ status: false, message: 'Instructor not authorized to update this course' })
   }
   liveCourse.name = name || liveCourse.name;
   liveCourse.category = category || liveCourse.category;
@@ -128,7 +130,7 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   liveCourse.startDate = startDate || liveCourse.startDate;
   liveCourse.endDate = endDate || liveCourse.endDate;
   liveCourse.liveSections = liveSections || liveCourse.liveSections;
-  liveCourse.instructor = instructor._id || liveCourse.instructor
+  liveCourse.instructor = instructor || liveCourse.instructor
   const updatedLiveCourse = await liveCourse.save();
   res.json(updatedLiveCourse);
 });

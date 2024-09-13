@@ -5,7 +5,6 @@ const { Subscription } = require("../models/subscriptionModel")
 
 const createPlan = asyncHandler(async (req, res) => {
   const { name, price, durationInMonths, discount, features, courses } = req.body
-  console.log(req.body)
   if (!name || !price || !durationInMonths) {
 
     return res.status(400).send({ status: true, message: 'All Fields are req' })

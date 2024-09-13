@@ -25,10 +25,9 @@ const createLiveSection = asyncHandler(async (req, res) => {
   if (!instructor || !liveCourse) {
     return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
   }
-  const course = await LiveCourse.findById(liveCourse)
-  console.log(liveCourse)
-  console.log(course.instructor, instructor.id)
-  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor.id })
+  
+  
+  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor })
   if (!courseExistByInstructor) {
     return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
   }
@@ -43,11 +42,11 @@ const createLiveSection = asyncHandler(async (req, res) => {
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
   let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
   durationInHours = durationInHours.toString()
-  console.log(durationInHours)
+  
 
   if (type == "live") {
 
-    const { callId, meetingData } = await createMeeting(instructor.id, startTime)
+    const { callId, meetingData } = await createMeeting(instructor, startTime)
     const section = await LiveSection.create({
       liveCourse,
       name,
@@ -58,12 +57,12 @@ const createLiveSection = asyncHandler(async (req, res) => {
       startTime,
       endTime,
       duration: durationInHours,
-      instructor: instructor.id
+      instructor
     });
 
     if (section) {
       const updateCourse = await LiveCourse.findOneAndUpdate(
-        { _id: liveCourse, instructor: instructor.id },
+        { _id: liveCourse },
         { $push: { liveSections: section._id } }
       );
       res.status(201).json(section);
@@ -119,7 +118,7 @@ const getLiveSectionsByCourse = asyncHandler(async (req, res) => {
 
 const deleteLiveSection = asyncHandler(async (req, res) => {
   const { sectionId } = req.params
-  const instructor = req.user;
+  const { instructor } = req.body
   if (!sectionId) {
     return res.status(400).send({ status: false, message: 'Please provide sectionId' })
   }
@@ -127,7 +126,7 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
   if (!liveSectionDetails) {
     return res.status(400).send({ status: false, message: 'No Live Section Found ' })
   }
-  if (liveSectionDetails.instructor.toString() !== instructor.id.toString()) {
+  if (liveSectionDetails.instructor.toString() !== instructor?.toString()) {
     return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this section' })
   }
   await LiveSection.findByIdAndDelete(sectionId)
@@ -139,7 +138,7 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
 })
 
 const editLiveSection = asyncHandler(async (req, res) => {
-  const instructor = req.user;
+  
 
   const {
     sectionId,
@@ -151,6 +150,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
     startTime,
     endTime,
     duration,
+    instructor
   } = req.body;
   const livesectionObj = await LiveSection.findById(sectionId)
 
@@ -159,13 +159,9 @@ const editLiveSection = asyncHandler(async (req, res) => {
   }
 
 
-  if (livesectionObj.instructor.toString() !== instructor.id.toString()) {
-    return res.status(400).send({ status: false, message: 'Instructor not authorized to update this section' })
-  }
-
-  const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor: instructor.id })
-  if (!courseExistByInstructor) {
-    return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
+  const courseExist= await LiveCourse.findOne({ _id: liveCourse })
+  if (!courseExist) {
+    return res.status(400).send({ status: false, message: 'Course not exist' })
   }
 
   if (type === "live") {
@@ -179,9 +175,10 @@ const editLiveSection = asyncHandler(async (req, res) => {
       startTime: startTime || livesectionObj.startTime,
       endTime: endTime || livesectionObj.endTime,
       duration: duration || livesectionObj.duration,
+    
     };
     if (startTime && startTime !== livesectionObj.startTime) {
-      const { callId } = await createMeeting(instructor.id, startTime);
+      const { callId } = await createMeeting(instructor, startTime);
       updatedFields.link = callId;
     }
 
