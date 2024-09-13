@@ -133,10 +133,21 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   res.json(updatedLiveCourse);
 });
 
+const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
+  const {instructor} = req.query
+  const courses = await LiveCourse.find({instructor})
+  if(courses.length === 0) {
+    return res.status(400).send({status: true, message: "Courses not exist"})
+  }
+
+  res.status(200).send(courses)
+})
+
 module.exports = {
   createLiveCourse,
   getLiveCourses,
   getLiveCoursesByCategory,
   updateLiveCourse,
   deleteLiveCourse,
+  getLiveCoursesByInstructor
 };
