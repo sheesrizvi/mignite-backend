@@ -75,9 +75,34 @@ const isUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+const isAdminorInstructor = async (req, res, next) => {
+  try {
+    const token = req.header("x-auth-token");
+    if (!token) return res.status(403).send("Access denied. Login Required");
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded.type)
+    if(decoded.type === 'admin') {
+      
+      req.user = await Admin.findById(decoded.id);
+    } 
+    if(decoded.type === 'instructor') {
+      req.user = await Instructor.findById(decoded.id);
+    }
+    
+    if(!req.user) {
+      return res.status(400).send({status: false, message: 'Not authorized'})
+    }
+    next();
+  } catch (error) {
+    res.status(400).send("Invalid token");
+  }
+}
+
 module.exports = {
   admin,
   auth,
   instructor,
-  isUser
+  isUser,
+  isAdminorInstructor
 };

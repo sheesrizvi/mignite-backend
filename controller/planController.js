@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const { Plan } = require('../models/planModel')
 const LiveCourse = require('../models/liveCourseModel')
 const { Subscription } = require("../models/subscriptionModel")
+
 const createPlan = asyncHandler(async (req, res) => {
   const { name, price, durationInMonths, discount, features, courses } = req.body
   console.log(req.body)

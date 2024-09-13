@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const LiveCourse = require("../models/liveCourseModel");
 const { instructor } = require("../middleware/authMiddleware");
+const Category = require("../models/category");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
   const {
@@ -13,12 +14,9 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     batchSize,
     requirement,
     startDate,
-    endDate, image, instructor
+    endDate,
   } = req.body;
-
-  // console.log(req.body)
-
-
+  const instructor = req.user
   const liveCourse = await LiveCourse.create({
     name,
     category,
@@ -30,7 +28,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     requirement,
     startDate,
     endDate,
-    instructor: instructor._id, image
+    instructor: instructor._id,
   });
 
   if (liveCourse) {

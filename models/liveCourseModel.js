@@ -36,8 +36,7 @@ const livecourseSchema = mongoose.Schema(
       required: true,
     },
     batchSize: {
-      type: Boolean,
-      required: true,
+      type: Number,
     },
     requirement: {
       type: String,
