@@ -9,7 +9,7 @@ const multerS3 = require("multer-s3");
 
 const { S3Client } = require("@aws-sdk/client-s3");
 const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
-const { auth, admin, isAdminorInstructor } = require("../middleware/authMiddleware");
+const { auth, isAdminorInstructor } = require("../middleware/authMiddleware");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,

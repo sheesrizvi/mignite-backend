@@ -45,7 +45,7 @@ const getCategory = asyncHandler(async (req, res) => {
 });
 const deleteCategory = asyncHandler(async (req, res) => {
     
-    const subid = req.query.id;
+  const subid = req.query.id;
   const sub = await Category.findById(subid);
 
   const f1 = sub.image;

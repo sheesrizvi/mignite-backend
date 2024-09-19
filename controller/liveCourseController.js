@@ -81,6 +81,8 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Live course not found");
   }
+
+
   if (liveCourse.instructor.toString() !== instructor?.toString()) {
     return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this course' })
   }
@@ -91,6 +93,11 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     res.json({ message: "Live course deleted" });
   }
 });
+
+const deleteAllLiveCourses = asyncHandler(async (req, res) => {
+  const result = await LiveCourse.deleteMany({})
+  res.status(200).send(result)
+})
 
 const updateLiveCourse = asyncHandler(async (req, res) => {
   const id = req.params.id
@@ -151,5 +158,6 @@ module.exports = {
   getLiveCoursesByCategory,
   updateLiveCourse,
   deleteLiveCourse,
-  getLiveCoursesByInstructor
+  getLiveCoursesByInstructor,
+  deleteAllLiveCourses
 };
