@@ -44,6 +44,7 @@ const createCourse = asyncHandler(async (req, res) => {
   }
 });
 const getCoursesByCategory = asyncHandler(async (req, res) => {
+
   const { category } = req.query;
 
   const courses = await Course.find({ category: category }).populate({
@@ -54,6 +55,8 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor');
+
+
   if (courses) {
     res.status(201).json(courses);
   } else {
