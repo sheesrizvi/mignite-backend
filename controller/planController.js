@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const { Plan } = require('../models/planModel')
 const LiveCourse = require('../models/liveCourseModel')
 const { Subscription } = require("../models/subscriptionModel")
+const Course = require('../models/coursesModel')
 
 const createPlan = asyncHandler(async (req, res) => {
   const { name, price, durationInMonths, discount, features, courses } = req.body
@@ -10,13 +11,6 @@ const createPlan = asyncHandler(async (req, res) => {
     return res.status(400).send({ status: true, message: 'All Fields are req' })
   }
 
-
-  if (courses && courses.length > 0) {
-    const existingCourses = await LiveCourse.find({ _id: { $in: courses } });
-    if (existingCourses.length !== courses.length) {
-      return res.status(400).json({ status: false, message: 'One or more courses are invalid' });
-    }
-  }
 
   const newPlan = await Plan.create({
     name,
@@ -29,17 +23,28 @@ const createPlan = asyncHandler(async (req, res) => {
 
   if (!newPlan) { return res.status(400).send({ status: true, message: 'Unable to crete new Plan' }) }
   if (newPlan.courses && newPlan.courses.length > 0) {
-    for (const courseId of newPlan.courses) {
-      const liveCourse = await LiveCourse.findByIdAndUpdate(
-        courseId,
-        { $push: { plan: newPlan._id } },
-        { new: true }
-      );
+    const coursesFromCourseModel = await Course.find({ _id: { $in: newPlan.courses } })
+    const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: newPlan.courses } })
 
-      if (!liveCourse) {
-        console.error(`LiveCourse with ID ${courseId} not found`);
-      }
+    const coursesFromCourseModelId = coursesFromCourseModel.map((doc) => doc._id)
+    const coursesFromLiveCourseModelId = coursesFromLiveCourseModel.map((doc) => doc._id)
+
+    if(coursesFromCourseModelId.length > 0) {
+      coursesFromCourseModelId.forEach(async (courseId) => {
+        await Course.findByIdAndUpdate(courseId, {
+          $push: { plan: newPlan._id }
+        }, {new: true})
+      })
     }
+
+    if(coursesFromLiveCourseModelId.length > 0) {
+      coursesFromCourseModelId.forEach(async (courseId) => {
+        await LiveCourse.findByIdAndUpdate(courseId, {
+          $push: { plan: newPlan._id }
+        }, { new: true })
+      })
+    }
+    
   }
   res.status(201).send({ status: true, message: 'New Plan created successfully', plan: newPlan })
 })
@@ -59,7 +64,7 @@ const deletePlan = asyncHandler(async (req, res) => {
   if (subscriptions.length > 0) {
     return res.status(400).send({ status: false, message: 'Plan has some valid subscriptions, Cannot delete it first' })
   }
-
+  await Course.updateMany({ plan: planId}, { $pull: { plan: planId } })
   await LiveCourse.updateMany({ plan: planId }, { $pull: { plan: planId } });
   await Plan.findByIdAndDelete(planId)
   res.status(200).send({ status: true, message: 'Plan deleted successfully' })
@@ -87,29 +92,30 @@ const updatePlan = asyncHandler(async (req, res) => {
   planToUpdate.features = [...new Set([...planToUpdate.features || [], ...(features || [])])]
   planToUpdate.courses = [...new Set([...planToUpdate.courses || [], ...(courses || [])])];
 
-  if (!planToUpdate) {
-    return res.status(400).send({ status: true, message: 'Plan not found' })
-  }
+  await planToUpdate.save()
+  const newPlan = planToUpdate
 
-  planToUpdate.name = name || planToUpdate.name
-  planToUpdate.price = price || planToUpdate.price
-  planToUpdate.durationInMonhs = durationInMonhs || planToUpdate.durationInMonhs
-  planToUpdate.discount = discount || planToUpdate.discount
-  planToUpdate.features = [...new Set([...planToUpdate.features || [], ...(features || [])])]
-  planToUpdate.courses = [...new Set([...planToUpdate.courses || [], ...(courses || [])])];
+  if (newPlan.courses && newPlan.courses.length > 0) {
+    const coursesFromCourseModel = await Course.find({ _id: { $in: newPlan.courses } })
+    const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: newPlan.courses } })
 
+    const coursesFromCourseModelId = coursesFromCourseModel.map((doc) => doc._id)
+    const coursesFromLiveCourseModelId = coursesFromLiveCourseModel.map((doc) => doc._id)
 
-  if (courses && courses.length > 0) {
-    for (const courseId of courses) {
-      const updatedCourse = await LiveCourse.findByIdAndUpdate(
-        courseId,
-        { $push: { plan: planToUpdate._id } },
-        { new: true }
-      );
+    if(coursesFromCourseModelId.length > 0) {
+      coursesFromCourseModelId.forEach(async (courseId) => {
+        await Course.findByIdAndUpdate(courseId, {
+          $push: { plan: newPlan._id }
+        }, {new: true})
+      })
+    }
 
-      if (!updatedCourse) {
-        res.status(200).send({ status: false, message: 'LiveCourse with this course id not found' });
-      }
+    if(coursesFromLiveCourseModelId.length > 0) {
+      coursesFromCourseModelId.forEach(async (courseId) => {
+        await LiveCourse.findByIdAndUpdate(courseId, {
+          $push: { plan: newPlan._id }
+        }, { new: true })
+      })
     }
   }
 

@@ -35,6 +35,12 @@ const courseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    plan: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Plan'
+      }
+    ],
     sections: [
       {
         type: mongoose.Schema.Types.ObjectId,
