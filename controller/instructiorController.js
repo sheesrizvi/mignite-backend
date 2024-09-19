@@ -63,55 +63,9 @@ const registerInstructor = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Instruction Course Section Link Generation
-// @route   POST /api/instructor/createmeeting/:courseId
-//@access   Protected
 
-const courseMeetingLinkGenerate = asyncHandler(async (req, res) => {
-  try{
-    const now = new Date();
-    //const courseId  = req.params.courseId
-     const instructor = req.user
-    let {srNumber, name, type, time} = req.body
-    
-    if(!time) {
-      time = new Date(now.getTime() + 2 * 60 * 1000) // Adding for now will remove later just for testing time part 
-    }
-    if(!instructor){
-      return res.status(400).send({status: false, messsage: 'Not a Valid Instructor'})
-    }
-
-    const { callId , meetingData} = await createMeeting(instructor._id, time)
-    //const checkCouseExist = await LiveCourse.findById(courseId) 
-
-    // if(!checkCouseExist){
-    //   return res.status(404).send({status: false, message: 'No Such Courses Exist'})
-  
-    // }
-    
-    // let newLiveSection = new LiveSection({
-    //   liveCourse: courseId,
-    //   srNumber,
-    //   name,
-    //   type,
-    //   link: callId,
-    //   time
-    // })
-    // newLiveSection =await newLiveSection.save()
-
-    // await LiveCourse.findByIdAndUpdate(courseId, { $push: { liveSections: newLiveSection._id} })
-     return res.status(200).send({status: true, callId, meetingData})
-  }
- 
-
-  catch(e) {
-    console.log(e)
-    return res.status(400).send({message: e, status: false})
-  }
-})
 
 module.exports = {
   authInstructor,
   registerInstructor,
-  courseMeetingLinkGenerate
 };

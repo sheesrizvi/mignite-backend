@@ -5,24 +5,7 @@ const asyncHandler = require("express-async-handler");
 const Instructor = require("../models/instructorModel");
 const User = require("../models/userModel");
 
-const auth = asyncHandler(async (req, res, next) => {
 
-  try {
-    const token = req.header("x-auth-token");
-
-    if (!token) return res.status(403).send("Access denied. Login Required");
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded)
-    req.user = await Admin.findById(decoded.id);
-    if (!req.user) {
-      return res.status(400).send({ status: false, message: 'Not Authorized' })
-    }
-    next();
-  } catch (error) {
-    res.status(400).send("Invalid token");
-  }
-});
 
 const admin = asyncHandler(async (req, res, next) => {
   try {
@@ -101,7 +84,6 @@ const isAdminorInstructor = async (req, res, next) => {
 
 module.exports = {
   admin,
-  auth,
   instructor,
   isUser,
   isAdminorInstructor

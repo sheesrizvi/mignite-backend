@@ -5,8 +5,8 @@ const User = require("../models/userModel")
 const { Plan } = require('../models/planModel')
 
 const createSubscription = asyncHandler(async (req, res) => {
-    const userId = req.user._id
-    let { planId, duration, startDate, totalPriceFromClient } = req.body;
+   
+    let { planId, duration, startDate, totalPriceFromClient, userId } = req.body;
 
     const user = await User.findById(userId)
     if(!user) {
@@ -43,9 +43,9 @@ const createSubscription = asyncHandler(async (req, res) => {
 
 
 const editSubscription = asyncHandler(async (req, res) => {
-    const userId = req.user._id
-    const { subscriptionId, planId, duration, autoRenew, totalPrice, status } = req.body;
-  
+   
+    const { subscriptionId, planId, duration, autoRenew, totalPrice, status, userId } = req.body;
+    console.log(userId)
     const existingSubscription = await Subscription.findOne({user: userId, _id: subscriptionId})
     if (!existingSubscription) {
       return res.status(400).json({ status: false, message: 'Subscription not found' });
@@ -108,10 +108,9 @@ const editSubscription = asyncHandler(async (req, res) => {
 
 
 const deleteSubscription = asyncHandler(async (req, res) => {
-    const { id } = req.query;
-    const userId = req.user._id
+   
+    const { userId , id} = req.body
     try {
-        //const subscription = await Subscription.findById(id);
         const subscription = await Subscription.findOne({user: userId, _id: id})
         if (!subscription) {
             return res.status(404).json({ message: "Subscription not found" });

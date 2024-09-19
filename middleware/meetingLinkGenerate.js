@@ -1,12 +1,13 @@
 require('dotenv').config()
 const asyncHandler = require("express-async-handler");
-const { StreamClient } = require('@stream-io/node-sdk');
+const { StreamClient, StreamChat } = require('@stream-io/node-sdk');
 const client = new StreamClient(process.env.STREAM_SECRET_ACCESS_KEY, process.env.STREAM_SECRET_TOKEN);
 const schedule = require('node-schedule');
 
 const generateLiveStreamToken = asyncHandler(async (req, res) => {
   const { id } = req.query
-  const streamToken = client.createToken(id)
+ // const streamToken = client.createToken(id)
+  const streamToken = client.generateUserToken({ user_id:  id, validity_in_seconds: 60 * 60 })
   return res.send({ streamToken })
 })
 

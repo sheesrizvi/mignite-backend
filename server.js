@@ -52,16 +52,7 @@ mongoose
 
 const PORT = process.env.PORT || 8000;
 
-async function loadAndScheduleMeetings() {
-  const futureMeetings = await LiveSection.find({ time: { $gt: new Date() } });
-  futureMeetings.forEach(meeting => {
-    scheduleMeeting(meeting.link, meeting.time);
-  });
-}
 
-(async () => {
-  await loadAndScheduleMeetings();
-})();
 
 app.listen(PORT, () => {
   console.log(`Successfully served on port: ${PORT}.`);

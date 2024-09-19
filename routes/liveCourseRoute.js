@@ -6,8 +6,9 @@ const {
     updateLiveCourse,
     deleteLiveCourse,
     getLiveCoursesByInstructor,
+    deleteAllLiveCourses,
 } = require("../controller/liveCourseController");
-const { instructor } = require("../middleware/authMiddleware");
+const { instructor, admin } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 //need to create a middleware for admin and instructor both
@@ -17,5 +18,5 @@ router.route("/get-all").get(getLiveCourses);
 router.route("/by-category").get(getLiveCoursesByCategory);
 router.route("/by-instructor").get(getLiveCoursesByInstructor);
 router.route("/delete").delete(instructor, deleteLiveCourse);
-
+router.route("/delete-all").delete(admin, deleteAllLiveCourses)
 module.exports = router;
