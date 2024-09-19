@@ -2,10 +2,11 @@ const asyncHandler = require("express-async-handler");
 const LiveCourse = require("../models/liveCourseModel");
 const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
+const { Plan } = require("../models/planModel");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
  
-  const {
+  let {
     name,
     category,
     details,
@@ -16,10 +17,13 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     requirement,
     startDate,
     endDate, image,
-    instructor
+    instructor,
+    plan
   } = req.body;
 
-  // console.log(req.body)
+  if(plan) {
+    plan = Array.isArray(plan) ? plan : [plan];
+  }
 
 
   const liveCourse = await LiveCourse.create({
@@ -34,10 +38,20 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     instructor,
-    image
+    image,
+    plan
   });
 
   if (liveCourse) {
+
+    if(plan) {
+      for(const p of plan) {
+        await Plan.findByIdAndUpdate(p, {
+          $push : { courses: liveCourse._id }
+        }, { new: true })
+      }
+    }
+
     res.status(201).json(liveCourse);
   } else {
     res.status(400);
@@ -48,7 +62,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
 const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
   const { category } = req.query;
 
-  const liveCourses = await LiveCourse.find({ category }).populate('category liveSections');
+  const liveCourses = await LiveCourse.find({ category }).populate('category liveSections plan');
 
   if (liveCourses.length) {
     res.status(200).json(liveCourses);
@@ -60,7 +74,7 @@ const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
 
 
 const getLiveCourses = asyncHandler(async (req, res) => {
-  const liveCourses = await LiveCourse.find({}).populate('category liveSections')
+  const liveCourses = await LiveCourse.find({}).populate('category liveSections plan')
 
   if (liveCourses.length) {
     res.status(200).json(liveCourses);
@@ -90,6 +104,13 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Delete all sections first" });
   } else {
     await LiveCourse.deleteOne({ _id: id });
+    if(liveCourse.plan.length > 0) {
+      for(const p of liveCourse.plan) {
+        await Plan.findByIdAndUpdate(p, {
+          $pull: { courses: liveCourse._id }
+        })
+      }
+    }
     res.json({ message: "Live course deleted" });
   }
 });
@@ -101,7 +122,7 @@ const deleteAllLiveCourses = asyncHandler(async (req, res) => {
 
 const updateLiveCourse = asyncHandler(async (req, res) => {
   const id = req.params.id
-  const {
+  let {
     name,
     category,
     details,
@@ -113,7 +134,8 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
     startDate,
     endDate,
     liveSections,
-    instructor
+    instructor,
+    plan
   } = req.body;
   
   const liveCourse = await LiveCourse.findById(id);
@@ -138,7 +160,23 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   liveCourse.endDate = endDate || liveCourse.endDate;
   liveCourse.liveSections = liveSections || liveCourse.liveSections;
   liveCourse.instructor = instructor || liveCourse.instructor
+  let newPlans
+  if(plan) {
+    newPlans = Array.isArray(plan) ? plan : [plan];
+    if (liveCourse.plan) {
+      liveCourse.plan = [...new Set([...liveCourse.plan, ...newPlans])];
+    } else {
+     liveCourse.plan = newPlans
+    }
+   }
+   
   const updatedLiveCourse = await liveCourse.save();
+  for(const p of newPlans) {
+    await Plan.findByIdAndUpdate(p, {
+      $addToSet: { courses: liveCourse._id }
+    })
+  }
+
   res.json(updatedLiveCourse);
 });
 
