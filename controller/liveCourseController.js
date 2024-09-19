@@ -171,11 +171,14 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
    }
    
   const updatedLiveCourse = await liveCourse.save();
-  for(const p of newPlans) {
-    await Plan.findByIdAndUpdate(p, {
-      $addToSet: { courses: liveCourse._id }
-    })
+  if(newPlans) {
+    for(const p of newPlans) {
+      await Plan.findByIdAndUpdate(p, {
+        $addToSet: { courses: liveCourse._id }
+      })
+    }
   }
+  
 
   res.json(updatedLiveCourse);
 });

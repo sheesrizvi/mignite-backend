@@ -176,20 +176,25 @@ const updateCourse = asyncHandler(async (req, res) => {
     course.instructor = instructor || course.instructor;
     course.category = category || course.category;
     course.image = image ? image : course.image;
+    let newPlans
     if(plan) {
-      const newPlans = Array.isArray(plan) ? plan : [plan];
+      newPlans = Array.isArray(plan) ? plan : [plan];
       if (course.plan) {
         course.plan = [... new Set([...course.plan, ...newPlans])]
       } else {
        course.plan = newPlans
       }
-        for(const p of plan) {
-          await Plan.findByIdAndUpdate(p, {
-            $addToSet: { courses: course._id }
-          }, { new: true })
-        }
+        
      }
     const updatedCourse = await course.save();
+
+    if(newPlans) {
+      for(const p of plan) {
+        await Plan.findByIdAndUpdate(p, {
+          $addToSet: { courses: course._id }
+        }, { new: true })
+      }
+    }
     res.json(updatedCourse);
   } else {
     res.status(404);
