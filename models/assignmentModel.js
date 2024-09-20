@@ -26,6 +26,7 @@ const assignmentSchema = mongoose.Schema(
     questions: [
       {
         question_no: { type: String },
+        question_type: { type: String },
         question_text: {
           type: String,
           required: true,
