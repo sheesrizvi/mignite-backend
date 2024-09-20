@@ -103,20 +103,20 @@ const updatePlan = asyncHandler(async (req, res) => {
   await planToUpdate.save();
   
   if (courseIds.length > 0) {
-    courseIds.forEach(async (courseId) => {
+    for (const courseId of courseIds) {
       await Course.findByIdAndUpdate(courseId, {
         $addToSet: { plan: planToUpdate._id }
-      })
-    })
+      });
+    }
   }
 
 
   if (liveCourseIds.length > 0) {
-    liveCourseIds.forEach(async (courseId) => {
-      await LiveCourse.findByIdAndUpdate(courseId, {
+    for (const liveCourseId of liveCourseIds) {
+      await LiveCourse.findByIdAndUpdate(liveCourseId, {
         $addToSet: { plan: planToUpdate._id }
-      })
-    })
+      });
+    }
   }
 
   return res.status(200).send({ status: true, message: 'Plan updated successfully', planToUpdate });
