@@ -3,6 +3,7 @@ const Course = require("../models/coursesModel");
 const Section = require("../models/sectionModel");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { Plan } = require("../models/planModel");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -15,7 +16,7 @@ const config = {
 const s3 = new S3Client(config);
 
 const createCourse = asyncHandler(async (req, res) => {
-  const {
+  let {
     name,
     category,
     instructor,
@@ -24,7 +25,14 @@ const createCourse = asyncHandler(async (req, res) => {
     description,
     price,
     requirement,
+    plan
   } = req.body;
+
+
+  if (plan) {
+    plan = Array.isArray(plan) ? plan : [plan];
+  }
+
 
   const course = await Course.create({
     name,
@@ -35,8 +43,19 @@ const createCourse = asyncHandler(async (req, res) => {
     description,
     price,
     requirement,
+    plan
   });
   if (course) {
+    if (plan) {
+
+      for (const p of plan) {
+
+        await Plan.findByIdAndUpdate(p, {
+          $push: { courses: course._id }
+        }, { new: true })
+      }
+    }
+
     res.status(201).json(course);
   } else {
     res.status(404);
@@ -54,9 +73,8 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
-
-
+  }).populate('instructor')
+    .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -74,7 +92,8 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
+  }).populate('instructor')
+    .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -90,7 +109,8 @@ const getCourses = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
+  }).populate('instructor')
+    .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -122,13 +142,21 @@ const deleteCourse = asyncHandler(async (req, res) => {
       const response = await s3.send(command);
     }
     await Course.deleteOne({ _id: req.query.id });
-
+    if (sub.plan.length > 0) {
+      for (const p of sub.plan) {
+        await Plan.findByIdAndUpdate(p, {
+          $pull: { courses: sub._id }
+        })
+      }
+    }
     res.status(200).json("deleted");
   }
 
 });
+
 const updateCourse = asyncHandler(async (req, res) => {
-  const {
+
+  let {
     id,
     name,
     category,
@@ -138,18 +166,39 @@ const updateCourse = asyncHandler(async (req, res) => {
     description,
     price,
     requirement,
+    plan
   } = req.body;
-  const course = await Course.findById({ id });
+
+  const course = await Course.findById(id);
+
   if (course) {
-    course.name == name;
-    course.price == price;
-    course.requirement = requirement;
-    course.details == details;
-    course.description == description;
-    course.instructor == instructor;
-    course.category == category;
-    course.image == image ? image : course.image;
+    course.name = name || course.name;
+    course.price = price || course.price;
+    course.requirement = requirement || course.requirement;
+    course.details = details || course.details;
+    course.description = description || course.description;
+    course.instructor = instructor || course.instructor;
+    course.category = category || course.category;
+    course.image = image ? image : course.image;
+    let newPlans
+    if (plan) {
+      newPlans = Array.isArray(plan) ? plan : [plan];
+      if (course.plan) {
+        course.plan = [... new Set([...course.plan, ...newPlans])]
+      } else {
+        course.plan = newPlans
+      }
+
+    }
     const updatedCourse = await course.save();
+
+    if (newPlans) {
+      for (const p of plan) {
+        await Plan.findByIdAndUpdate(p, {
+          $addToSet: { courses: course._id }
+        }, { new: true })
+      }
+    }
     res.json(updatedCourse);
   } else {
     res.status(404);

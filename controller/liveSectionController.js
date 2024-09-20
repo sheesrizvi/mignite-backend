@@ -25,8 +25,8 @@ const createLiveSection = asyncHandler(async (req, res) => {
   if (!instructor || !liveCourse) {
     return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
   }
-  
-  
+
+
   const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor })
   if (!courseExistByInstructor) {
     return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
@@ -42,7 +42,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
   let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
   durationInHours = durationInHours.toString()
-  
+
 
   if (type == "live") {
 
@@ -138,7 +138,7 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
 })
 
 const editLiveSection = asyncHandler(async (req, res) => {
-  
+
 
   const {
     sectionId,
@@ -159,7 +159,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
   }
 
 
-  const courseExist= await LiveCourse.findOne({ _id: liveCourse })
+  const courseExist = await LiveCourse.findOne({ _id: liveCourse })
   if (!courseExist) {
     return res.status(400).send({ status: false, message: 'Course not exist' })
   }
@@ -175,7 +175,7 @@ const editLiveSection = asyncHandler(async (req, res) => {
       startTime: startTime || livesectionObj.startTime,
       endTime: endTime || livesectionObj.endTime,
       duration: duration || livesectionObj.duration,
-    
+
     };
     if (startTime && startTime !== livesectionObj.startTime) {
       const { callId } = await createMeeting(instructor, startTime);

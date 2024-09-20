@@ -25,11 +25,13 @@ const assignmentSchema = mongoose.Schema(
     },
     questions: [
       {
+        question_no: { type: String },
         question_text: {
           type: String,
           required: true,
         },
         Options: [{ type: String }],
+        topics: [{ type: String }],
         correct_answer: { type: String, required: true },
         hint: { type: String },
       },
