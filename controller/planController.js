@@ -5,21 +5,23 @@ const { Subscription } = require("../models/subscriptionModel")
 const Course = require('../models/coursesModel')
 
 const createPlan = asyncHandler(async (req, res) => {
-  const { name, price, durationInMonths, discount, features, courses } = req.body
-  if (!name || !price || !durationInMonths) {
+  const { name, price, durationInMonths, discount, features, courses } = req.body;
 
-    return res.status(400).send({ status: true, message: 'All Fields are req' })
+  if (!name || !price || !durationInMonths) {
+    return res.status(400).send({ status: true, message: 'All Fields are required' });
   }
-  let courseIds
-  let liveCourseIds
-  if(courses && courses.length > 0) {
+
+  let courseIds = [];
+  let liveCourseIds = [];
+
+  if (courses && courses.length > 0) {
     const coursesFromCourseModel = await Course.find({ _id: { $in: courses } });
     const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: courses } });
-  
+
     courseIds = coursesFromCourseModel.map((course) => course._id);
     liveCourseIds = coursesFromLiveCourseModel.map((liveCourse) => liveCourse._id);
-  
   }
+
   const newPlan = await Plan.create({
     name,
     price,
@@ -27,36 +29,27 @@ const createPlan = asyncHandler(async (req, res) => {
     discount,
     features,
     courses: courseIds,
-    liveCourses: liveCourseIds
-  })
+    liveCourses: liveCourseIds,
+  });
 
-  if (!newPlan) { return res.status(400).send({ status: true, message: 'Unable to crete new Plan' }) }
-  
-  if ((newPlan.courses && newPlan.courses.length > 0) || (newPlan.liveCourses && newPlan.liveCourses.length > 0)) {
-
-    if (newPlan.courses.length > 0) {
-      await Promise.all(newPlan.courses.map(async (courseId) => {
-        await Course.findByIdAndUpdate(courseId, {
-          $push: { plan: newPlan._id }
-        }, { new: true });
-      }));
-    }
-  
-    if (newPlan.liveCourses.length > 0) {
-      await Promise.all(newPlan.liveCourses.map(async (liveCourseId) => {
-        await LiveCourse.findByIdAndUpdate(liveCourseId, {
-          $push: { plan: newPlan._id }
-        }, { new: true });
-      }));
-    }
-  
-    res.status(200).send({ status: true, message: 'Plan created and courses updated successfully', plan: newPlan });
-  } else {
-    res.status(200).send({ status: true, message: 'Plan created successfully, but no courses to update', plan: newPlan });
+  if (!newPlan) {
+    return res.status(400).send({ status: true, message: 'Unable to create new Plan' });
   }
 
-  res.status(201).send({ status: true, message: 'New Plan created successfully', plan: newPlan })
-})
+  for (const courseId of courseIds) {
+    await Course.findByIdAndUpdate(courseId, {
+      $addToSet: { plan: newPlan._id }
+    });
+  }
+
+  for (const liveCourseId of liveCourseIds) {
+    await LiveCourse.findByIdAndUpdate(liveCourseId, {
+      $addToSet: { plan: newPlan._id }
+    });
+  }
+
+  return res.status(201).send({ status: true, message: 'New Plan created successfully', plan: newPlan });
+});
 
 const deletePlan = asyncHandler(async (req, res) => {
 
@@ -110,20 +103,20 @@ const updatePlan = asyncHandler(async (req, res) => {
   await planToUpdate.save();
   
   if (courseIds.length > 0) {
-    await Promise.all(courseIds.map(async (courseId) => {
+    courseIds.forEach(async (courseId) => {
       await Course.findByIdAndUpdate(courseId, {
-        $addToSet: { plan: planToUpdate._id } 
-      });
-    }));
+        $addToSet: { plan: planToUpdate._id }
+      })
+    })
   }
 
 
   if (liveCourseIds.length > 0) {
-    await Promise.all(liveCourseIds.map(async (liveCourseId) => {
-      await LiveCourse.findByIdAndUpdate(liveCourseId, {
-        $addToSet: { plan: planToUpdate._id } 
-      });
-    }));
+    liveCourseIds.forEach(async (courseId) => {
+      await LiveCourse.findByIdAndUpdate(courseId, {
+        $addToSet: { plan: planToUpdate._id }
+      })
+    })
   }
 
   return res.status(200).send({ status: true, message: 'Plan updated successfully', planToUpdate });
