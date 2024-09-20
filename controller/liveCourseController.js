@@ -47,7 +47,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     if(plan) {
       for(const p of plan) {
         await Plan.findByIdAndUpdate(p, {
-          $push : { courses: liveCourse._id }
+          $push : { liveCourses: liveCourse._id }
         }, { new: true })
       }
     }
@@ -107,7 +107,7 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     if(liveCourse.plan.length > 0) {
       for(const p of liveCourse.plan) {
         await Plan.findByIdAndUpdate(p, {
-          $pull: { courses: liveCourse._id }
+          $pull: { liveCourses: liveCourse._id }
         })
       }
     }
@@ -174,7 +174,7 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   if(newPlans) {
     for(const p of newPlans) {
       await Plan.findByIdAndUpdate(p, {
-        $addToSet: { courses: liveCourse._id }
+        $addToSet: { liveCourses: liveCourse._id }
       })
     }
   }
@@ -185,7 +185,7 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
 
 const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
   const {instructor} = req.query
-  const courses = await LiveCourse.find({instructor})
+  const courses = await LiveCourse.find({instructor}).populate('plan')
   if(courses.length === 0) {
     return res.status(400).send({status: true, message: "Courses not exist"})
   }

@@ -22,6 +22,12 @@ const planSchema = new mongoose.Schema({
     courses: [
         {
             type: mongoose.Schema.Types.ObjectId,
+            ref: 'Course'
+        }
+    ],
+    liveCourses: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'LiveCourse'
         }
     ],

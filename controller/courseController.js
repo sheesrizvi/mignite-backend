@@ -72,7 +72,8 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
+  }).populate('instructor')
+  .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -90,7 +91,8 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
+  }).populate('instructor')
+  .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -106,7 +108,8 @@ const getCourses = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor');
+  }).populate('instructor')
+  .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
