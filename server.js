@@ -20,7 +20,7 @@ const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
 const app = express();
-const source = process.env.MONGO_URI;
+const source = process.env.MONGO_URL;
 app.use(
   cors({
     origin: "*",

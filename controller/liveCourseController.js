@@ -3,6 +3,7 @@ const LiveCourse = require("../models/liveCourseModel");
 const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
 const { Plan } = require("../models/planModel");
+const Instructor = require("../models/instructorModel");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
  
@@ -43,6 +44,11 @@ const createLiveCourse = asyncHandler(async (req, res) => {
   });
 
   if (liveCourse) {
+   // Instructor LiveCourse Added
+
+   await Instructor.findByIdAndUpdate(instructor, {
+    $push: { livecourses: liveCourse._id }
+  }, {new: true})
 
     if(plan) {
       for(const p of plan) {
@@ -84,10 +90,111 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = Number(req.query.pageSize) || 2
+
+  const totalCourses = await LiveCourse.countDocuments({})
+  const pageCount = Math.ceil(totalCourses/pageSize)
+
+  const livecourses = await LiveCourse.find({})
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('liveSections')
+  .populate('instructor')
+  .populate('plan')
+  .populate('category')
+  if (livecourses) {
+    res.status(200).json({livecourses, pageCount});
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
+
+const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
+  const { instructor } = req.query;
+  
+  const pageNumber = parseInt(req.query.pageNumber) || 1
+  const pageSize = parseInt(req.query.pageSize) || 1;
+
+
+  const totalCourses = await LiveCourse.countDocuments({ instructor: instructor });
+  const pageCount = Math.ceil(totalCourses / pageSize);
+
+  const livecourses = await LiveCourse.find({ instructor: instructor })
+  .skip((pageNumber -1) * pageSize).limit(pageSize)
+  .populate('liveSections')
+  .populate('instructor')
+  .populate('plan')
+  .populate('category');
+  if (livecourses) {
+  res.status(200).json({livecourses, pageCount})
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+})
+
+
+const searchLiveCourse = asyncHandler(async (req, res) => {
+  const query = req.query.Query
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = 20;
+ 
+  const searchCriteria = {
+   $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
+  }
+  const totalCourses = await LiveCourse.countDocuments(searchCriteria)
+  const pageCount = Math.ceil(totalCourses/pageSize)
+  const livecourses = await LiveCourse.find(searchCriteria)
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('instructor')
+  .populate('plan')
+  .populate('category')
+ 
+  return res.status(200).send({status: true, message: 'Search Successfull', livecourses,  pageCount})
+})
+
+
+const searchLiveCoursesWithinInstructor = asyncHandler(async (req, res) => {
+ 
+  const query = req.query.Query;
+  const instructor = req.query.instructor
+  const pageNumber = Number(req.query.pageNumber) || 1;
+  const pageSize = Number(req.query.pageSize) || 1
+
+  
+
+  const searchCriteria = {
+    instructor: instructor,
+    $or: [
+      { name: { $regex: query, $options: 'i' } },
+      { details: { $regex: query, $options: 'i' } }
+    ]
+  }
+
+  const totalCourses = await LiveCourse.countDocuments(searchCriteria)
+  const pageCount = Math.ceil(totalCourses/pageSize)
+
+  const livecourses = await LiveCourse.find(searchCriteria)
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('liveSections')
+  .populate('plan')
+  .populate('instructor')
+  .populate('category')
+  console.log(livecourses)
+  res.status(200).send({ livecourses, pageCount })
+  
+})
 
 const deleteLiveCourse = asyncHandler(async (req, res) => {
+ 
   const { id } = req.query;
-  const {instructor} = req.body
+  const {instructor} = req.query
 
   const liveCourse = await LiveCourse.findById(id);
 
@@ -104,6 +211,11 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Delete all sections first" });
   } else {
     await LiveCourse.deleteOne({ _id: id });
+
+    await Instructor.findByIdAndUpdate(instructor, {
+      $pull: { livecourses: liveCourse._id }
+    }, {new: true})
+  
     if(liveCourse.plan.length > 0) {
       for(const p of liveCourse.plan) {
         await Plan.findByIdAndUpdate(p, {
@@ -196,9 +308,13 @@ const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
 module.exports = {
   createLiveCourse,
   getLiveCourses,
+  searchLiveCourse,
+  getAllLiveCoursesForAdmin,
   getLiveCoursesByCategory,
   updateLiveCourse,
   deleteLiveCourse,
   getLiveCoursesByInstructor,
-  deleteAllLiveCourses
+  deleteAllLiveCourses,
+  getAllLiveCoursesOfInstructorForAdmin,
+  searchLiveCoursesWithinInstructor
 };

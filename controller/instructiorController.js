@@ -63,9 +63,62 @@ const registerInstructor = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllInstructor = asyncHandler(async (req, res) => {
+  const pageNumber = parseInt(req.query.pageNumber) || 1
+  const pageSize = parseInt(req.query.pageSize) || 4;
+
+
+  const totalInstructors = await Instructor.countDocuments();
+  const pageCount = Math.ceil(totalInstructors / pageSize);
+
+  if (!req.query.pageNumber) {
+    const instructors = await Instructor.find({});
+    return res.status(200).json({
+      status: true,
+      message: 'All Instructors List',
+      instructors,
+      pageCount,
+    });
+  }
+
+  const instructors = await Instructor.find({}).skip((pageNumber -1) * pageSize).limit(pageSize)
+  if(instructors.length === 0) {
+    return res.status(400).send({success: false, message: 'Instructor Not Found'})
+  }
+
+  res.status(200).send({status: true, message: 'Instructor List', instructors, pageCount})
+})
+
+const fetchInstructorBySearch = asyncHandler(async (req, res) => {
+ const query = req.query.Query
+ const pageNumber = Number(req.query.pageNumber) || 1
+ const pageSize = 20;
+
+ const searchCriteria = {
+  $or: [ {name: { $regex: query, $options: 'i' }}, {email: { $regex: query, $options: 'i' }}]
+ }
+ const totalInstructors = await Instructor.countDocuments(searchCriteria)
+ const pageCount = Math.ceil(totalInstructors/pageSize)
+ const instructors = await Instructor.find(searchCriteria).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+ return res.status(200).send({status: true, message: 'Search Successfull', instructors,  pageCount})
+})
+
+const deleteInstructor = asyncHandler(async (req, res) => {
+  const id = req.query.id
+  const instructor = await Instructor.findById(id)
+  if(instructor.courses.length > 0) {
+    return res.status(400).send({success: false, message: "Delete courses first"})
+  }
+  await Instructor.findByIdAndDelete(id)
+  res.status(200).send({status: true, message: 'Instructor Deleted successfully'})
+})
 
 
 module.exports = {
   authInstructor,
   registerInstructor,
+  getAllInstructor,
+  fetchInstructorBySearch,
+  deleteInstructor
 };
