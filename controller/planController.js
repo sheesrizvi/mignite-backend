@@ -5,8 +5,8 @@ const { Subscription } = require("../models/subscriptionModel")
 const Course = require('../models/coursesModel')
 
 const createPlan = asyncHandler(async (req, res) => {
-  const { name, price, durationInMonths, discount, features, courses } = req.body;
-
+  const { name, price, durationInMonths, discount, features, courses, level } = req.body;
+  
   if (!name || !price || !durationInMonths) {
     return res.status(400).send({ status: true, message: 'All Fields are required' });
   }
@@ -14,7 +14,7 @@ const createPlan = asyncHandler(async (req, res) => {
   let courseIds = [];
   let liveCourseIds = [];
 
-  if (courses && courses.length > 0) {
+  if (courses && courses?.length > 0) {
     const coursesFromCourseModel = await Course.find({ _id: { $in: courses } });
     const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: courses } });
 
@@ -28,6 +28,7 @@ const createPlan = asyncHandler(async (req, res) => {
     durationInMonths,
     discount,
     features,
+    level,
     courses: courseIds,
     liveCourses: liveCourseIds,
   });
@@ -74,7 +75,7 @@ const deletePlan = asyncHandler(async (req, res) => {
 
 const updatePlan = asyncHandler(async (req, res) => {
   const { planId } = req.params;
-  const { name, price, durationInMonths, discount, features, courses } = req.body;
+  const { name, price, durationInMonths, discount, features, courses, level } = req.body;
 
   if (!planId) {
     return res.status(400).send({ status: false, message: 'Plan id is required' });
@@ -89,7 +90,10 @@ const updatePlan = asyncHandler(async (req, res) => {
   planToUpdate.price = price || planToUpdate.price;
   planToUpdate.durationInMonths = durationInMonths || planToUpdate.durationInMonths;
   planToUpdate.discount = discount || planToUpdate.discount;
+  planToUpdate.level = level || planToUpdate.level
   planToUpdate.features = [...new Set([...planToUpdate.features || [], ...(features || [])])];
+
+  
 
   const coursesFromCourseModel = await Course.find({ _id: { $in: courses } });
   const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: courses } });
@@ -117,7 +121,9 @@ const updatePlan = asyncHandler(async (req, res) => {
         $addToSet: { plan: planToUpdate._id }
       });
     }
-  }
+  
+}
+
 
   return res.status(200).send({ status: true, message: 'Plan updated successfully', planToUpdate });
 });
@@ -132,15 +138,17 @@ const getAllPlans = asyncHandler(async (req, res) => {
 
 const getSpecificPlan = asyncHandler(async (req, res) => {
   const { name, planId } = req.query
-  if (!name && !planId) {
+  if (!name && !planId ) {
     return res.status(400).send({ message: "Please provide either a name or planId" });
   }
   let query = {};
   if (name) {
     query.name = name;
-  } else if (planId) {
+  } 
+  if (planId) {
     query._id = planId;
   }
+ 
   const plan = await Plan.findOne(query).populate('courses').populate('liveCourses')
   if (!plan) {
     return res.status(400).send({ status: false, message: 'Plan not found' })
@@ -149,11 +157,28 @@ const getSpecificPlan = asyncHandler(async (req, res) => {
 
 })
 
+const getPlanByLevels = asyncHandler(async (req, res) => {
+  const { level } = req.query
+  if(!level) {
+    return res.status(400).send({status: false, message: 'Level not found in query params'})
+  }
+  if(level) {
+    const numericLevel = Number(level)
+    if(!Number.isNaN(numericLevel)) {
+     const plan = await Plan.find({level}).populate('courses').populate('liveCourses')
+     return res.status(200).send({status: true, plan})
+    } else {
+      res.status(400).send({status: false, message: 'Level not a numeric value'})
+    }
+  }
+
+})
 
 module.exports = {
   createPlan,
   deletePlan,
   updatePlan,
   getAllPlans,
+  getPlanByLevels,
   getSpecificPlan
 }

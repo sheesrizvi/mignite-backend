@@ -19,19 +19,19 @@ const createCategory = asyncHandler(async (req, res) => {
 
 const getCategoryByType = asyncHandler(async (req, res) => {
   const { type } = req.query;
-  
+
 
   if (typeof type !== 'string') {
     return res.status(400).json({ error: 'Invalid type format' });
-}
+  }
 
   const categories = await Category.find({ type });
-  
+
   if (categories.length > 0) {
     res.status(200).json(categories);
-} else {
+  } else {
     res.status(404).json({ error: 'Category not found' });
-}
+  }
 });
 
 const getCategory = asyncHandler(async (req, res) => {
@@ -44,7 +44,7 @@ const getCategory = asyncHandler(async (req, res) => {
   }
 });
 const deleteCategory = asyncHandler(async (req, res) => {
-    
+
   const subid = req.query.id;
   const sub = await Category.findById(subid);
 
@@ -65,16 +65,16 @@ const deleteCategory = asyncHandler(async (req, res) => {
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
-  const {id, name, type, image } = req.body;
+  const { id, name, type, image } = req.body;
 
-  const categories = await Category.find({_id: id});
-  
+  const categories = await Category.find({ _id: id });
+
   if (categories.length > 0) {
     categories[0].name = name;
     categories[0].type = type;
     categories[0].image = image ? image : categories[0].image;
     const updatedCategory = await categories[0].save();
-    
+
     res.json(updatedCategory);
   } else {
     res.status(404);
@@ -83,9 +83,9 @@ const updateCategory = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    createCategory,
-    getCategory,
-    getCategoryByType,
-    updateCategory,
-    deleteCategory
+  createCategory,
+  getCategory,
+  getCategoryByType,
+  updateCategory,
+  deleteCategory
 }

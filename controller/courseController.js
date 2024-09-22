@@ -31,7 +31,7 @@ const createCourse = asyncHandler(async (req, res) => {
   } = req.body;
 
 
-  if(plan) {
+  if (plan) {
     plan = Array.isArray(plan) ? plan : [plan];
   }
 
@@ -53,10 +53,10 @@ const createCourse = asyncHandler(async (req, res) => {
       $push: { courses: course._id }
     }, {new: true})
 
-    if(plan) {
-      
-      for(const p of plan) {
-      
+    if (plan) {
+
+      for (const p of plan) {
+
         await Plan.findByIdAndUpdate(p, {
           $push: { courses: course._id }
         }, { new: true })
@@ -70,6 +70,7 @@ const createCourse = asyncHandler(async (req, res) => {
   }
 });
 const getCoursesByCategory = asyncHandler(async (req, res) => {
+
   const { category } = req.query;
 
   const courses = await Course.find({ category: category }).populate({
@@ -80,7 +81,7 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
-  .populate('plan');
+    .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -150,7 +151,7 @@ const getCourses = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
-  .populate('plan');
+    .populate('plan');
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -300,7 +301,7 @@ const updateCourse = asyncHandler(async (req, res) => {
   } = req.body;
 
   const course = await Course.findById(id);
- 
+
   if (course) {
     course.name = name || course.name;
     course.price = price || course.price;
@@ -311,15 +312,15 @@ const updateCourse = asyncHandler(async (req, res) => {
     course.category = category || course.category;
     course.image = image ? image : course.image;
     let newPlans
-    if(plan) {
+    if (plan) {
       newPlans = Array.isArray(plan) ? plan : [plan];
       if (course.plan) {
         course.plan = [... new Set([...course.plan, ...newPlans])]
       } else {
-       course.plan = newPlans
+        course.plan = newPlans
       }
-        
-     }
+
+    }
     const updatedCourse = await course.save();
     if(newPlans) {
       for(const p of newPlans) {

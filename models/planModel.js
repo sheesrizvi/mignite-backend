@@ -19,6 +19,11 @@ const planSchema = new mongoose.Schema({
     discount: {
         type: Number
     },
+    level: {
+        type: Number,
+        required: true,
+        enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    },
     courses: [
         {
             type: mongoose.Schema.Types.ObjectId,
