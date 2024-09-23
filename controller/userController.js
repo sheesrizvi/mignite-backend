@@ -79,7 +79,24 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserDetails = asyncHandler(async (req, res) => {
+  const userId = req.query.userId
+  const user = await User.findById(userId).populate({
+                      path: 'purchasedCourses.course',
+                      model: 'Course'
+                     }).populate({
+                       path: 'purchasedCourses.livecourse',
+                       model: 'LiveCourse'
+                     }).populate('subscriptions')
+
+                     if (!user) {
+                      return res.status(404).json({ status: false, message: 'User not found' });
+                    }
+                    res.status(200).json({status: true, message: 'User Found', user});
+})
+
 module.exports = {
   authUser,
   registerUser,
+  getUserDetails
 };

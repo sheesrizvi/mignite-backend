@@ -62,6 +62,19 @@ const userSchema = mongoose.Schema(
       required: true,
       default: true,
     },
+    purchasedCourses: [
+      {
+        course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
+        livecourse: { type: mongoose.Schema.Types.ObjectId, ref: 'LiveCourse'},
+        startedAt: { type: Date, default: Date.now() },
+        expiresAt: { type: Date },
+        status: {
+          type: String,
+          enum: [ "Enrolled", "In Progress", "Completed", "Expired"],
+          default: 'Enrolled'
+        }
+      }
+    ],
     subscriptions: [
       {
         type: mongoose.Schema.Types.ObjectId,

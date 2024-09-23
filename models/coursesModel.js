@@ -35,6 +35,24 @@ const courseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    duration: {
+      type: Number,
+    },
+    durationType: {
+      type: String,
+      enum: ['months', 'year', 'lifetime'],
+      default: 'lifetime'
+    },
+    enrolledStudents: [
+      { 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    enrolledStudentsCount: {
+      type: Number,
+      default: 0
+    },
     plan: [
       {
         type: mongoose.Schema.Types.ObjectId,
