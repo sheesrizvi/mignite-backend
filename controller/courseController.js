@@ -31,8 +31,15 @@ const createCourse = asyncHandler(async (req, res) => {
   } = req.body;
 
 
-  if (plan) {
-    plan = Array.isArray(plan) ? plan : [plan];
+  // if (plan) {
+  //   plan = Array.isArray(plan) ? plan : [plan];
+  // }
+  let allPlanIds
+  if(plan) {
+    const coursePlan = await Plan.findById(plan)
+    const allPlans = await Plan.find({ level: { $gte: coursePlan.level  }})
+  
+    allPlanIds = allPlans.map(plan => plan._id)
   }
 
 
@@ -45,7 +52,7 @@ const createCourse = asyncHandler(async (req, res) => {
     description,
     price,
     requirement,
-    plan
+    plan: allPlanIds
   });
   if (course) {
 
@@ -53,9 +60,9 @@ const createCourse = asyncHandler(async (req, res) => {
       $push: { courses: course._id }
     }, {new: true})
 
-    if (plan) {
+    if (allPlanIds) {
 
-      for (const p of plan) {
+      for (const p of allPlanIds) {
 
         await Plan.findByIdAndUpdate(p, {
           $push: { courses: course._id }
@@ -312,13 +319,21 @@ const updateCourse = asyncHandler(async (req, res) => {
     course.category = category || course.category;
     course.image = image ? image : course.image;
     let newPlans
+  
     if (plan) {
-      newPlans = Array.isArray(plan) ? plan : [plan];
-      if (course.plan) {
-        course.plan = [... new Set([...course.plan, ...newPlans])]
-      } else {
-        course.plan = newPlans
-      }
+
+      const coursePlan = await Plan.findById(plan)
+      const allPlans = await Plan.find({ level: { $gte: coursePlan.level  }})
+    
+      newPlans = allPlans.map(plan => plan._id)
+      course.plan = newPlans
+
+      // newPlans = Array.isArray(plan) ? plan : [plan];
+      // if (course.plan) {
+      //   course.plan = [... new Set([...course.plan, ...newPlans])]
+      // } else {
+      //   course.plan = newPlans
+      // }
 
     }
     const updatedCourse = await course.save();
