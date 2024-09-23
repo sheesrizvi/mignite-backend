@@ -95,8 +95,32 @@ const getUserDetails = asyncHandler(async (req, res) => {
                     res.status(200).json({status: true, message: 'User Found', user});
 })
 
+const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
+  const userId = req.query.userId
+  const user = await User.findById(userId).populate({
+    path: 'purchasedCourses.course',
+    model: 'Course'
+   }).populate({
+     path: 'purchasedCourses.livecourse',
+     model: 'LiveCourse'
+   }).populate('subscriptions')
+
+   if (!user) {
+    return res.status(404).json({ status: false, message: 'User not found' });
+  }
+
+  const courses = user.purchasedCourses.filter(item => item.course).map(item => item.course)
+  const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse)
+  
+  const allCourses = [...courses, ...livecourses]
+  res.status(200).json({status: true, message: 'User Courses Found', courses, livecourses, allCourses});
+})
+
+
+
 module.exports = {
   authUser,
   registerUser,
-  getUserDetails
+  getUserDetails,
+  getCoursesBoughtByUser
 };

@@ -35,8 +35,10 @@ const createCourse = asyncHandler(async (req, res) => {
   //   plan = Array.isArray(plan) ? plan : [plan];
   // }
   let allPlanIds
+  
   if(plan) {
     const coursePlan = await Plan.findById(plan)
+   
     const allPlans = await Plan.find({ level: { $gte: coursePlan.level  }})
   
     allPlanIds = allPlans.map(plan => plan._id)

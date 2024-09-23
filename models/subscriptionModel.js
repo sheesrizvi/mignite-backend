@@ -6,10 +6,12 @@ const subscriptionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    plan: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Plan'
-    },
+    plan: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Plan'
+        }
+    ],
     duration: {
         type: Number,
         required: true

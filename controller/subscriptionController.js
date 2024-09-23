@@ -16,10 +16,11 @@ const createSubscription = asyncHandler(async (req, res) => {
     if (!plan) {
         return res.status(400).json({ status: true, message: 'Plan not found' });
     }
+
+    
     if(!userId || !planId || !duration || !startDate || !totalPriceFromClient) {
         return res.status(400).json({status: false, message: 'Mandatory Fields are required'})
     }
-
    
     let endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + duration);
