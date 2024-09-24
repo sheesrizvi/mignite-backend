@@ -6,21 +6,24 @@ const { Plan } = require('../models/planModel')
 
 const createSubscription = asyncHandler(async (req, res) => {
    
-    let { planId, duration, startDate, totalPriceFromClient, userId } = req.body;
+    let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount } = req.body;
 
     const user = await User.findById(userId)
+    
     if(!user) {
-        return res.status(400).send({status: false, message: 'User not exist '})
+        return res.status(400).send({status: false, message: 'User not exist'})
     }
     let plan = await Plan.findById(planId);
     if (!plan) {
         return res.status(400).json({ status: true, message: 'Plan not found' });
     }
 
+    const allPlans = await Plan.find({ level: { $gte: plan.level } })
+    const allPlanIds = allPlans.map(plan => plan._id)
     
-    if(!userId || !planId || !duration || !startDate || !totalPriceFromClient) {
-        return res.status(400).json({status: false, message: 'Mandatory Fields are required'})
-    }
+    // if(!userId || !planId || !duration || !startDate || !totalPriceFromClient) {
+    //     return res.status(400).json({status: false, message: 'Mandatory Fields are required'})
+    // }
    
     let endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + duration);
@@ -28,17 +31,68 @@ const createSubscription = asyncHandler(async (req, res) => {
    
     let subscription = new Subscription({
         user: userId,
-        plan: planId,
-        duration,
+        plan: allPlanIds,
         startDate,
         endDate,
-        totalPrice: totalPriceFromClient,
+        duration,
+        paymentStatus,
+        paymentMethod,
+        totalPrice,
+        discount
     });
+
+
+    let coursesInsidePlan = new Set()
+    let liveCoursesInsidePlan = new Set()
+    for(const p of allPlanIds) {
+        const plan = await Plan.findById(p)
+        plan.courses.forEach(course => coursesInsidePlan.add(course.toString()))
+        plan.liveCourses.forEach(liveCourse => liveCoursesInsidePlan.add(liveCourse.toString()))
+    }
+
+    coursesInsidePlan = Array.from(coursesInsidePlan)
+    liveCoursesInsidePlan = Array.from(liveCoursesInsidePlan)
+
+    subscription.coursesAssigned = coursesInsidePlan
+    subscription.liveCoursesAssigned = liveCoursesInsidePlan
+
+
+
     await subscription.save();
     const subscriptionId = subscription._id;
-    await User.findByIdAndUpdate(userId, { $push: { subscriptions: subscriptionId } });
 
-    res.status(201).json(subscription);
+    let subscribedCourses = [];
+    coursesInsidePlan.forEach(courseId => {
+        subscribedCourses.push({
+            course: courseId,
+            courseType: 'Course',
+            subscriptionId: subscriptionId,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            status: 'Enrolled'
+        })
+    })
+
+    liveCoursesInsidePlan.forEach(courseId => {
+        subscribedCourses.push({
+            course: courseId,
+            courseType: 'LiveCourse',
+            subscriptionId: subscriptionId,
+            startDate: subscription.startDate,
+            endDate: subscription.endDate,
+            status: 'Enrolled'
+        })
+    })
+    
+
+    await User.findByIdAndUpdate(userId,
+     {
+         $push: { subscriptions: subscriptionId } ,
+         $addToSet: { subscribedCourses: {  $each: subscribedCourses  } }    
+    }
+    );
+   
+    res.status(201).json({status: true, message: 'Subscription created Successfully', subscription});
 })
 
 
@@ -123,8 +177,12 @@ const deleteSubscription = asyncHandler(async (req, res) => {
 
         await Subscription.findByIdAndDelete(id);
 
-        await User.findByIdAndUpdate(userId, { $pull: { subscriptions: subscription._id } });
-
+        await User.findByIdAndUpdate(userId, { $pull:
+        { 
+            subscriptions: subscription._id ,
+            subscibedCourses: { subscriptionId: subscription._id }
+        } });
+        
         res.status(200).json({ message: "Subscription deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: "Error deleting subscription", error: err.message });

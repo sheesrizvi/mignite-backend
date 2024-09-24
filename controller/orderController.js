@@ -74,7 +74,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
             expiresAt = null
         } else {
             expiresAt = new Date()
-            expiresAt.setDate(now.getDate() + course.duration)
+            expiresAt.setMonth(now.getMonth() + course.duration)
         }
         
         

@@ -33,6 +33,30 @@ const subscriptionSchema = new mongoose.Schema({
         enum: ["active", "inactive", "cancelled", "expired"],
         default: "active"
     },
+    paymentStatus: {
+        type: String,
+        enum: ['pending', 'paid', 'failed'],
+        default: 'paid'
+    },
+    paymentMethod:{
+        type: String,
+        required: false
+    },
+    invoiceId: {
+        type: String
+    },
+    coursesAssigned: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course'
+      }],
+      liveCoursesAssigned: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LiveCourse'
+      }],
+      discount: {
+        type: Number,
+        default: 0
+      },
     autoRenew: { type: Boolean, default: true },
     trialPeriod: { type: Boolean, default: false },
 
