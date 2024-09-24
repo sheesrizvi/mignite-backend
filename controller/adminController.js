@@ -16,7 +16,7 @@ const authAdmin = asyncHandler(async (req, res) => {
       _id: admin._id,
       name: admin.name,
       email: admin.email,
-      token: generateTokenAdmin(admin._id, admin.name, admin.email, admin.type, admin.age),
+      token: generateTokenAdmin(admin._id, admin.name, admin.email, admin.age, admin.type),
     });
   } else {
     res.status(401);
@@ -37,19 +37,20 @@ const registerAdmin = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User already exists");
   }
-
+  
   const admin = await Admin.create({
     name,
     email,
     password,
+   
   });
-
+  console.log(admin.age)
   if (admin) {
     res.status(201).json({
       _id: admin._id,
       name: admin.name,
       email: admin.email,
-      token: generateTokenAdmin(admin._id, admin.name, admin.email, admin.type, admin.age),
+      token: generateTokenAdmin(admin._id, admin.name, admin.email,  admin.type),
     });
   } else {
     res.status(404);

@@ -14,7 +14,7 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateTokenUser(user._id, user.name, user.email, user.type, user.age),
+      token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
     });
   } else {
     res.status(401);
@@ -45,12 +45,12 @@ const registerUser = asyncHandler(async (req, res) => {
   } = req.body;
 
   const userExists = await User.findOne({ email });
-
+ 
   if (userExists) {
     res.status(404);
     throw new Error("User already exists");
   }
-console.log(age)
+
   const user = await User.create({
     name,
     email,
@@ -67,14 +67,14 @@ console.log(age)
     profile,
     pushToken,
   });
-
+  
   if (user) {
-    
+   const age = user.age
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateTokenUser(user._id, user.name, user.email, user.type, user.age),
+      token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
     });
   } else {
     res.status(404);

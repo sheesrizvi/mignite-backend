@@ -10,28 +10,29 @@ const generateTokenStream = (id) => {
   // );
 };
 
-const generateTokenAdmin = (id, name, email, type,age) => {
-  return jwt.sign({ id, name, email, type,age }, process.env.JWT_SECRET, {
+const generateTokenAdmin = (id, name, email, type) => {
+  return jwt.sign({ id, name, email, type }, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
 };
-const generateTokenUser = (id, name, email, shippingAddress, phone, age) => {
+const generateTokenUser = (id, name, email, age, type, shippingAddress) => {
+  
   return jwt.sign(
-    { id, name, email, shippingAddress, phone, age },
+    { id, name, email, age, type, shippingAddress },
     process.env.JWT_SECRET,
     {
       expiresIn: "1d",
     }
   );
 };
-const generateTokenInstructor = (id, name, email, type, age) => {
+const generateTokenInstructor = (id, name, email,  type) => {
   return jwt.sign(
     {
       id,
       name,
       email,
-      type,
-      age
+      age,
+      type
     },
     process.env.JWT_SECRET,
     {
