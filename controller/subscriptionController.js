@@ -37,7 +37,7 @@ const createSubscription = asyncHandler(async (req, res) => {
   
     
     await subscription.save();
-  
+    subscription = await Subscription.findById(subscription._id).populate('user').populate('plan')
     res.status(201).json({ status: true, message: 'Subscription created Successfully', subscription });
   });
   
