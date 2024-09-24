@@ -17,8 +17,12 @@ const createSubscription = asyncHandler(async (req, res) => {
     if (!plan) {
       return res.status(400).json({ status: false, message: 'Plan not found' });
     }
-  
-  
+    const existingSubscription = await Subscription.find({user: userId, status: "active"})
+    
+    if(existingSubscription.length > 0) {
+        return res.status(400).send({message: 'Subscription already exist', existingSubscription})
+    }
+    
     let endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + duration);
   
@@ -44,25 +48,34 @@ const createSubscription = asyncHandler(async (req, res) => {
 const editSubscription = asyncHandler(async (req, res) => {
     const { 
       subscriptionId, planId, duration, startDate, totalPrice, userId, 
-      paymentStatus, paymentMethod, discount, autoRenew, status 
+      paymentStatus, paymentMethod, discount, autoRenew, status , invoiceId
     } = req.body;
   
     if (!userId) {
       return res.status(400).json({ status: false, message: 'User ID is required' });
     }
   
-    const existingSubscription = await Subscription.findOne({ user: userId, _id: subscriptionId });
+    const existingSubscription = await Subscription.findOne({ user: userId, _id: subscriptionId, status: 'active' }).populate('plan');
     
     if (!existingSubscription) {
       return res.status(400).json({ status: false, message: 'Subscription not found' });
     }
-  
+    
+    
+
     if (planId && startDate && duration && totalPrice && paymentStatus && paymentMethod) {
       let plan = await Plan.findById(planId);
       if (!plan) {
         return res.status(400).json({ status: false, message: 'Plan not found' });
       }
   
+      if(existingSubscription.plan._id.toString() === planId.toString()) {
+        return res.status(400).send({status: false, message: 'Subscription with this Plan already exist'})
+    }
+
+     if(plan.level > existingSubscription.plan.level) {
+        return res.status(400).send({status: false, message: 'Plan level below current active plan'})
+     }
     
       let endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + duration);
