@@ -75,26 +75,7 @@ const userSchema = mongoose.Schema(
         }
       }
     ],
-    subscriptions: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subscription'
-      }
-    ],
-    subscribedCourses: [
-     {
-      course: {type: mongoose.Schema.Types.ObjectId, refPath: 'courseType'},
-      courseType: { type: String, enum: ['Course', 'LiveCourse'] },
-      startedAt: { type: Date, default: Date.now() },
-      expiresAt: { type: Date },
-      subscriptionId: {type: mongoose.Schema.Types.ObjectId, ref: 'Subscription'},
-      status: {
-        type: String,
-        enum: [ "Enrolled", "In Progress", "Completed", "Expired"],
-        default: 'Enrolled'
-      }
-     }
-    ]
+    
   },
   {
     timestamps: true,

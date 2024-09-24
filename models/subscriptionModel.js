@@ -6,12 +6,10 @@ const subscriptionSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    plan: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Plan'
-        }
-    ],
+    plan: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Plan'
+    },
     duration: {
         type: Number,
         required: true
@@ -45,14 +43,6 @@ const subscriptionSchema = new mongoose.Schema({
     invoiceId: {
         type: String
     },
-    coursesAssigned: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Course'
-      }],
-      liveCoursesAssigned: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'LiveCourse'
-      }],
       discount: {
         type: Number,
         default: 0

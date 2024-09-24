@@ -1,7 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const { generateTokenUser } = require("../utils/generateToken.js");
 const User = require("../models/userModel.js");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const { Subscription } = require("../models/subscriptionModel.js");
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -13,7 +14,7 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateTokenUser(user._id, user.name, user.email, user.type),
+      token: generateTokenUser(user._id, user.name, user.email, user.type, user.age),
     });
   } else {
     res.status(401);
@@ -49,7 +50,7 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("User already exists");
   }
-
+console.log(age)
   const user = await User.create({
     name,
     email,
@@ -68,11 +69,12 @@ const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateTokenUser(user._id, user.name, user.email, user.type),
+      token: generateTokenUser(user._id, user.name, user.email, user.type, user.age),
     });
   } else {
     res.status(404);
@@ -88,7 +90,7 @@ const getUserDetails = asyncHandler(async (req, res) => {
                      }).populate({
                        path: 'purchasedCourses.livecourse',
                        model: 'LiveCourse'
-                     }).populate('subscriptions')
+                     })
 
                      if (!user) {
                       return res.status(404).json({ status: false, message: 'User not found' });
@@ -113,7 +115,7 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
       { path: 'instructor', model: 'Instructor' }, 
       { path: 'liveSections', model: 'LiveSection' } 
     ]
-   }).populate('subscriptions')
+   })
 
    if (!user) {
     return res.status(404).json({ status: false, message: 'User not found' });
@@ -127,71 +129,19 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
   res.status(200).json({status: true, message: 'User Courses Found', courses, livecourses, allCourses});
 })
 
+const getSubscriptionByUser = asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+  const subscriptions = await Subscription.find({ user: userId })
+    .populate('user')
+    .populate('plan');
 
-
-const getSubscribedCourses = asyncHandler(async (req, res) => {
-  const userId = req.query.userId
-  const courseUser = await User.findById(userId).populate({
-    path: 'subscribedCourses.course',
-    model: 'Course',
-    populate: [
-      { path: 'instructor', model: 'Instructor' }, 
-      { path: 'sections', model: 'Section' }       
-    ]
-    
-  })
-  const liveCourseUser = await User.findById(userId).populate({
-    path: 'subscribedCourses.course',
-    model: 'LiveCourse',
-    populate: [
-      { path: 'instructor', model: 'Instructor' }, 
-      { path: 'liveSections', model: 'LiveSection' } 
-    ]
-  })
-
-  if (!courseUser || !liveCourseUser) {
-    return res.status(404).json({ status: false, message: 'User not found' });
-  } 
-   
-    
-    let subscribedCourses = courseUser.subscribedCourses
-    .filter(item => item.course && item.courseType === 'Course')
-    .map(item => ({
-      course: item.course,
-      startedAt: item.startedAt,
-      expiresAt: item.expiresAt,
-      subscriptionId: item.subscriptionId,
-      status: item.status,
-    }));
-
- 
-
-    const subscribedLiveCourses = liveCourseUser.subscribedCourses
-    .filter(item => item.course && item.courseType === 'LiveCourse')
-    .map(item => ({
-      course: item.course,
-      startedAt: item.startedAt,
-      expiresAt: item.expiresAt,
-      subscriptionId: item.subscriptionId,
-      status: item.status,
-    }));
-
-
-    const allSubscribedCourses = [...subscribedCourses, ...subscribedLiveCourses]
-    
-    res.status(200).json({
-      status: true,
-      message: 'Subscribed Courses Found',
-      subscribedCourses,
-      subscribedLiveCourses,
-      allSubscribedCourses
-  });
-})
+  res.status(200).json({status: true, subscriptions});
+});
 
 module.exports = {
   authUser,
   registerUser,
   getUserDetails,
   getCoursesBoughtByUser,
-  getSubscribedCourses
+  getSubscriptionByUser
 };

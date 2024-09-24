@@ -20,7 +20,7 @@ const authInstructor = asyncHandler(async (req, res) => {
       _id: instructor._id,
       name: instructor.name,
       email: instructor.email,
-      token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
+      token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type, instructor.age),
     });
   } else {
     res.status(401);
@@ -55,7 +55,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
         _id: instructor._id,
         name: instructor.name,
         email: instructor.email,
-        token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
+        token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type, instructor.age),
       });
   } else {
     res.status(404);
