@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const { generateTokenUser } = require("../utils/generateToken.js");
 const User = require("../models/userModel.js");
+const mongoose = require("mongoose")
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -95,6 +96,7 @@ const getUserDetails = asyncHandler(async (req, res) => {
                     res.status(200).json({status: true, message: 'User Found', user});
 })
 
+
 const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
   const userId = req.query.userId
   const user = await User.findById(userId).populate({
@@ -118,33 +120,41 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
   }
 
   const courses = user.purchasedCourses.filter(item => item.course).map(item => item.course)
+ 
   const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse)
-  
+
   const allCourses = [...courses, ...livecourses]
   res.status(200).json({status: true, message: 'User Courses Found', courses, livecourses, allCourses});
 })
+
 
 
 const getSubscribedCourses = asyncHandler(async (req, res) => {
   const userId = req.query.userId
   const courseUser = await User.findById(userId).populate({
     path: 'subscribedCourses.course',
-    model: 'Course'
+    model: 'Course',
+    populate: [
+      { path: 'instructor', model: 'Instructor' }, 
+      { path: 'sections', model: 'Section' }       
+    ]
+    
   })
   const liveCourseUser = await User.findById(userId).populate({
     path: 'subscribedCourses.course',
-    model: 'LiveCourse'
+    model: 'LiveCourse',
+    populate: [
+      { path: 'instructor', model: 'Instructor' }, 
+      { path: 'liveSections', model: 'LiveSection' } 
+    ]
   })
 
   if (!courseUser || !liveCourseUser) {
     return res.status(404).json({ status: false, message: 'User not found' });
   } 
    
-    const subscribedCourses = courseUser.subscribedCourses
-    .filter(item => item.course && item.courseType === 'Course')
-    .map(item => item.course);
     
-    const subscibedCoursesWithTimeDetails =courseUser.subscribedCourses
+    let subscribedCourses = courseUser.subscribedCourses
     .filter(item => item.course && item.courseType === 'Course')
     .map(item => ({
       course: item.course,
@@ -153,13 +163,11 @@ const getSubscribedCourses = asyncHandler(async (req, res) => {
       subscriptionId: item.subscriptionId,
       status: item.status,
     }));
+
+ 
 
     const subscribedLiveCourses = liveCourseUser.subscribedCourses
     .filter(item => item.course && item.courseType === 'LiveCourse')
-    .map(item => item.course);
-
-    const subscribedLiveCoursesWithTimeDetails = liveCourseUser.subscribedCourses
-    .filter(item => item.course && item.courseType === 'LiveCourse')
     .map(item => ({
       course: item.course,
       startedAt: item.startedAt,
@@ -168,16 +176,15 @@ const getSubscribedCourses = asyncHandler(async (req, res) => {
       status: item.status,
     }));
 
-    const allSubscribedCourses = [...subscribedCourses, ...subscribedLiveCourses];
-    const allSubscribedCoursesWithTimeDetails = [...subscibedCoursesWithTimeDetails, ...subscribedLiveCoursesWithTimeDetails]
+
+    const allSubscribedCourses = [...subscribedCourses, ...subscribedLiveCourses]
     
     res.status(200).json({
       status: true,
       message: 'Subscribed Courses Found',
-      
-      subscibedCoursesWithTimeDetails,
-      subscribedLiveCoursesWithTimeDetails,
-      allSubscribedCoursesWithTimeDetails
+      subscribedCourses,
+      subscribedLiveCourses,
+      allSubscribedCourses
   });
 })
 
