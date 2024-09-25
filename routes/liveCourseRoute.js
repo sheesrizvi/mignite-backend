@@ -10,7 +10,8 @@ const {
     getAllLiveCoursesForAdmin,
     searchLiveCourse,
     searchLiveCoursesWithinInstructor,
-    getAllLiveCoursesOfInstructorForAdmin
+    getAllLiveCoursesOfInstructorForAdmin,
+    getLiveCourseById
 } = require("../controller/liveCourseController");
 const { instructor, admin } = require("../middleware/authMiddleware.js");
 
@@ -21,6 +22,7 @@ router.route("/create").post(instructor, createLiveCourse);
 router.route("/update/:id").patch(instructor, updateLiveCourse);
 router.route("/get-all").get(getLiveCourses);
 router.route("/get-all-live-courses").get(getAllLiveCoursesForAdmin);
+router.route("/by-id").get(getLiveCourseById)
 router.route("/search-live-courses").get(searchLiveCourse)
 router.route("/by-instructor-for-admin").get(getAllLiveCoursesOfInstructorForAdmin);
 router.route("/search-by-instructor-for-admin").get(searchLiveCoursesWithinInstructor)

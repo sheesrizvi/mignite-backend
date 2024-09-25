@@ -93,6 +93,19 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   }
 });
 
+const getLiveCourseById = asyncHandler(async (req, res) => {
+  const id = req.query.courseId
+  const liveCourse = await LiveCourse.findById(id).populate('category liveSections plan')
+
+  if (liveCourse) {
+    res.status(200).json({status: true, liveCourse});
+  } else {
+    res.status(404);
+    throw new Error("No live courses available");
+  }
+});
+
+
 const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
   const pageSize = Number(req.query.pageSize) || 2
@@ -324,6 +337,8 @@ module.exports = {
   deleteLiveCourse,
   getLiveCoursesByInstructor,
   deleteAllLiveCourses,
+  getLiveCourseById,
+  getLiveCourseById,
   getAllLiveCoursesOfInstructorForAdmin,
   searchLiveCoursesWithinInstructor
 };

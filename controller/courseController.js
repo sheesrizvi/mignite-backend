@@ -169,6 +169,25 @@ const getCourses = asyncHandler(async (req, res) => {
   }
 });
 
+const getCourseById = asyncHandler(async (req, res) => {
+  const id = req.query.courseId
+  const course = await Course.findById(id).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('plan');
+  if (course) {
+    res.status(200).json({status: true, course});
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+})
+
 const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
   const pageSize = Number(req.query.pageSize) || 2
@@ -364,5 +383,6 @@ module.exports = {
   getAllCoursesOfInstructorForAdmin,
   searchCoursesWithinInstructor,
   searchCourses,
-  getAllCoursesForAdmin
+  getAllCoursesForAdmin,
+  getCourseById
 };
