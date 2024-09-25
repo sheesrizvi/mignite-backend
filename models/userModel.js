@@ -62,6 +62,10 @@ const userSchema = mongoose.Schema(
       required: true,
       default: true,
     },
+    type: {
+      type: String,
+      default: 'user'
+    },
     purchasedCourses: [
       {
         course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },

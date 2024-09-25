@@ -31,7 +31,6 @@ const generateTokenInstructor = (id, name, email,  type) => {
       id,
       name,
       email,
-      age,
       type
     },
     process.env.JWT_SECRET,
