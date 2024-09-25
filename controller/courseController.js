@@ -259,7 +259,7 @@ const searchCourses = asyncHandler(async (req, res) => {
   const query = req.query.Query
   const pageNumber = Number(req.query.pageNumber) || 1
   const pageSize = 20;
- 
+  
   const searchCriteria = {
    $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
   }

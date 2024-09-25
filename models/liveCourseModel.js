@@ -67,6 +67,18 @@ const livecourseSchema = mongoose.Schema(
       type: Number,
       default: 0
     },
+    averageRating: { 
+      type: Number, 
+      default: 0
+     },
+    totalReviews: {
+       type: Number, 
+       default: 0 
+      },
+      reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Review'
+      }],
     plan: [
       {
         type: mongoose.Schema.Types.ObjectId,

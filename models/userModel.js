@@ -66,6 +66,8 @@ const userSchema = mongoose.Schema(
       type: String,
       default: 'user'
     },
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+    
     purchasedCourses: [
       {
         course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
