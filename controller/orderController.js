@@ -70,7 +70,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
             await course.save();
         }
         let expiresAt;
-        if(course.durationType === "lifetime") {
+        if(course?.durationType === "lifetime") {
             expiresAt = null
         } else {
             expiresAt = new Date()
