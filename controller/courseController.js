@@ -26,6 +26,7 @@ const createCourse = asyncHandler(async (req, res) => {
     details,
     description,
     price,
+    discount,
     requirement,
     plan
   } = req.body;
@@ -53,6 +54,7 @@ const createCourse = asyncHandler(async (req, res) => {
     details,
     description,
     price,
+    discount,
     requirement,
     plan: allPlanIds
   });
@@ -78,6 +80,7 @@ const createCourse = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
 const getCoursesByCategory = asyncHandler(async (req, res) => {
 
   const { category } = req.query;
@@ -90,7 +93,16 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
-    .populate('plan');
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+    
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -98,6 +110,8 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
+
 const getCoursesByInstructor = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
   
@@ -112,7 +126,16 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
   })
   .populate('instructor')
   .populate('plan')
-  .populate('category');
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
+  ;
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -142,7 +165,16 @@ const getAllCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   .skip((pageNumber -1) * pageSize).limit(pageSize)
   .populate('instructor')
   .populate('plan')
-  .populate('category');
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
+  ;
   if (courses) {
   res.status(200).json({courses, pageCount})
   } else {
@@ -160,7 +192,16 @@ const getCourses = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
-    .populate('plan');
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+    ;
   if (courses) {
     res.status(201).json(courses);
   } else {
@@ -179,7 +220,16 @@ const getCourseById = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
-    .populate('plan');
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+    ;
   if (course) {
     res.status(200).json({status: true, course});
   } else {
@@ -208,6 +258,14 @@ const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
   .populate('instructor')
   .populate('plan')
   .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
   if (courses) {
     res.status(200).json({courses, pageCount});
   } else {
@@ -271,6 +329,14 @@ const searchCourses = asyncHandler(async (req, res) => {
   .populate('instructor')
   .populate('plan')
   .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
   return res.status(200).send({status: true, message: 'Search Successfull', courses,  pageCount})
 })
 
@@ -324,6 +390,7 @@ const updateCourse = asyncHandler(async (req, res) => {
     details,
     description,
     price,
+    discount,
     requirement,
     plan
   } = req.body;
@@ -339,6 +406,7 @@ const updateCourse = asyncHandler(async (req, res) => {
     course.instructor = instructor || course.instructor;
     course.category = category || course.category;
     course.image = image ? image : course.image;
+    course.discount = discount || course.discount
     let newPlans
   
     if (plan) {

@@ -95,7 +95,15 @@ const getLiveCourses = asyncHandler(async (req, res) => {
 
 const getLiveCourseById = asyncHandler(async (req, res) => {
   const id = req.query.courseId
-  const liveCourse = await LiveCourse.findById(id).populate('category liveSections plan')
+  const liveCourse = await LiveCourse.findById(id).populate('category instructor liveSections plan').populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
+
 
   if (liveCourse) {
     res.status(200).json({status: true, liveCourse});
@@ -120,6 +128,14 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   .populate('instructor')
   .populate('plan')
   .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
   if (livecourses) {
     res.status(200).json({livecourses, pageCount});
   } else {
@@ -144,7 +160,15 @@ const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   .populate('liveSections')
   .populate('instructor')
   .populate('plan')
-  .populate('category');
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
   if (livecourses) {
   res.status(200).json({livecourses, pageCount})
   } else {
@@ -170,6 +194,14 @@ const searchLiveCourse = asyncHandler(async (req, res) => {
   .populate('instructor')
   .populate('plan')
   .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
  
   return res.status(200).send({status: true, message: 'Search Successfull', livecourses,  pageCount})
 })
@@ -202,7 +234,14 @@ const searchLiveCoursesWithinInstructor = asyncHandler(async (req, res) => {
   .populate('plan')
   .populate('instructor')
   .populate('category')
-  console.log(livecourses)
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
   res.status(200).send({ livecourses, pageCount })
   
 })
@@ -337,7 +376,6 @@ module.exports = {
   deleteLiveCourse,
   getLiveCoursesByInstructor,
   deleteAllLiveCourses,
-  getLiveCourseById,
   getLiveCourseById,
   getAllLiveCoursesOfInstructorForAdmin,
   searchLiveCoursesWithinInstructor

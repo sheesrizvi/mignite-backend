@@ -37,6 +37,10 @@ const courseSchema = mongoose.Schema(
     duration: {
       type: Number,
     },
+    discount: {
+      type: Number,
+      required: false
+    },
     durationType: {
       type: String,
       enum: ['months', 'year', 'lifetime'],
@@ -60,6 +64,7 @@ const courseSchema = mongoose.Schema(
        type: Number, 
        default: 0 
       },
+      
       reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'

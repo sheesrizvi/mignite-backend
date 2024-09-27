@@ -16,6 +16,10 @@ const livecourseSchema = mongoose.Schema(
       ref: "Instructor",
       req: true,
     },
+    discount: {
+      type: Number,
+      required: false
+    },
     details: {
       type: String,
       // required: true,

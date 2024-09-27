@@ -49,6 +49,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         deliveryStatus: "Enrolled", 
         totalPrice: totalPrice,
         invoiceId,
+        discountedValue,
         notes,
         isPaid: true,  
       });
