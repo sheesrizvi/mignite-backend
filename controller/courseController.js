@@ -337,6 +337,7 @@ const searchCourses = asyncHandler(async (req, res) => {
       model: 'User'
     }
   })
+  
   return res.status(200).send({status: true, message: 'Search Successfull', courses,  pageCount})
 })
 
