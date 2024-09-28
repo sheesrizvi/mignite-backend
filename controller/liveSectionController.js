@@ -39,7 +39,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
   const endMeetingTime = new Date(endTime);
   if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
     console.error("Invalid Time(s)");
-    return NaN;
+    throw new Error("Invalid Time")
   }
 
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
@@ -152,7 +152,10 @@ const editLiveSection = asyncHandler(async (req, res) => {
     startTime,
     endTime,
     duration,
-    instructor
+    instructor,
+    level,
+    number,
+    questions
   } = req.body;
   const livesectionObj = await LiveSection.findById(sectionId)
 
@@ -191,7 +194,35 @@ const editLiveSection = asyncHandler(async (req, res) => {
     } else {
       res.status(500).send({ status: false, message: "Error updating section" });
     }
+  } else if (type === "assignment") {
+    const assignment = await Assignment.findById(livesectionObj.assignment);
+    if (!assignment) {
+      return res.status(404).send({ status: false, message: 'Assignment not found' });
+    }
+    
+    assignment.name = name || assignment.name;
+    assignment.level = level || assignment.level;
+    assignment.number = number || assignment.number;
+    assignment.questions = questions || assignment.questions;
+    await assignment.save();
+
+    let updatedFields = {
+      liveCourse: liveCourse || livesectionObj.liveCourse,
+      name: name || livesectionObj.name,
+      description: description || livesectionObj.description,
+      type: type || livesectionObj.type,
+      srNumber: srNumber || livesectionObj.srNumber,
+    };
+
+    section = await LiveSection.findByIdAndUpdate(sectionId, updatedFields, { new: true });
+
+    if (section) {
+      res.status(200).send({ status: true, message: "Section updated", section });
+    } else {
+      res.status(500).send({ status: false, message: "Error updating section" });
+    }
   }
+
 
 })
 

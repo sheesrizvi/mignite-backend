@@ -39,7 +39,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
 
   if (userExists) {
     res.status(404);
-    throw new Error("User already exists");
+    throw new Error("Instructor already exists");
   }
 
   const instructor = await Instructor.create({
@@ -60,9 +60,46 @@ const registerInstructor = asyncHandler(async (req, res) => {
       });
   } else {
     res.status(404);
-    throw new Error("Invalid user data");
+    throw new Error("Invalid instructor data");
   }
 });
+
+
+const updateInstructor = asyncHandler(async (req, res) => {
+  const { instructorId, name, email, description, phone } = req.body;
+
+  const instructor = await Instructor.findById(instructorId);
+
+  if (!instructor) {
+    return res.status(404).send({ status: false, message: 'Instructor not found' });
+  }
+
+  if (email && email !== instructor.email) {
+    const userExists = await Instructor.findOne({ email });
+    if (userExists) {
+      return res.status(400).send({ status: false, message: 'Email already exists' });
+    }
+  }
+
+  instructor.name = name || instructor.name;
+  instructor.email = email || instructor.email;
+  instructor.description = description || instructor.description;
+  instructor.phone = phone || instructor.phone;
+  instructor.active = active || instructor.active
+  const updatedInstructor = await instructor.save();
+
+  if (updatedInstructor) {
+    res.status(200).json({
+      _id: updatedInstructor._id,
+      name: updatedInstructor.name,
+      email: updatedInstructor.email,
+      token: generateTokenInstructor(updatedInstructor._id, updatedInstructor.name, updatedInstructor.email, updatedInstructor.type),
+    });
+  } else {
+    res.status(500).send({ status: false, message: 'Error updating instructor' });
+  }
+});
+
 
 const getAllInstructor = asyncHandler(async (req, res) => {
   const pageNumber = parseInt(req.query.pageNumber) || 1
@@ -121,5 +158,6 @@ module.exports = {
   registerInstructor,
   getAllInstructor,
   fetchInstructorBySearch,
-  deleteInstructor
+  deleteInstructor,
+  updateInstructor
 };

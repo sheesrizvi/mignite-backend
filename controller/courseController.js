@@ -6,6 +6,8 @@ const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { Plan } = require("../models/planModel");
 const Instructor = require("../models/instructorModel");
 const { instructor } = require("../middleware/authMiddleware");
+const Category = require("../models/category");
+const LiveCourse = require("../models/liveCourseModel");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -313,6 +315,8 @@ const searchCoursesWithinInstructor = asyncHandler(async (req, res) => {
   
 })
 
+
+
 const searchCourses = asyncHandler(async (req, res) => {
   const query = req.query.Query
   const pageNumber = Number(req.query.pageNumber) || 1
@@ -442,6 +446,140 @@ const updateCourse = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllCoursesByType = asyncHandler(async (req, res) => {
+  const { type } = req.query
+
+  const categories = await Category.find({ type });
+ 
+  
+  if (!categories.length) {
+    return res.status(400).send({ status: false, message: 'No categories found' });
+  }
+  const categoryIds = categories.map(category => category._id);
+  
+
+
+  const courses = await Course.find({ category: { $in: categoryIds } }).populate({
+    path: "sections",
+    model: 'Section',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+  const livecourses = await LiveCourse.find({ category: { $in: categoryIds } }).populate({
+    path: "liveSections",
+    model: 'LiveSection',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+
+  const allCourses = [...courses, ...livecourses]
+  res.status(200).send({status: true, courses, livecourses, allCourses})
+
+})
+
+
+const searchAllCourses = asyncHandler(async (req, res) => {
+  const query = req.query.Query?.trim();
+  const pageNumber = Number(req.query.pageNumber) || 1;
+  const pageSize = 20;
+
+  if (!query) {
+    return res.status(400).send({ status: false, message: 'Query cannot be empty.' });
+  }
+  
+  const searchCriteria = {
+    $or: [
+      { name: { $regex: query, $options: 'i' } },
+      { details: { $regex: query, $options: 'i' } }
+    ]
+  };
+
+  const totalCourses = await Course.countDocuments(searchCriteria);
+  const courses = await Course.find(searchCriteria)
+    .skip((pageNumber - 1) * pageSize)
+    .limit(pageSize)
+    .populate({
+      path: "sections",
+      model: 'Section',
+      populate: [
+        {
+          path: "assignment",
+        },
+      ],
+    }).populate('instructor')
+      .populate('plan')
+      .populate({
+        path: 'reviews',
+        model: 'Review',
+        populate: {
+          path: 'user',
+          model: 'User'
+        }
+      })
+    
+
+  const totalLiveCourses = await LiveCourse.countDocuments(searchCriteria);
+  const liveCourses = await LiveCourse.find(searchCriteria)
+    .skip((pageNumber - 1) * pageSize)
+    .limit(pageSize)
+    .populate({
+      path: "liveSections",
+      model: 'LiveSection',
+      populate: [
+        {
+          path: "assignment",
+        },
+      ],
+    }).populate('instructor')
+      .populate('plan')
+      .populate({
+        path: 'reviews',
+        model: 'Review',
+        populate: {
+          path: 'user',
+          model: 'User'
+        }
+      })
+  
+
+  const allCourses = [...courses, ...liveCourses];
+  const totalCoursesCount = totalCourses + totalLiveCourses;
+  const pageCount = Math.ceil(totalCoursesCount / pageSize);
+
+  return res.status(200).send({
+    status: true,
+    message: 'Search Successful',
+    courses,
+    liveCourses,
+    allCourses,
+    pageCount
+  });
+});
+
 module.exports = {
   createCourse,
   getCourses,
@@ -453,5 +591,7 @@ module.exports = {
   searchCoursesWithinInstructor,
   searchCourses,
   getAllCoursesForAdmin,
-  getCourseById
+  getCourseById,
+  getAllCoursesByType,
+  searchAllCourses
 };

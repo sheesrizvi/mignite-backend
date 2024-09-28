@@ -26,7 +26,7 @@ const instructorSchema = mongoose.Schema(
     active: {
       type: Boolean,
       required: true,
-      default: false
+      default: true
     },
     type: {
       type: String,

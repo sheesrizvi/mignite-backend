@@ -111,6 +111,7 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   const liveCourses = await LiveCourse.find({}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
+    model: 'LiveSection',
     populate: [
       {
         path: 'instructor',

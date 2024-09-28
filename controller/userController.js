@@ -3,6 +3,8 @@ const { generateTokenUser } = require("../utils/generateToken.js");
 const User = require("../models/userModel.js");
 const mongoose = require("mongoose");
 const { Subscription } = require("../models/subscriptionModel.js");
+const { sendResetEmail } = require("../middleware/handleEmail.js");
+
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -228,11 +230,28 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
   res.status(200).json({status: true, subscriptions});
 });
 
+const resetPassword = asyncHandler(async(req, res) => {
+  const {  email } = req.body
+  if(!email) {
+      return res.status(400).send({status:true, message: 'Email not Found'})
+  }
+  const existedUser = await User.findOne({email})
+  if(!existedUser) {
+      return res.status(400).send({status: false, message: 'Email not exist'})
+  }
+  
+  const randomPassword = await sendResetEmail()
+  existedUser.password = randomPassword
+  await existedUser.save()
+  res.status(200).send({status: true, message: 'Check Your Email for Password Reset'})
+})
+
 module.exports = {
   authUser,
   registerUser,
   getUserDetails,
   getCoursesBoughtByUser,
   getSubscriptionByUser,
-  updateUserProfile
+  updateUserProfile,
+  resetPassword
 };

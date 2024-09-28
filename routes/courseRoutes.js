@@ -11,6 +11,8 @@ const {
   searchCoursesWithinInstructor,
   searchCourses,
   getCourseById,
+  getAllCoursesByType,
+  searchAllCourses
 } = require("../controller/courseController");
 
 const router = express.Router();
@@ -26,7 +28,8 @@ router.route("/search-courses").get(searchCourses)
 router.route("/by-category").get(getCoursesByCategory);
 router.route("/by-instructor").get(getCoursesByInstructor);
 router.route("/delete").delete(deleteCourse);
-
+router.route("/get-courses-by-category-type").get(getAllCoursesByType)
+router.route("/search-all-courses").get(searchAllCourses)
 
 module.exports = router;
 

@@ -1,5 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Category = require("../models/category");
+const Course = require("../models/coursesModel");
+const LiveCourse = require("../models/liveCourseModel");
 
 const createCategory = asyncHandler(async (req, res) => {
   const { name, type, image } = req.body;
@@ -81,6 +83,10 @@ const updateCategory = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
+
+
+
 
 module.exports = {
   createCategory,
