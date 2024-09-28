@@ -468,6 +468,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
+    .populate('category')
     .populate('plan')
     .populate({
       path: 'reviews',
@@ -486,6 +487,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
       },
     ],
   }).populate('instructor')
+    .populate('category')
     .populate('plan')
     .populate({
       path: 'reviews',
@@ -531,6 +533,7 @@ const searchAllCourses = asyncHandler(async (req, res) => {
         },
       ],
     }).populate('instructor')
+      .populate('category')
       .populate('plan')
       .populate({
         path: 'reviews',
@@ -555,6 +558,7 @@ const searchAllCourses = asyncHandler(async (req, res) => {
         },
       ],
     }).populate('instructor')
+      .populate('category')
       .populate('plan')
       .populate({
         path: 'reviews',
