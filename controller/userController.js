@@ -82,6 +82,65 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    phone,
+    aboutme,
+    aspiration,
+    expectation,
+    age,
+    education,
+    address,
+    country,
+    gender,
+    profile,
+    pushToken,
+  } = req.body;
+
+  const userId = req.user._id;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const userExists = await User.findOne({ email });
+
+  if (userExists) {
+    res.status(400);
+    throw new Error("Email already in use");
+  }
+
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.password = password || user.password
+  user.phone = phone || user.phone;
+  user.aboutme = aboutme || user.aboutme;
+  user.aspiration = aspiration || user.aspiration;
+  user.expectation = expectation || user.expectation;
+  user.age = age || user.age;
+  user.education = education || user.education;
+  user.address = address || user.address;
+  user.country = country || user.country;
+  user.gender = gender || user.gender;
+  user.profile = profile || user.profile;
+  user.pushToken = pushToken || user.pushToken;
+
+  const updatedUser = await user.save();
+
+  res.status(200).json({
+    user: updatedUser,
+    token: generateTokenUser(updatedUser._id, updatedUser.name, updatedUser.email, updatedUser.age, updatedUser.type),
+  });
+});
+
+
 const getUserDetails = asyncHandler(async (req, res) => {
   const userId = req.query.userId
   const user = await User.findById(userId).populate({
@@ -175,5 +234,5 @@ module.exports = {
   getUserDetails,
   getCoursesBoughtByUser,
   getSubscriptionByUser,
-  
+  updateUserProfile
 };

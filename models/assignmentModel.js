@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const LiveSection = require("./liveSectionModel");
 
 const assignmentSchema = mongoose.Schema(
   {
@@ -9,7 +10,10 @@ const assignmentSchema = mongoose.Schema(
     course: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+    },
+    livecourse: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LiveCourse'
     },
     level: {
       type: String,
@@ -22,6 +26,10 @@ const assignmentSchema = mongoose.Schema(
     section: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Section",
+    },
+    livesection: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LiveSection'
     },
     questions: [
       {

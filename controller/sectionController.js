@@ -4,6 +4,7 @@ const Course = require("../models/coursesModel");
 const Assignment = require("../models/assignmentModel");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const LiveCourse = require("../models/liveCourseModel");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,

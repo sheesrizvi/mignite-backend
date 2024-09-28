@@ -28,16 +28,13 @@ const liveSectionSchema = mongoose.Schema(
       type: String,
     },
     startTime: {
-      type: Date,
-      required: true
+      type: Date
     },
     endTime: {
-      type: Date,
-      required: true
+      type: Date
     },
     duration: {
-      type: String,
-      required: true
+      type: String
     },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,

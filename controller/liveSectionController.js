@@ -14,14 +14,15 @@ const createLiveSection = asyncHandler(async (req, res) => {
     name,
     description,
     type,
+    level,
+    number,
+    questions,
     srNumber,
     startTime,
     endTime, instructor
   } = req.body;
 
-  if (!liveCourse || !name || !description || !type || !srNumber || !startTime || !endTime) {
-    return res.status(400).send({ status: true, message: "All Fields are required!" })
-  }
+ 
   if (!instructor || !liveCourse) {
     return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
   }
@@ -31,6 +32,8 @@ const createLiveSection = asyncHandler(async (req, res) => {
   if (!courseExistByInstructor) {
     return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
   }
+
+  if (type == "live") {
 
   const startMeetingTime = new Date(startTime);
   const endMeetingTime = new Date(endTime);
@@ -42,9 +45,6 @@ const createLiveSection = asyncHandler(async (req, res) => {
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
   let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
   durationInHours = durationInHours.toString()
-
-
-  if (type == "live") {
 
     const { callId, meetingData } = await createMeeting(instructor, startTime)
     const section = await LiveSection.create({
@@ -73,21 +73,22 @@ const createLiveSection = asyncHandler(async (req, res) => {
   } else {
     const assignment = await Assignment.create({
       name,
-      course,
+      livecourse: liveCourse,
       level,
       number,
       questions
     })
-    const section = await Section.create({
+    const section = await LiveSection.create({
       name,
-      course,
+      liveCourse: liveCourse,
       description,
       srNumber,
+      type,
       assignment,
     });
     if (section) {
-      const updateCourse = await LiveCourse.update(
-        { _id: course },
+      const updateCourse = await LiveCourse.updateOne(
+        { _id: liveCourse },
         { $push: { liveSections: section._id } }
       );
       res.status(201).json(section);
