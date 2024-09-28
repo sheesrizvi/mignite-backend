@@ -4,6 +4,7 @@ const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
 const { Plan } = require("../models/planModel");
 const Instructor = require("../models/instructorModel");
+const LiveSection = require("../models/liveSectionModel");
 
 const createLiveCourse = asyncHandler(async (req, res) => {
  
@@ -71,7 +72,31 @@ const createLiveCourse = asyncHandler(async (req, res) => {
 const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
   const { category } = req.query;
 
-  const liveCourses = await LiveCourse.find({ category }).populate('category liveSections plan');
+  const liveCourses = await LiveCourse.find({ category }).populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
 
   if (liveCourses.length) {
     res.status(200).json(liveCourses);
@@ -83,7 +108,31 @@ const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
 
 
 const getLiveCourses = asyncHandler(async (req, res) => {
-  const liveCourses = await LiveCourse.find({}).populate('category liveSections plan')
+  const liveCourses = await LiveCourse.find({}).populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
 
   if (liveCourses.length) {
     res.status(200).json(liveCourses);
@@ -95,15 +144,31 @@ const getLiveCourses = asyncHandler(async (req, res) => {
 
 const getLiveCourseById = asyncHandler(async (req, res) => {
   const id = req.query.courseId
-  const liveCourse = await LiveCourse.findById(id).populate('category instructor liveSections plan').populate({
+  const liveCourse = await LiveCourse.findById(id).populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
     path: 'reviews',
-    model: 'Review',
     populate: {
       path: 'user',
       model: 'User'
     }
-  })
-
+  });
 
   if (liveCourse) {
     res.status(200).json({status: true, liveCourse});
@@ -124,18 +189,31 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const livecourses = await LiveCourse.find({})
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
-  .populate('liveSections')
-  .populate('instructor')
-  .populate('plan')
-  .populate('category')
+  .populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
   .populate({
     path: 'reviews',
-    model: 'Review',
     populate: {
       path: 'user',
       model: 'User'
     }
-  })
+  });
   if (livecourses) {
     res.status(200).json({livecourses, pageCount});
   } else {
@@ -157,13 +235,26 @@ const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
 
   const livecourses = await LiveCourse.find({ instructor: instructor })
   .skip((pageNumber -1) * pageSize).limit(pageSize)
-  .populate('liveSections')
-  .populate('instructor')
-  .populate('plan')
-  .populate('category')
+  .populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
   .populate({
     path: 'reviews',
-    model: 'Review',
     populate: {
       path: 'user',
       model: 'User'
@@ -191,18 +282,31 @@ const searchLiveCourse = asyncHandler(async (req, res) => {
   const livecourses = await LiveCourse.find(searchCriteria)
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
-  .populate('instructor')
-  .populate('plan')
-  .populate('category')
+  .populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
   .populate({
     path: 'reviews',
-    model: 'Review',
     populate: {
       path: 'user',
       model: 'User'
     }
-  })
- 
+  });
   return res.status(200).send({status: true, message: 'Search Successfull', livecourses,  pageCount})
 })
 
@@ -284,6 +388,7 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
 
 const deleteAllLiveCourses = asyncHandler(async (req, res) => {
   const result = await LiveCourse.deleteMany({})
+                 await LiveSection.deleteMany({})
   res.status(200).send(result)
 })
 
@@ -358,7 +463,32 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
 
 const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
   const {instructor} = req.query
-  const courses = await LiveCourse.find({instructor}).populate('plan')
+  const courses = await LiveCourse.find({instructor}).populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
+
   if(courses.length === 0) {
     return res.status(400).send({status: true, message: "Courses not exist"})
   }

@@ -106,7 +106,7 @@ const getLiveSectionsByCourse = asyncHandler(async (req, res) => {
     return;
   }
   const sections = await LiveSection.find({ liveCourse: course })
-    .populate("liveCourse")
+    .populate("liveCourse").populate("instructor").populate("assignment")
     .sort({ srNumber: 1 })
   if (sections) {
     res.status(201).json(sections);
@@ -122,7 +122,8 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
   if (!sectionId) {
     return res.status(400).send({ status: false, message: 'Please provide sectionId' })
   }
-  const liveSectionDetails = await LiveSection.findById(sectionId)
+  const liveSectionDetails = await LiveSection.findById(sectionId).populate("liveCourse").populate("instructor").populate("assignment")
+
   if (!liveSectionDetails) {
     return res.status(400).send({ status: false, message: 'No Live Section Found ' })
   }
@@ -198,12 +199,14 @@ const getLiveSectionDetails = asyncHandler(async (req, res) => {
   if (!sectionId) {
     return res.status(400).send({ status: false, message: 'Please provide sectionId' })
   }
-  const liveSectionDetails = await LiveSection.findById(sectionId)
+  const liveSectionDetails = await LiveSection.findById(sectionId).populate("liveCourse").populate("instructor").populate("assignment")
   if (!liveSectionDetails) {
     return res.status(400).send({ status: false, message: 'No Live Section Found ' })
   }
   res.status(200).send({ status: true, message: 'Live Section Found', liveSection: liveSectionDetails })
 })
+
+
 
 module.exports = {
   createLiveSection,
