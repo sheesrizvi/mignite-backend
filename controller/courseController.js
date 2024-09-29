@@ -508,7 +508,7 @@ const searchAllCourses = asyncHandler(async (req, res) => {
   const query = req.query.Query?.trim();
   const pageNumber = Number(req.query.pageNumber) || 1;
   const pageSize = 20;
-
+  
   if (!query) {
     return res.status(400).send({ status: false, message: 'Query cannot be empty.' });
   }

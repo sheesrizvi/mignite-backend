@@ -85,6 +85,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
       srNumber,
       type,
       assignment,
+      instructor
     });
     if (section) {
       const updateCourse = await LiveCourse.updateOne(
@@ -118,19 +119,18 @@ const getLiveSectionsByCourse = asyncHandler(async (req, res) => {
 });
 
 const deleteLiveSection = asyncHandler(async (req, res) => {
-  const { sectionId } = req.params
-  const { instructor } = req.body
+  const { sectionId, instructor } = req.query
+ 
   if (!sectionId) {
     return res.status(400).send({ status: false, message: 'Please provide sectionId' })
   }
-  const liveSectionDetails = await LiveSection.findById(sectionId).populate("liveCourse").populate("instructor").populate("assignment")
-
+  const liveSectionDetails = await LiveSection.findById(sectionId)
+  
   if (!liveSectionDetails) {
     return res.status(400).send({ status: false, message: 'No Live Section Found ' })
   }
-  if (liveSectionDetails.instructor.toString() !== instructor?.toString()) {
-    return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this section' })
-  }
+
+  
   await LiveSection.findByIdAndDelete(sectionId)
   await LiveCourse.findOneAndUpdate(
     { _id: liveSectionDetails.liveCourse },
