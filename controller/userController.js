@@ -112,7 +112,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email, _id: { $ne: userId } });
 
   if (userExists) {
     res.status(400);
