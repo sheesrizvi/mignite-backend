@@ -12,7 +12,9 @@ const {
   searchCourses,
   getCourseById,
   getAllCoursesByType,
-  searchAllCourses
+  searchAllCourses,
+  topPickCourses,
+  topPickCoursesByCategory
 } = require("../controller/courseController");
 
 const router = express.Router();
@@ -30,6 +32,7 @@ router.route("/by-instructor").get(getCoursesByInstructor);
 router.route("/delete").delete(deleteCourse);
 router.route("/get-courses-by-category-type").get(getAllCoursesByType)
 router.route("/search-all-courses").get(searchAllCourses)
-
+router.route("/top-pick-courses").get(topPickCourses)
+router.route("/top-pick-courses-by-category").get(topPickCoursesByCategory)
 module.exports = router;
 

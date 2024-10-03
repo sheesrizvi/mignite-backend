@@ -584,6 +584,118 @@ const searchAllCourses = asyncHandler(async (req, res) => {
   });
 });
 
+const topPickCourses = asyncHandler(async (req, res) => {
+  const courses = await Course.find({}).sort({
+    enrolledStudentsCount: -1
+  }).limit(20).populate({
+    path: "sections",
+    model: 'Section',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('category')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+  
+
+  const livecourses = await LiveCourse.find({}).sort({
+    enrolledStudentsCount: -1
+  }).limit(20).populate({
+    path: "liveSections",
+    model: 'LiveSection',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('category')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+
+  const allCourses = [...courses, ...livecourses]
+
+  res.status(200).send({status: true, courses, livecourses, allCourses})
+})
+
+const topPickCoursesByCategory = asyncHandler(async (req, res) => {
+  const { categoryType } = req.query
+  const categories = await Category.find({ type: categoryType })
+
+  if(!categories.length) {
+    return res.status(404).json({
+      status: false,
+      message: 'No Courses with this Category found'
+    })
+  }
+
+  const categoryIds = categories.map((category) => category._id)
+
+  const courses = await Course.find({ category: { $in: categoryIds }}).sort({
+    enrolledStudentsCount: -1
+  }).limit(20).populate({
+    path: "sections",
+    model: 'Section',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('category')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+  
+  const livecourses = await LiveCourse.find({category: { $in: categoryIds }}).sort({
+    enrolledStudentsCount: -1
+  }).limit(20).populate({
+    path: "liveSections",
+    model: 'LiveSection',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate('instructor')
+    .populate('category')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: {
+        path: 'user',
+        model: 'User'
+      }
+    })
+    const allCourses = [...courses, ...livecourses]
+
+    res.status(200).send({status: true, courses, livecourses, allCourses})
+})
+
 module.exports = {
   createCourse,
   getCourses,
@@ -597,5 +709,7 @@ module.exports = {
   getAllCoursesForAdmin,
   getCourseById,
   getAllCoursesByType,
-  searchAllCourses
+  searchAllCourses,
+  topPickCourses,
+  topPickCoursesByCategory
 };
