@@ -65,6 +65,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
         { _id: liveCourse },
         { $push: { liveSections: section._id } }
       );
+     
       res.status(201).json(section);
     } else {
       res.status(404);
@@ -92,6 +93,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
         { _id: liveCourse },
         { $push: { liveSections: section._id } }
       );
+      
       res.status(201).json(section);
     } else {
       res.status(404);

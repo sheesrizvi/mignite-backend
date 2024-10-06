@@ -1,7 +1,9 @@
 require('dotenv').config()
 const asyncHandler = require("express-async-handler");
 const { StreamClient, StreamChat } = require('@stream-io/node-sdk');
-const client = new StreamClient(process.env.STREAM_SECRET_ACCESS_KEY, process.env.STREAM_SECRET_TOKEN);
+const client = new StreamClient(process.env.STREAM_SECRET_ACCESS_KEY, process.env.STREAM_SECRET_TOKEN, {
+  timeout: 30000
+});
 const schedule = require('node-schedule');
 
 const generateLiveStreamToken = asyncHandler(async (req, res) => {
@@ -36,30 +38,18 @@ const endMeeting = asyncHandler(async (callId) => {
   return true
 })
 
-// const createMeeting = asyncHandler(async (instructorId, time) => {
-//   const callId = 'meeting-id-' + Math.random().toString(36).slice(2, 11);
-//   const call =  client.video.call('livestream', callId)
-//   console.log('chk1', call.create)
-//   const meetingData = await call.create({
-//     data: {
-//      created_by_id: 'john',
-//      members: []
-//     }
-//   });
-//   console.log('Meeting Created')
-//   scheduleMeeting(callId, time);
-//   return { callId , meetingData, }; 
-// })
 
 const createMeeting = asyncHandler(async (instructorId, time) => {
   const callId = 'meeting-id-' + Math.random().toString(36).slice(2, 11);
   const call = client.video.call('livestream', callId)
+ 
   const meetingData = await call.getOrCreate({
     data: {
       created_by_id: instructorId,
       members: []
     }
   });
+  
   scheduleMeeting(callId, time);
   return { callId, meetingData }
 

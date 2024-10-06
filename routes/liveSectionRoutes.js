@@ -5,7 +5,7 @@ const { createLiveSection, getLiveSectionsByCourse, getLiveSectionDetails, delet
 const router = express.Router();
 
 
-router.route("/create").post(instructor, createLiveSection);
+router.route("/create").post(createLiveSection);
 router.route("/getbycourse").get(getLiveSectionsByCourse);
 router.route("/get-specific").get(getLiveSectionDetails)
 router.route("/delete").delete(instructor, deleteLiveSection)
