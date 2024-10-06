@@ -193,7 +193,7 @@ const getCourses = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor')
+  }).populate('instructor category')
     .populate('plan')
     .populate({
       path: 'reviews',
@@ -221,7 +221,7 @@ const getCourseById = asyncHandler(async (req, res) => {
         path: "assignment",
       },
     ],
-  }).populate('instructor')
+  }).populate('instructor category')
     .populate('plan')
     .populate({
       path: 'reviews',
@@ -257,7 +257,7 @@ const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
   })
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
-  .populate('instructor')
+  .populate('instructor category')
   .populate('plan')
   .populate('category')
   .populate({
@@ -412,6 +412,7 @@ const updateCourse = asyncHandler(async (req, res) => {
     course.category = category || course.category;
     course.image = image ? image : course.image;
     course.discount = discount || course.discount
+    course.plan = [] 
     let newPlans
   
     if (plan) {
