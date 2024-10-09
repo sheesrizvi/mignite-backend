@@ -13,6 +13,7 @@ const planRoutes = require("./routes/planRoutes.js")
 const subscriptionRoutes = require("./routes/subscriptionRoutes.js")
 const orderRoutes = require("./routes/orderRoutes.js")
 const reviewRoutes = require("./routes/reviewRoutes.js")
+const couponRoutes = require("./routes/couponRoutes.js")
 const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
@@ -44,6 +45,7 @@ app.use("/api/upload", upload)
 app.use("/api/subscriptions", subscriptionRoutes)
 app.use("/api/order", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
+app.use("/api/coupons", couponRoutes)
 app.use(notFound)
 app.use(errorHandler)
 // app.use("/api/send", send);

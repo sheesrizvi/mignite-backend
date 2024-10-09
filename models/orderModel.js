@@ -63,6 +63,10 @@ const orderSchema = mongoose.Schema(
       },
       discountedValue: {
         type: Number
+      },
+      coupon: {
+        id: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon"  },
+        discount: { type: Number }
       }
     },
     {

@@ -3,6 +3,7 @@ const Order = require('../models/orderModel');
 const Course = require('../models/coursesModel');
 const LiveCourse = require('../models/liveCourseModel');
 const User = require('../models/userModel');
+const Coupon = require('../models/couponModel');
 
 const createCourseOrder = asyncHandler(async (req, res) => {
     const {
@@ -13,7 +14,8 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         invoiceId,
         userId,
         notes,
-        discountedValue
+        discountedValue,
+        coupon
       } = req.body;
 
       if (!orderCourses || orderCourses.length === 0) {
@@ -51,6 +53,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         invoiceId,
         discountedValue,
         notes,
+        coupon,
         isPaid: true,  
       });
 
@@ -89,7 +92,17 @@ const createCourseOrder = asyncHandler(async (req, res) => {
 
         await user.save()
     }
+  if(coupon) {
+    const couponToUpdate = await Coupon.findById(coupon.id)
+    if(couponToUpdate.usageCount >= couponToUpdate.usageLimit) {
+      couponToUpdate.isActive = false
+    } else {
+      couponToUpdate.usageCount = couponToUpdate.usageCount + 1
+      couponToUpdate.user.push(userId)
+    }
 
+  await coupon.save()
+  }
     res.status(201).json({
         message: "Course purchased successfully",
         course: order
