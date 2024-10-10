@@ -4,6 +4,6 @@ const { createCourseOrder } = require("../controller/orderController");
 const router = express.Router()
 
 
-router.route("/purchase-course").post(isUser, createCourseOrder);
+router.route("/purchase-course").post(createCourseOrder);
 
 module.exports = router;

@@ -93,7 +93,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         await user.save()
     }
   if(coupon) {
-    const couponToUpdate = await Coupon.findById(coupon.id)
+    let couponToUpdate = await Coupon.findById(coupon.id)
     if(couponToUpdate.usageCount >= couponToUpdate.usageLimit) {
       couponToUpdate.isActive = false
     } else {
@@ -101,7 +101,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
       couponToUpdate.user.push(userId)
     }
 
-  await coupon.save()
+  await couponToUpdate.save()
   }
     res.status(201).json({
         message: "Course purchased successfully",
