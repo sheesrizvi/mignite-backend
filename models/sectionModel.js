@@ -24,6 +24,11 @@ const sectionSchema = mongoose.Schema(
       required: true,
       enum: ["video", "assignment"]
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+  },
     video: {
       type: String,
     },

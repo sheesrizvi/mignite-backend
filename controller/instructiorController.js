@@ -16,6 +16,10 @@ const authInstructor = asyncHandler(async (req, res) => {
   const instructor = await Instructor.findOne({ email });
 
   if (instructor && (await instructor.matchPassword(password))) {
+    if(instructor.status === 'pending' || instructor.status === 'rejected') {
+      return res.status(400).send({message: 'Instructor status not approved yet. Please wait till admin approval'})
+    }
+
     res.json({
       _id: instructor._id,
       name: instructor.name,
@@ -56,7 +60,8 @@ const registerInstructor = asyncHandler(async (req, res) => {
         _id: instructor._id,
         name: instructor.name,
         email: instructor.email,
-        token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
+        //token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
+        message:'Instructor created succesfully, Please wait till admin approval'
       });
   } else {
     res.status(404);
@@ -106,11 +111,11 @@ const getAllInstructor = asyncHandler(async (req, res) => {
   const pageSize = parseInt(req.query.pageSize) || 4;
 
 
-  const totalInstructors = await Instructor.countDocuments();
+  const totalInstructors = await Instructor.countDocuments({status: 'approved'});
   const pageCount = Math.ceil(totalInstructors / pageSize);
 
   if (!req.query.pageNumber) {
-    const instructors = await Instructor.find({});
+    const instructors = await Instructor.find({status: 'approved'});
     return res.status(200).json({
       status: true,
       message: 'All Instructors List',
@@ -133,6 +138,7 @@ const fetchInstructorBySearch = asyncHandler(async (req, res) => {
  const pageSize = 20;
 
  const searchCriteria = {
+  status: 'approved',
   $or: [ {name: { $regex: query, $options: 'i' }}, {email: { $regex: query, $options: 'i' }}]
  }
  const totalInstructors = await Instructor.countDocuments(searchCriteria)

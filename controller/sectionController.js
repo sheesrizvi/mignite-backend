@@ -82,7 +82,7 @@ const createSection = asyncHandler(async (req, res) => {
 const getSectionsByCourse = asyncHandler(async (req, res) => {
   const { course } = req.query;
 
-  const sections = await Section.find({ course: course })
+  const sections = await Section.find({ course: course , status: 'approved'})
     .populate("assignment")
     .sort(srNumber);
   if (sections) {

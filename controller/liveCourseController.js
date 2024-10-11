@@ -72,7 +72,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
 const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
   const { category } = req.query;
 
-  const liveCourses = await LiveCourse.find({ category }).populate('category instructor plan')
+  const liveCourses = await LiveCourse.find({ category, status: 'approved' }).populate('category instructor plan')
   .populate({
     path: 'liveSections',
     populate: [
@@ -108,7 +108,7 @@ const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
 
 
 const getLiveCourses = asyncHandler(async (req, res) => {
-  const liveCourses = await LiveCourse.find({}).populate('category instructor plan')
+  const liveCourses = await LiveCourse.find({status: 'approved'}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
     model: 'LiveSection',
@@ -136,7 +136,7 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   });
 
   if (liveCourses.length) {
-    res.status(200).json(liveCourses);
+    res.status(200).json({ liveCourses });
   } else {
     res.status(404);
     throw new Error("No live courses available");
@@ -145,7 +145,7 @@ const getLiveCourses = asyncHandler(async (req, res) => {
 
 const getLiveCourseById = asyncHandler(async (req, res) => {
   const id = req.query.courseId
-  const liveCourse = await LiveCourse.findById(id).populate('category instructor plan')
+  const liveCourse = await LiveCourse.findOne({_id: id, status: 'approved'}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
     populate: [
@@ -276,6 +276,7 @@ const searchLiveCourse = asyncHandler(async (req, res) => {
   const pageSize = 20;
  
   const searchCriteria = {
+   status: 'approved',
    $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
   }
   const totalCourses = await LiveCourse.countDocuments(searchCriteria)
@@ -323,6 +324,7 @@ const searchLiveCoursesWithinInstructor = asyncHandler(async (req, res) => {
 
   const searchCriteria = {
     instructor: instructor,
+    status: 'approved',
     $or: [
       { name: { $regex: query, $options: 'i' } },
       { details: { $regex: query, $options: 'i' } }
@@ -464,7 +466,7 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
 
 const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
   const {instructor} = req.query
-  const courses = await LiveCourse.find({instructor}).populate('category instructor plan')
+  const courses = await LiveCourse.find({instructor, status: 'approved'}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
     populate: [

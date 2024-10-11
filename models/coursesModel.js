@@ -30,6 +30,11 @@ const courseSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+  },
     requirement: {
       type: String,
       required: true,

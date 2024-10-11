@@ -36,6 +36,7 @@ const liveSectionSchema = mongoose.Schema(
     duration: {
       type: String
     },
+    
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Instructor'

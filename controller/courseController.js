@@ -87,7 +87,7 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
 
   const { category } = req.query;
 
-  const courses = await Course.find({ category: category }).populate({
+  const courses = await Course.find({ category: category, status: 'approved' }).populate({
     path: "sections",
     populate: [
       {
@@ -118,7 +118,7 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
   
 
-  const courses = await Course.find({ instructor: instructor }).populate({
+  const courses = await Course.find({ instructor: instructor, status: 'approved'  }).populate({
     path: "sections",
     populate: [
       {
@@ -186,7 +186,7 @@ const getAllCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
 })
 
 const getCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({}).populate({
+  const courses = await Course.find({status: 'approved'}).populate({
     path: "sections",
     populate: [
       {
@@ -214,7 +214,7 @@ const getCourses = asyncHandler(async (req, res) => {
 
 const getCourseById = asyncHandler(async (req, res) => {
   const id = req.query.courseId
-  const course = await Course.findById(id).populate({
+  const course = await Course.findOne({_id: id, status: 'approved'}).populate({
     path: "sections",
     populate: [
       {
@@ -244,10 +244,10 @@ const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
   const pageSize = Number(req.query.pageSize) || 2
 
-  const totalCourses = await Course.countDocuments({})
+  const totalCourses = await Course.countDocuments({ })
   const pageCount = Math.ceil(totalCourses/pageSize)
 
-  const courses = await Course.find({}).populate({
+  const courses = await Course.find({ }).populate({
     path: "sections",
     populate: [
       {
@@ -287,6 +287,7 @@ const searchCoursesWithinInstructor = asyncHandler(async (req, res) => {
 
   const searchCriteria = {
     instructor: instructor,
+    status: 'approved',
     $or: [
       { name: { $regex: query, $options: 'i' } },
       { details: { $regex: query, $options: 'i' } }
@@ -323,6 +324,7 @@ const searchCourses = asyncHandler(async (req, res) => {
   const pageSize = 20;
   
   const searchCriteria = {
+   status: 'approved',
    $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
   }
   const totalCourses = await Course.countDocuments(searchCriteria)
@@ -463,7 +465,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
   
 
 
-  const courses = await Course.find({ category: { $in: categoryIds } }).populate({
+  const courses = await Course.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
     path: "sections",
     model: 'Section',
     populate: [
@@ -482,7 +484,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
         model: 'User'
       }
     })
-  const livecourses = await LiveCourse.find({ category: { $in: categoryIds } }).populate({
+  const livecourses = await LiveCourse.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
     path: "liveSections",
     model: 'LiveSection',
     populate: [
@@ -518,6 +520,7 @@ const searchAllCourses = asyncHandler(async (req, res) => {
   }
   
   const searchCriteria = {
+    status: 'approved',
     $or: [
       { name: { $regex: query, $options: 'i' } },
       { details: { $regex: query, $options: 'i' } }
@@ -589,7 +592,7 @@ const searchAllCourses = asyncHandler(async (req, res) => {
 });
 
 const topPickCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({}).sort({
+  const courses = await Course.find({status: 'approved'}).sort({
     enrolledStudentsCount: -1
   }).limit(20).populate({
     path: "sections",
@@ -612,7 +615,7 @@ const topPickCourses = asyncHandler(async (req, res) => {
     })
   
 
-  const livecourses = await LiveCourse.find({}).sort({
+  const livecourses = await LiveCourse.find({ status: 'approved' }).sort({
     enrolledStudentsCount: -1
   }).limit(20).populate({
     path: "liveSections",
@@ -652,7 +655,7 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
 
   const categoryIds = categories.map((category) => category._id)
 
-  const courses = await Course.find({ category: { $in: categoryIds }}).sort({
+  const courses = await Course.find({ category: { $in: categoryIds }, status: 'approved'}).sort({
     enrolledStudentsCount: -1
   }).limit(20).populate({
     path: "sections",
@@ -674,7 +677,7 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
       }
     })
   
-  const livecourses = await LiveCourse.find({category: { $in: categoryIds }}).sort({
+  const livecourses = await LiveCourse.find({category: { $in: categoryIds }, status: 'approved'}).sort({
     enrolledStudentsCount: -1
   }).limit(20).populate({
     path: "liveSections",

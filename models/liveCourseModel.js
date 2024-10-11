@@ -71,6 +71,11 @@ const livecourseSchema = mongoose.Schema(
       type: Number,
       default: 0
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+  },
     averageRating: { 
       type: Number, 
       default: 0
