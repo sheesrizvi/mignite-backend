@@ -108,7 +108,7 @@ const updateInstructor = asyncHandler(async (req, res) => {
 
 const getAllInstructor = asyncHandler(async (req, res) => {
   const pageNumber = parseInt(req.query.pageNumber) || 1
-  const pageSize = parseInt(req.query.pageSize) || 4;
+  const pageSize = parseInt(req.query.pageSize) || 20;
 
 
   const totalInstructors = await Instructor.countDocuments({status: 'approved'});
@@ -124,7 +124,7 @@ const getAllInstructor = asyncHandler(async (req, res) => {
     });
   }
 
-  const instructors = await Instructor.find({}).skip((pageNumber -1) * pageSize).limit(pageSize)
+  const instructors = await Instructor.find({status: 'approved'}).skip((pageNumber -1) * pageSize).limit(pageSize)
   if(instructors.length === 0) {
     return res.status(400).send({success: false, message: 'Instructor Not Found'})
   }
@@ -148,7 +148,35 @@ const fetchInstructorBySearch = asyncHandler(async (req, res) => {
  return res.status(200).send({status: true, message: 'Search Successfull', instructors,  pageCount})
 })
 
+const getPendingInstructor = asyncHandler(async (req, res) => {
+  const pageNumber = parseInt(req.query.pageNumber) || 1
+  const pageSize = parseInt(req.query.pageSize) || 20;
+
+  const statusArr = ['pending', 'rejected']
+  const totalInstructors = await Instructor.countDocuments({status: 'pending'});
+  const pageCount = Math.ceil(totalInstructors / pageSize);
+
+  if (!req.query.pageNumber) {
+    const instructors = await Instructor.find({status: 'pending'});
+    return res.status(200).json({
+      status: true,
+      message: 'All Pending Instructors List',
+      instructors,
+      pageCount,
+    });
+  }
+
+  const instructors = await Instructor.find({status: 'pending'}).skip((pageNumber -1) * pageSize).limit(pageSize)
+  if(instructors.length === 0) {
+    return res.status(400).send({success: false, message: 'Instructor Not Found'})
+  }
+  
+
+  res.status(200).send({status: true, message: 'Instructor List', instructors, pageCount})
+})
+
 const deleteInstructor = asyncHandler(async (req, res) => {
+  
   const id = req.query.id
   const instructor = await Instructor.findById(id)
   if(instructor.courses.length > 0) {
@@ -165,5 +193,6 @@ module.exports = {
   getAllInstructor,
   fetchInstructorBySearch,
   deleteInstructor,
-  updateInstructor
+  updateInstructor,
+  getPendingInstructor
 };

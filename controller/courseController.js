@@ -34,9 +34,7 @@ const createCourse = asyncHandler(async (req, res) => {
   } = req.body;
 
 
-  // if (plan) {
-  //   plan = Array.isArray(plan) ? plan : [plan];
-  // }
+
   let allPlanIds
   
   if(plan) {
@@ -150,13 +148,13 @@ const getAllCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
   
   const pageNumber = parseInt(req.query.pageNumber) || 1
-  const pageSize = parseInt(req.query.pageSize) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 20;
 
 
-  const totalCourses = await Course.countDocuments({ instructor: instructor });
+  const totalCourses = await Course.countDocuments({ instructor: instructor, status: 'approved' });
   const pageCount = Math.ceil(totalCourses / pageSize);
 
-  const courses = await Course.find({ instructor: instructor }).populate({
+  const courses = await Course.find({ instructor: instructor, status:'approved' }).populate({
     path: "sections",
     populate: [
       {
@@ -212,6 +210,42 @@ const getCourses = asyncHandler(async (req, res) => {
   }
 });
 
+const getPendingCourses = asyncHandler(async (req, res) => {
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = Number(req.query.pageSize) || 2
+
+  const totalCourses = await Course.countDocuments({status: 'pending'})
+  const pageCount = Math.ceil(totalCourses/pageSize)
+
+  const courses = await Course.find({ status: 'pending' }).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  })
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('instructor category')
+  .populate('plan')
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
+  if (courses) {
+    res.status(200).json({courses, pageCount});
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
 const getCourseById = asyncHandler(async (req, res) => {
   const id = req.query.courseId
   const course = await Course.findOne({_id: id, status: 'approved'}).populate({
@@ -242,12 +276,12 @@ const getCourseById = asyncHandler(async (req, res) => {
 
 const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
-  const pageSize = Number(req.query.pageSize) || 2
+  const pageSize = Number(req.query.pageSize) || 20
 
-  const totalCourses = await Course.countDocuments({ })
+  const totalCourses = await Course.countDocuments({status: 'approved'})
   const pageCount = Math.ceil(totalCourses/pageSize)
 
-  const courses = await Course.find({ }).populate({
+  const courses = await Course.find({status: 'approved' }).populate({
     path: "sections",
     populate: [
       {
@@ -281,7 +315,7 @@ const searchCoursesWithinInstructor = asyncHandler(async (req, res) => {
   const query = req.query.Query;
   const instructor = req.query.instructor
   const pageNumber = Number(req.query.pageNumber) || 1;
-  const pageSize = Number(req.query.pageSize) || 10
+  const pageSize = Number(req.query.pageSize) || 20
 
   
 
@@ -427,13 +461,6 @@ const updateCourse = asyncHandler(async (req, res) => {
     
       newPlans = allPlans.map(plan => plan._id)
       course.plan = newPlans
-
-      // newPlans = Array.isArray(plan) ? plan : [plan];
-      // if (course.plan) {
-      //   course.plan = [... new Set([...course.plan, ...newPlans])]
-      // } else {
-      //   course.plan = newPlans
-      // }
 
     }
     const updatedCourse = await course.save();
@@ -715,6 +742,7 @@ module.exports = {
   searchCourses,
   getAllCoursesForAdmin,
   getCourseById,
+  getPendingCourses,
   getAllCoursesByType,
   searchAllCourses,
   topPickCourses,

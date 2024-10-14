@@ -16,11 +16,12 @@ const authAdmin = asyncHandler(async (req, res) => {
   const admin = await Admin.findOne({ email });
  
   if (admin && (await admin.matchPassword(password))) {
+    
     res.json({
       _id: admin._id,
       name: admin.name,
       email: admin.email,
-      token: generateTokenAdmin(admin._id, admin.name, admin.email, admin.age, admin.type),
+      token: generateTokenAdmin(admin._id, admin.name, admin.email, admin.type),
     });
   } else {
     res.status(401);
@@ -48,7 +49,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
     password,
    
   });
-  console.log(admin.age)
+ 
   if (admin) {
     res.status(201).json({
       _id: admin._id,
@@ -72,7 +73,12 @@ const updateInstructorStatus = asyncHandler(async (req, res) => {
   const validStatus = ['approved', 'pending', 'rejected']
   if(!validStatus.includes(status)) return res.status(400).send({message: 'Invalid status'})
 
-  instructor.status = status
+  if(status === 'pending') {
+    instructor.status = status
+  } else {
+    instructor.status = status
+    instructor.rejectedAt = Date.now()
+  }
 
   await instructor.save()
 
@@ -96,16 +102,19 @@ const updateCourseStatus = asyncHandler(async (req, res) => {
 
 })
 
+
+
 const updateLiveCourseStatus = asyncHandler(async (req, res) => {
   const { status, liveCourseId } = req.body
-
+  console.log(req.body)
   const liveCourse = await LiveCourse.findById(liveCourseId)
-  if(!liveCourse) return res.status(400).send({message: "LiveCourliveCourse not found"})
+  if(!liveCourse) return res.status(400).send({message: "LiveCourse not found"})
 
   const validStatus = ['approved', 'pending', 'rejected']
   if(!validStatus.includes(status)) return res.status(400).send({message: 'Invalid status'})
 
   liveCourse.status = status
+  
   await liveCourse.save()
   return res.status(200).send({message: `LiveCourse got ${status}`, liveCourse})
 

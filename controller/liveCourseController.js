@@ -184,10 +184,10 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
   const pageSize = Number(req.query.pageSize) || 2
 
-  const totalCourses = await LiveCourse.countDocuments({})
+  const totalCourses = await LiveCourse.countDocuments({status: 'approved'})
   const pageCount = Math.ceil(totalCourses/pageSize)
 
-  const livecourses = await LiveCourse.find({})
+  const livecourses = await LiveCourse.find({status: 'approved'})
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
   .populate('category instructor plan')
@@ -224,6 +224,51 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
 });
 
 
+const getAllPendingLiveCoursesForAdmin = asyncHandler(async (req, res) => {
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = Number(req.query.pageSize) || 2
+
+  const totalCourses = await LiveCourse.countDocuments({status: 'pending'})
+  const pageCount = Math.ceil(totalCourses/pageSize)
+
+  const livecourses = await LiveCourse.find({status: 'pending'})
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
+  if (livecourses) {
+    res.status(200).json({livecourses, pageCount});
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
+
+
 const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
   
@@ -231,10 +276,10 @@ const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   const pageSize = parseInt(req.query.pageSize) || 1;
 
 
-  const totalCourses = await LiveCourse.countDocuments({ instructor: instructor });
+  const totalCourses = await LiveCourse.countDocuments({ instructor: instructor, status: 'approved' });
   const pageCount = Math.ceil(totalCourses / pageSize);
 
-  const livecourses = await LiveCourse.find({ instructor: instructor })
+  const livecourses = await LiveCourse.find({ instructor: instructor, status:'approved' })
   .skip((pageNumber -1) * pageSize).limit(pageSize)
   .populate('category instructor plan')
   .populate({
@@ -442,13 +487,6 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
       const allPlans = await Plan.find({ level: { $gte: coursePlan.level  }})
     
       newPlans = allPlans.map(plan => plan._id)
-    
-    // newPlans = Array.isArray(plan) ? plan : [plan];
-    // if (liveCourse.plan) {
-    //   liveCourse.plan = [...new Set([...liveCourse.plan, ...newPlans])];
-    // } else {
-    //  liveCourse.plan = newPlans
-    // }
    }
    
   const updatedLiveCourse = await liveCourse.save();
@@ -510,6 +548,7 @@ module.exports = {
   getLiveCoursesByInstructor,
   deleteAllLiveCourses,
   getLiveCourseById,
+  getAllPendingLiveCoursesForAdmin,
   getAllLiveCoursesOfInstructorForAdmin,
   searchLiveCoursesWithinInstructor
 };

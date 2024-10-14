@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const Instructor = require('../models/instructorModel')
 const Coupon = require('../models/couponModel')
 const Admin = require('../models/adminModel')
+const { populate } = require('dotenv')
 
 const createCoupon = asyncHandler(async (req, res) => {
     let { instructorId, adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
@@ -84,10 +85,7 @@ const updateCouponDetails = asyncHandler(async (req, res) => {
 const checkCouponValidity = asyncHandler(async (req, res) => {
     const { code } = req.query
     const coupon = await Coupon.findOne({code}).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })
@@ -105,10 +103,7 @@ const checkCouponValidity = asyncHandler(async (req, res) => {
 const getCouponByCode = asyncHandler(async(req, res) => {
     const { code } = req.query
     const coupon = await Coupon.findOne({code}).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })
@@ -126,10 +121,7 @@ const getCouponsByInstructor = asyncHandler(async (req, res) => {
     const now = Date.now()
 
     const allCoupons = await Coupon.find({instructor: instructorId}).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })
@@ -162,10 +154,7 @@ const getCouponsByCourse = asyncHandler(async (req, res) => {
     const allCourseCoupons = await Coupon.find({
         'courses.course': course,
     }).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })
@@ -223,14 +212,13 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
         $expr: {
             $or:[
                 { $eq: [ '$usageLimit', null ] },
-                { $lte: [ '$usageCount', '$usageLimit' ] }
+                { $lt: [ '$usageCount', '$usageLimit' ] }
             ]
         }
+
+       
     }).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })
@@ -265,10 +253,7 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
 const getCouponsUsedbyUser = asyncHandler(async (req, res) => {
     const { userId } = req.query
     const coupons = await Coupon.find({ user: { $in: [userId] }}).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
+        path: 'instructor'
     }).populate({
         path: 'courses.course'
     })

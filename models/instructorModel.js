@@ -28,6 +28,11 @@ const instructorSchema = mongoose.Schema(
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending'
   },
+      rejectedAt: {
+        type: Date,
+        default: null,
+        index: {expires: '7d'}
+    },
     active: {
       type: Boolean,
       required: true,
@@ -35,6 +40,7 @@ const instructorSchema = mongoose.Schema(
     },
     type: {
       type: String,
+      required: true,
       default: "instructor"
     },
     courses: [

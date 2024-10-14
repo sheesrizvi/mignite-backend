@@ -14,7 +14,8 @@ const {
   getAllCoursesByType,
   searchAllCourses,
   topPickCourses,
-  topPickCoursesByCategory
+  topPickCoursesByCategory,
+  getPendingCourses
 } = require("../controller/courseController");
 
 const router = express.Router();
@@ -22,6 +23,7 @@ const router = express.Router();
 router.route("/create").post(createCourse);
 router.route("/update").post(updateCourse);
 router.route("/get-all").get(getCourses);
+router.route("/get-pending-courses").get(getPendingCourses);
 router.route("/by-id").get(getCourseById)
 router.route("/get-all-for-admin").get(getAllCoursesForAdmin);
 router.route("/by-instructor-for-admin").get(getAllCoursesOfInstructorForAdmin)

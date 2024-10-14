@@ -4,6 +4,7 @@ const Course = require('../models/coursesModel');
 const LiveCourse = require('../models/liveCourseModel');
 const User = require('../models/userModel');
 const Coupon = require('../models/couponModel');
+const { options, search } = require('../routes/adminRoutes');
 
 const createCourseOrder = asyncHandler(async (req, res) => {
     const {
@@ -112,6 +113,91 @@ const createCourseOrder = asyncHandler(async (req, res) => {
 
 })
 
+const getAllOrders = asyncHandler(async (req, res) => {
+  const page = req.query.pageNumber || 1
+  const pageSize = req.query.pageSize || 20
+
+  const totalDocuments = await Order.countDocuments({})
+  const pageCount = Math.ceil(totalDocuments/pageSize)
+
+  const orders = await Order.find({}).sort({createdAt: -1}).skip(pageSize * (page - 1)).limit(pageSize).populate('user')
+
+  res.status(200).send({orders, pageCount})
+})
+const deleteOrder = asyncHandler(async (req, res) => {
+  const { orderId  } = req.query
+
+  const order = await Order.findById(orderId)
+  if(!order) return res.status(400).send({message: 'Order not found'})
+
+  await Order.findByIdAndDelete(orderId)
+  res.status(200).send({message: "Order Delete Succesfully"})
+})
+
+const searchOrder = asyncHandler(async (req, res) => {
+  const query = req.query.Query;
+  const pageSize = 30;
+  const page = Number(req.query.pageNumber) || 1;
+
+  const matchCriteria = {
+    $or: [
+      { deliveryStatus: { $regex: query, $options: "i" } },
+      { 'orderCourses.name': { $regex: query, $options: "i" } },
+    ],
+  };
+
+  const ordersPipeline = [
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    { $unwind: '$user' },
+    {
+      $match: {
+        $or: [
+          { 'user.name': { $regex: query, $options: 'i' } },
+          matchCriteria.$or[0],
+          matchCriteria.$or[1],
+        ],
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $skip: pageSize * (page - 1) },
+    { $limit: pageSize },
+  ];
+
+  const countPipeline = [
+    ...ordersPipeline.slice(0, -2),
+    { $count: 'totalOrders' },
+  ];
+
+  const [orders, countResult] = await Promise.all([
+    Order.aggregate(ordersPipeline).exec(),
+    Order.aggregate(countPipeline).exec(),
+  ]);
+
+  const count = countResult.length > 0 ? countResult[0].totalOrders : 0;
+  const pageCount = Math.ceil(count / pageSize);
+
+  if (!orders || orders.length === 0) {
+    return res.status(404).json({ message: 'No orders found' });
+  }
+
+  res.status(200).json({
+    orders,
+    pageCount,
+  });
+});
+
+
+
 module.exports = {
-    createCourseOrder
+    createCourseOrder,
+    getAllOrders,
+    deleteOrder,
+    searchOrder
 }
