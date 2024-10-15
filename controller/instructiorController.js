@@ -225,32 +225,39 @@ const getInstructorData = asyncHandler(async (req, res) => {
    return sum += course.enrolledStudentsCount
   }, 0)
 
- res.status(200).send({courses, livecourses, coursesCount, livecourseCount, enrolledStudentsInCourseCount,enrolledStudentsInLiveCourseCount })
+ const totalCourseCount = coursesCount + livecourseCount
+ const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount
+ res.status(200).send({ 
+    coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
+    enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
+    courses, livecourses 
+  })
 })
 
 
 const getInstructorSalesData = asyncHandler(async (req, res) => {
-  const { instructor } =  req.query
+  const { instructor } = req.query;
   const now = new Date();
   const s1 = startOfMonth(now);
   const s2 = endOfMonth(now);
   const pageSize = 30;
   const page = Number(req.query.pageNumber) || 1;
-  const count = await Order.countDocuments({ 'orderCourses.instructor': instructor, isPaid: true, deliveryStatus: "Enrolled" });
-  var pageCount = Math.floor(count / 30);
+
+  const count = await Order.countDocuments({
+    'orderCourses.instructor': instructor,
+    isPaid: true,
+    deliveryStatus: "Enrolled",
+  });
+  
+  let pageCount = Math.floor(count / 30);
   if (count % 30 !== 0) {
-    pageCount = pageCount + 1;
+    pageCount += 1;
   }
 
   const monthlySales = await Order.find({
     $and: [
-      {'orderCourses.instructor': instructor},
-      {
-        createdAt: {
-          $gte: startOfDay(s1),
-          $lte: endOfDay(s2),
-        },
-      },
+      { 'orderCourses.instructor': instructor },
+      { createdAt: { $gte: startOfDay(s1), $lte: endOfDay(s2) } },
       { isPaid: true },
       { deliveryStatus: "Enrolled" },
     ],
@@ -262,40 +269,90 @@ const getInstructorSalesData = asyncHandler(async (req, res) => {
     .populate("orderCourses.course")
     .populate("orderCourses.livecourse");
 
-    const monthlySalesRevenue = monthlySales.reduce((total, order) => {
-      return total + order.totalPrice;
-    }, 0);
-    
-    
+  const monthlySalesRevenue = monthlySales.reduce((total, order) => {
+    const instructorRevenue = order.orderCourses
+      .filter(course => course.instructor.toString() === instructor)
+      .reduce((sum, course) => sum + course.finalprice, 0);
+    return total + instructorRevenue;
+  }, 0).toFixed(2);
 
-const totalSales =  await Order.find({
-  $and: [
-    {'orderCourses.instructor': instructor},
-    { isPaid: true },
-    { deliveryStatus: "Enrolled" },
-  ],
-})
-  .sort({ createdAt: -1 })
-  .limit(pageSize)
-  .skip(pageSize * (page - 1))
-  .populate("user", "name")
-  .populate("orderCourses.course")
-  .populate("orderCourses.livecourse");
-  
+  const totalSales = await Order.find({
+    $and: [
+      { 'orderCourses.instructor': instructor },
+      { isPaid: true },
+      { deliveryStatus: "Enrolled" },
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .populate("user", "name")
+    .populate("orderCourses.course")
+    .populate("orderCourses.livecourse");
+
   const totalSalesRevenue = totalSales.reduce((total, order) => {
-    return total + order.totalPrice;
-  }, 0);
-
-
+    const instructorRevenue = order.orderCourses
+      .filter(course => course.instructor.toString() === instructor)
+      .reduce((sum, course) => sum + course.finalprice, 0);
+    return total + instructorRevenue;
+  }, 0).toFixed(2);
 
   res.json({
     pageCount,
-    monthlySalesRevenue,
-    totalSalesRevenue,
+    currentMonthSalesRevenue: Number(monthlySalesRevenue),
+    totalSalesRevenue: Number(totalSalesRevenue),
     monthlySales,
-    totalSales
+    totalSales,
   });
 });
+
+
+
+const getSalesHistory = asyncHandler(async (req, res) => {
+  const { instructor } = req.query;
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+  const orders = await Order.find({
+    'orderCourses.instructor': instructor,
+    isPaid: true,
+    deliveryStatus: "Enrolled",
+    createdAt: { $gte: startOfYear, $lte: now },
+  })
+    .populate("user", "name")
+    .populate("orderCourses.course")
+    .populate("orderCourses.livecourse");
+
+  let monthlySalesHistory = {};
+
+  orders.forEach(order => {
+    const createdAt = new Date(order.createdAt);
+    const year = createdAt.getFullYear();
+    const month = createdAt.getMonth() + 1;
+    const key = `${year}-${month}`;
+   
+    order.orderCourses.forEach(course => {
+      if (course.instructor.toString() === instructor) {
+        if (monthlySalesHistory[key]) {
+          monthlySalesHistory[key] += course.finalprice;
+        } else {
+          monthlySalesHistory[key] = course.finalprice;
+        }
+      }
+    });
+  });
+
+  monthlySalesHistory = Object.keys(monthlySalesHistory).map(key => ({
+    month: key,
+    totalRevenue: parseFloat(monthlySalesHistory[key].toFixed(2)),
+  }));
+
+  res.json({
+    monthlySalesHistory,
+  });
+});
+
+
 
 
 module.exports = {
@@ -307,5 +364,6 @@ module.exports = {
   updateInstructor,
   getPendingInstructor,
   getInstructorData,
+  getSalesHistory,
   getInstructorSalesData
 };

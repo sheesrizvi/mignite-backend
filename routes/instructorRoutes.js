@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerInstructor, authInstructor, getAllInstructor, fetchInstructorBySearch, deleteInstructor, updateInstructor, getPendingInstructor, getInstructorData, getInstructorSalesData} = require("../controller/instructiorController");
+const { registerInstructor, authInstructor, getAllInstructor, fetchInstructorBySearch, deleteInstructor, updateInstructor, getPendingInstructor, getInstructorData, getInstructorSalesData, getSalesHistory} = require("../controller/instructiorController");
 const { instructor, isAdminorInstructor } = require("../middleware/authMiddleware");
 const {  generateLiveStreamToken } = require("../middleware/meetingLinkGenerate");
 
@@ -16,5 +16,6 @@ router.route("/delete").delete(deleteInstructor)
 router.route("/update-instructor-profile").post(instructor, updateInstructor)
 router.route("/get-instructor-data").get(getInstructorData)
 router.route("/get-instructor-sales-data").get(getInstructorSalesData)
+router.route("/get-sales-history").get(getSalesHistory)
 
 module.exports = router;
