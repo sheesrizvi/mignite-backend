@@ -5,7 +5,11 @@ const { createMeeting } = require("../middleware/meetingLinkGenerate.js");
 const LiveSection = require("../models/liveSectionModel.js");
 const LiveCourse = require("../models/liveCourseModel.js");
 const Course = require("../models/coursesModel.js");
-const mongoose = require('mongoose')
+const { startOfMonth, endOfMonth, startOfDay, endOfDay } = require('date-fns');
+const mongoose = require('mongoose');
+const { populate } = require("dotenv");
+const { instructor } = require("../middleware/authMiddleware.js");
+const Order = require("../models/orderModel.js");
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 //  @access   Public
@@ -186,6 +190,113 @@ const deleteInstructor = asyncHandler(async (req, res) => {
   res.status(200).send({status: true, message: 'Instructor Deleted successfully'})
 })
 
+const getInstructorData = asyncHandler(async (req, res) => {
+  const instructor = req.query.instructor 
+
+  const courses = await Course.find({instructor}).populate('instructor plan category').populate({
+    path: 'sections',
+    model: 'Section',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate({
+    path: 'enrolledStudents',
+    model: 'User'
+  })
+
+  const coursesCount = await Course.countDocuments({instructor})
+
+  const livecourses = await LiveCourse.find({instructor}).populate('instructor plan category').populate({
+    path: 'liveSections',
+    model: 'LiveSection'
+  }).populate({
+    path: 'enrolledStudents',
+    model: 'User'
+  })
+
+  const livecourseCount = await LiveCourse.countDocuments({instructor})
+
+  const enrolledStudentsInCourseCount = courses.reduce((sum, course) => {
+    return sum += course.enrolledStudentsCount
+  }, 0)
+  const enrolledStudentsInLiveCourseCount = livecourses.reduce((sum, course) => {
+   return sum += course.enrolledStudentsCount
+  }, 0)
+
+ res.status(200).send({courses, livecourses, coursesCount, livecourseCount, enrolledStudentsInCourseCount,enrolledStudentsInLiveCourseCount })
+})
+
+
+const getInstructorSalesData = asyncHandler(async (req, res) => {
+  const { instructor } =  req.query
+  const now = new Date();
+  const s1 = startOfMonth(now);
+  const s2 = endOfMonth(now);
+  const pageSize = 30;
+  const page = Number(req.query.pageNumber) || 1;
+  const count = await Order.countDocuments({ 'orderCourses.instructor': instructor, isPaid: true, deliveryStatus: "Enrolled" });
+  var pageCount = Math.floor(count / 30);
+  if (count % 30 !== 0) {
+    pageCount = pageCount + 1;
+  }
+
+  const monthlySales = await Order.find({
+    $and: [
+      {'orderCourses.instructor': instructor},
+      {
+        createdAt: {
+          $gte: startOfDay(s1),
+          $lte: endOfDay(s2),
+        },
+      },
+      { isPaid: true },
+      { deliveryStatus: "Enrolled" },
+    ],
+  })
+    .sort({ createdAt: -1 })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1))
+    .populate("user", "name")
+    .populate("orderCourses.course")
+    .populate("orderCourses.livecourse");
+
+    const monthlySalesRevenue = monthlySales.reduce((total, order) => {
+      return total + order.totalPrice;
+    }, 0);
+    
+    
+
+const totalSales =  await Order.find({
+  $and: [
+    {'orderCourses.instructor': instructor},
+    { isPaid: true },
+    { deliveryStatus: "Enrolled" },
+  ],
+})
+  .sort({ createdAt: -1 })
+  .limit(pageSize)
+  .skip(pageSize * (page - 1))
+  .populate("user", "name")
+  .populate("orderCourses.course")
+  .populate("orderCourses.livecourse");
+  
+  const totalSalesRevenue = totalSales.reduce((total, order) => {
+    return total + order.totalPrice;
+  }, 0);
+
+
+
+  res.json({
+    pageCount,
+    monthlySalesRevenue,
+    totalSalesRevenue,
+    monthlySales,
+    totalSales
+  });
+});
+
 
 module.exports = {
   authInstructor,
@@ -194,5 +305,7 @@ module.exports = {
   fetchInstructorBySearch,
   deleteInstructor,
   updateInstructor,
-  getPendingInstructor
+  getPendingInstructor,
+  getInstructorData,
+  getInstructorSalesData
 };
