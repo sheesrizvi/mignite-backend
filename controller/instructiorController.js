@@ -193,7 +193,7 @@ const deleteInstructor = asyncHandler(async (req, res) => {
 const getInstructorData = asyncHandler(async (req, res) => {
   const instructor = req.query.instructor 
 
-  const courses = await Course.find({instructor}).populate('instructor plan category').populate({
+  const courses = await Course.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
     path: 'sections',
     model: 'Section',
     populate: [
@@ -206,9 +206,9 @@ const getInstructorData = asyncHandler(async (req, res) => {
     model: 'User'
   })
 
-  const coursesCount = await Course.countDocuments({instructor})
+  const coursesCount = await Course.countDocuments({instructor, status: 'approved'})
 
-  const livecourses = await LiveCourse.find({instructor}).populate('instructor plan category').populate({
+  const livecourses = await LiveCourse.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
     path: 'liveSections',
     model: 'LiveSection'
   }).populate({
@@ -216,7 +216,7 @@ const getInstructorData = asyncHandler(async (req, res) => {
     model: 'User'
   })
 
-  const livecourseCount = await LiveCourse.countDocuments({instructor})
+  const livecourseCount = await LiveCourse.countDocuments({instructor, status: 'approved'})
 
   const enrolledStudentsInCourseCount = courses.reduce((sum, course) => {
     return sum += course.enrolledStudentsCount
@@ -227,10 +227,11 @@ const getInstructorData = asyncHandler(async (req, res) => {
 
  const totalCourseCount = coursesCount + livecourseCount
  const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount
+ const allCourses = [...courses, ...livecourses]
  res.status(200).send({ 
     coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
     enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
-    courses, livecourses 
+    courses, livecourses , allCourses
   })
 })
 
@@ -354,6 +355,49 @@ const getSalesHistory = asyncHandler(async (req, res) => {
 
 
 
+const getInstructorPendingData = asyncHandler(async (req, res) => {
+  const instructor = req.query.instructor 
+
+  const courses = await Course.find({instructor, status: 'pending'}).populate('instructor plan category').populate({
+    path: 'sections',
+    model: 'Section',
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  }).populate({
+    path: 'enrolledStudents',
+    model: 'User'
+  })
+
+  const coursesCount = await Course.countDocuments({instructor, status: 'pending'})
+
+  const livecourses = await LiveCourse.find({instructor, status: 'pending'}).populate('instructor plan category').populate({
+    path: 'liveSections',
+    model: 'LiveSection'
+  }).populate({
+    path: 'enrolledStudents',
+    model: 'User'
+  })
+
+  const livecourseCount = await LiveCourse.countDocuments({instructor, status: 'pending'})
+
+  const enrolledStudentsInCourseCount = courses.reduce((sum, course) => {
+    return sum += course.enrolledStudentsCount
+  }, 0)
+  const enrolledStudentsInLiveCourseCount = livecourses.reduce((sum, course) => {
+   return sum += course.enrolledStudentsCount
+  }, 0)
+
+ const totalCourseCount = coursesCount + livecourseCount
+ const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount
+ res.status(200).send({ 
+    coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
+    enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
+    courses, livecourses 
+  })
+})
 
 module.exports = {
   authInstructor,
@@ -365,5 +409,6 @@ module.exports = {
   getPendingInstructor,
   getInstructorData,
   getSalesHistory,
+  getInstructorPendingData,
   getInstructorSalesData
 };
