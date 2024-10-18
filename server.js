@@ -22,6 +22,10 @@ const cors = require("cors");
 const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
+
+
+
+
 const app = express();
 const source = process.env.MONGO_URI;
 app.use(
@@ -57,6 +61,8 @@ mongoose
   .catch((err) => console.log("DB connection error", err));
 
 const PORT = process.env.PORT || 8000;
+
+
 
 
 

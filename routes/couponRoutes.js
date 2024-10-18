@@ -7,7 +7,9 @@ const { createCoupon,
     deleteCoupons,
     applyCouponToOrders,
     getCouponByCode, 
-    getCouponsUsedbyUser} = require('../controller/couponController')
+    getCouponsUsedbyUser,
+    getPlatformCoupons,
+    getAllCoupons} = require('../controller/couponController')
 const {  admin } = require('../middleware/authMiddleware')
 const router = express.Router()
 
@@ -15,11 +17,16 @@ const router = express.Router()
 router.post('/add-coupon' , admin, createCoupon)
 router.post('/update-coupon',admin,  updateCouponDetails)
 router.delete('/delete/coupon',admin,  deleteCoupons)
+
 // Public
-router.get('/check-coupon-validity', checkCouponValidity)
-router.get('/get-course-active-coupons', getCouponsByCourse)
-router.get('/apply-coupon-to-order', applyCouponToOrders)
-router.get('/get-coupons-used-by-user', getCouponsUsedbyUser)
-router.get('/get-coupons-by-instructor', getCouponsByInstructor)
+router.get('/check-coupon-validity', checkCouponValidity) // check coupon validity
+
+
+router.get('/get-platform-coupons', getPlatformCoupons)// platform coupon
+router.get('/get-course-active-coupons', getCouponsByCourse) // course details page or course card badge
+router.get('/apply-coupon-to-order', applyCouponToOrders) // order checkout page- couponCode, user, courses
+router.get('/get-coupons-used-by-user', getCouponsUsedbyUser)  // coupons used by user
+router.get('/get-coupons-by-instructor', getCouponsByInstructor) // coupons by instructor
+router.get('/get-all', getAllCoupons) // get all coupons
 
 module.exports = router

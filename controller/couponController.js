@@ -96,8 +96,34 @@ const getCouponsByCourse = asyncHandler(async (req, res) => {
         path: 'courses.course'
     })
 
-    if(allCourseCoupons.length === 0) return res.status(400).send({message: "Coupons not found for this course"})
-    res.status(200).send({message: 'Active Coupons', allCourseCoupons, activeCourseCoupons})
+    const coupons = await Coupon.find({
+        $or: [
+            { courses: { $exists: false } },
+            { courses: { $eq: [] } } 
+        ],
+        startDate: { $lte: now },
+        expiryDate: { $gte: now },
+        isActive: true,
+        $expr: {
+            $or:[
+                { $eq: [ '$usageLimit', null ] },
+                { $lt: [ '$usageCount', '$usageLimit' ] }
+            ]
+        }
+
+       
+    })
+
+    const allCoupons = await Coupon.find({
+        $or: [
+            { courses: { $exists: false } },
+            { courses: { $eq: [] } } 
+        ],  
+    })
+
+
+   // if(allCourseCoupons.length === 0) return res.status(400).send({message: "Coupons not found for this course"})
+    res.status(200).send({message: 'Active Coupons', allCourseCoupons, activeCourseCoupons,activePlatformCoupons: coupons, allPlatformCoupons: allCoupons})
 })
 
 
@@ -118,7 +144,7 @@ const deleteCoupons = asyncHandler(async (req, res) => {
 })
 
 const applyCouponToOrders = asyncHandler(async (req, res) => {
-    const { code, course, userId } = req.query
+    const { code, courses, userId } = req.query
     const now = Date.now()
     
     const coupon = await Coupon.findOne({
@@ -154,17 +180,71 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
         return res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon})
     }
 
+    const courseArray = Array.isArray(courses) ? courses: [courses]
+    const matchingCourses = courseArray.filter(course => coupon.courses.some(c => c.course && c.course.equals(course)))
 
-    const courseExistInCoupon = await coupon.courses.some(c => c.course && c.course.equals(course))
-    if(!courseExistInCoupon) {
-        return res.status(400).send({message: 'course not found in coupon'})
-    } 
+    if(matchingCourses.length === 0) return res.status(400).send({message: "Coupon not valid with these courses"})
     
     const couponCode = coupon.code
     const discountType = coupon.discountType
     const discount = coupon.discount
 
-    res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon})
+    res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon, matchingCourses})
+})
+
+
+const getPlatformCoupons = asyncHandler(async (req, res) => {
+    const now = Date.now()
+    const coupons = await Coupon.find({
+        $or: [
+            { courses: { $exists: false } },
+            { courses: { $eq: [] } } 
+        ],
+        startDate: { $lte: now },
+        expiryDate: { $gte: now },
+        isActive: true,
+        $expr: {
+            $or:[
+                { $eq: [ '$usageLimit', null ] },
+                { $lt: [ '$usageCount', '$usageLimit' ] }
+            ]
+        }
+
+       
+    })
+
+    const allCoupons = await Coupon.find({
+        $or: [
+            { courses: { $exists: false } },
+            { courses: { $eq: [] } } 
+        ],  
+    })
+    res.status(200).send({activePlatformCoupons: coupons, allPlatformCoupons: allCoupons})
+
+})
+
+const getAllCoupons = asyncHandler(async (req, res) => {
+    const now = Date.now()
+    const coupons = await Coupon.find({
+        startDate: { $lte: now },
+        expiryDate: { $gte: now },
+        isActive: true,
+        $expr: {
+            $or:[
+                { $eq: [ '$usageLimit', null ] },
+                { $lt: [ '$usageCount', '$usageLimit' ] }
+            ]
+        }
+
+       
+    }).populate('user').populate({
+        path: 'courses.course'
+    })
+    
+    
+    if(coupons.length === 0) return res.status(400).send({activeCoupons: coupons})
+
+    res.status(200).send({coupons})
 })
 
 const getCouponsUsedbyUser = asyncHandler(async (req, res) => {
@@ -253,8 +333,10 @@ module.exports = {
     checkCouponValidity,
     updateCouponDetails,
     getCouponsByCourse,
+    getAllCoupons,
     deleteCoupons,
     applyCouponToOrders,
     getCouponsUsedbyUser,
-    getCouponsByInstructor
+    getCouponsByInstructor,
+    getPlatformCoupons
 }
