@@ -14,7 +14,9 @@ const admin = asyncHandler(async (req, res, next) => {
       return res.status(403).send("Access denied. Admin Login Required");
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
     req.user = await Admin.findById(decoded.id);
+   
     if (!req.user) {
       return res.status(400).send({ status: false, message: 'Admin not Found' })
     }

@@ -29,6 +29,11 @@ const couponSchema = mongoose.Schema({
     expiryDate: {
         type: Date,
         required: true,
+        validate: {
+            validator(value) {
+                return value >= this.startDate
+            }
+        },
         default: function() {
             return dayjs(this.startDate).add(30, 'day').toDate()
         }
@@ -41,13 +46,10 @@ const couponSchema = mongoose.Schema({
         type: Boolean,
         default: true
     },
-    instructor: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Instructor'
-    },
     admin: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Admin'
+        ref: 'Admin',
+        required: true
     },
     user: [
         { type: mongoose.Schema.Types.ObjectId , ref: 'User'}

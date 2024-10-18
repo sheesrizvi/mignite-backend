@@ -95,7 +95,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     }
   if(coupon) {
     let couponToUpdate = await Coupon.findById(coupon.id)
-    if(couponToUpdate.usageCount >= couponToUpdate.usageLimit) {
+    if(couponToUpdate.usageCount > couponToUpdate.usageLimit) {
       couponToUpdate.isActive = false
     } else {
       couponToUpdate.usageCount = couponToUpdate.usageCount + 1

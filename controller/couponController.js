@@ -1,23 +1,12 @@
 const asyncHandler = require('express-async-handler')
-const Instructor = require('../models/instructorModel')
 const Coupon = require('../models/couponModel')
 const Admin = require('../models/adminModel')
-const { populate } = require('dotenv')
+const mongoose = require('mongoose')
 
 const createCoupon = asyncHandler(async (req, res) => {
-    let { instructorId, adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
+    let {adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
     let code
-
-    if(instructorId && !adminId) {
-        const instructor = await Instructor.findById(instructorId)
-        if(!instructor) return res.status(400).send({message: "Instructor not found"})
-        const getInitials = (value) => { 
-           return value.split(' ').map(word => word[0].toUpperCase()).join('')
-        }
-        const generateUniqueId = () => Math.random().toString(36).substring(2, 7).toUpperCase();
-        code = `${getInitials(instructor.name)}-${discount.toString()}${getInitials(discountType)}-${generateUniqueId()}`
-    }
-    if(adminId && !instructorId) {
+       
         const admin = await Admin.findById(adminId)
         if(!admin) return res.status(400).send({message: "Admin not found"})
         const getInitials = (value) => { 
@@ -25,22 +14,9 @@ const createCoupon = asyncHandler(async (req, res) => {
         }
         const generateUniqueId = () => Math.random().toString(36).substring(2, 7).toUpperCase();
         code = `${getInitials(admin.name)}-${discount.toString()}${getInitials(discountType)}-${generateUniqueId()}`
-    }
+    
         
-
-   if((!courses || courses.length === 0) && !adminId) {
-
-    const instructorDetails = await Instructor.findById(instructorId).populate('courses')
-    const coursesIds = instructorDetails.courses
-    const courseIds = coursesIds.map(course => ({ course: course._id, courseType: 'Course' }))
-    const liveInstructorDetails = await Instructor.findById(instructorId).populate('livecourses')
-    const livecourses = liveInstructorDetails.livecourses
-    const livecourseIds = await livecourses.map(livecourse => ({course: livecourse._id, courseType: 'LiveCourse'}))
-    courses = [...courseIds, ...livecourseIds]
-   }
-
     const coupon = await Coupon.create({
-        instructor: instructorId,
         admin: adminId,
         code,
         discountType,
@@ -57,17 +33,16 @@ const createCoupon = asyncHandler(async (req, res) => {
 
 
 const updateCouponDetails = asyncHandler(async (req, res) => {
-    let {couponId, instructorId, adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
+    let {couponId, adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
     let coupon
-    if(instructorId) {
-        coupon = await Coupon.findOne({_id: couponId, instructor: instructorId})
-        if(!coupon) return res.status(400).send({coupon})
-    }
-    if(adminId) {
-        coupon = await Coupon.findOne({_id: couponId, admin: adminId})
-        if(!coupon) return res.status(400).send({coupon})
-    }
     
+    if(!couponId || !adminId) {
+        return res.status(400).send({message: 'Both Fields are required'})
+    }
+        coupon = await Coupon.findOne({_id: couponId})
+        if(!coupon) return res.status(400).send({coupon})
+    
+
     coupon.discountType = discountType || coupon.discountType
     coupon.discount = discount || coupon.discount
     coupon.usageLimit = usageLimit || coupon.usageLimit
@@ -85,8 +60,6 @@ const updateCouponDetails = asyncHandler(async (req, res) => {
 const checkCouponValidity = asyncHandler(async (req, res) => {
     const { code } = req.query
     const coupon = await Coupon.findOne({code}).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
         path: 'courses.course'
     })
     if(!coupon) return res.status(400).send({message: 'Coupon not found'})
@@ -100,53 +73,6 @@ const checkCouponValidity = asyncHandler(async (req, res) => {
 
 
 
-const getCouponByCode = asyncHandler(async(req, res) => {
-    const { code } = req.query
-    const coupon = await Coupon.findOne({code}).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
-        path: 'courses.course'
-    })
-
-    if(!coupon) return res.status(400).send({message: 'Coupon not found'})
-    const isValid = coupon.isValid()
-    if(!isValid) {  return  res.status(400).send({message: 'Coupon is invalid. Attaching Details', coupon})}
-
-    res.status(200).send({message: 'Coupon is valid', coupon})
-})
-
-const getCouponsByInstructor = asyncHandler(async (req, res) => {
-    const { instructorId } = req.query
-    
-    const now = Date.now()
-
-    const allCoupons = await Coupon.find({instructor: instructorId}).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
-        path: 'courses.course'
-    })
-
-    const activeCoupons = await Coupon.find({
-        instructor: instructorId,
-        startDate: { $lte: now },
-        expiryDate: { $gte: now },
-        isActive: true,
-        $expr: {$or: [
-            {$eq: ['$usageLimit', null ]},
-            { $lte: ['$usageCount', '$usageLimit'] }
-        ]},
-    }).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
-    }).populate({
-        path: 'courses.course'
-    })
-
-    if(allCoupons.length === 0) return res.status(400).send({message: "coupons not found for this Instructor"})
-    res.status(200).send({message: 'Coupons found', allCoupons, activeCoupons})
-})
 
 const getCouponsByCourse = asyncHandler(async (req, res) => {
     const { course } = req.query
@@ -154,8 +80,6 @@ const getCouponsByCourse = asyncHandler(async (req, res) => {
     const allCourseCoupons = await Coupon.find({
         'courses.course': course,
     }).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
         path: 'courses.course'
     })
 
@@ -169,11 +93,6 @@ const getCouponsByCourse = asyncHandler(async (req, res) => {
             { $lte: ['$usageCount', '$usageLimit'] }
         ]},
     }).populate('user admin').populate({
-        path: 'instructor',
-        populate: {
-            path: 'courses'
-        }
-    }).populate({
         path: 'courses.course'
     })
 
@@ -183,16 +102,14 @@ const getCouponsByCourse = asyncHandler(async (req, res) => {
 
 
 const deleteCoupons = asyncHandler(async (req, res) => {
-  const { couponId, instructorId, adminId } = req.query
+  const { couponId } = req.query
   
-  if( instructorId && !adminId) {
-    const couponToDelete = await Coupon.findOne({_id: couponId, instructor:instructorId})
-    if(!couponToDelete) return res.status(400).send({message: "No coupon found for delete"})
+  if(!couponId) {
+    return res.status(400).send({message: "CouponId is required"})
   }
-  if(adminId && !instructorId) {
-    const couponToDelete = await Coupon.findOne({_id: couponId, admin: adminId})
+    const couponToDelete = await Coupon.findOne({_id: couponId})
     if(!couponToDelete) return res.status(400).send({message: "No coupon found for delete"})
-  }
+
 
 
   await Coupon.findByIdAndDelete(couponId)
@@ -203,7 +120,7 @@ const deleteCoupons = asyncHandler(async (req, res) => {
 const applyCouponToOrders = asyncHandler(async (req, res) => {
     const { code, course, userId } = req.query
     const now = Date.now()
-    console.log(code, course, userId)
+    
     const coupon = await Coupon.findOne({
         code,
         startDate: { $lte: now },
@@ -218,8 +135,6 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
 
        
     }).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
         path: 'courses.course'
     })
 
@@ -227,16 +142,18 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
         return res.status(400).send({message: 'coupon not found or inactive'})
     }
 
-    if (!userId || coupon.user.includes(userId)) {
+    if (!userId || coupon.user.toString().includes(userId)) {
         return res.status(400).send({message: 'Coupon already used by user or user id not provided'})
     }
    
-    if(coupon.admin) {
+   
+    if(!coupon.courses || coupon.courses.length === 0) {
         const couponCode = coupon.code
         const discountType = coupon.discountType
         const discount = coupon.discount 
         return res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon})
     }
+
 
     const courseExistInCoupon = await coupon.courses.some(c => c.course && c.course.equals(course))
     if(!courseExistInCoupon) {
@@ -251,12 +168,13 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
 })
 
 const getCouponsUsedbyUser = asyncHandler(async (req, res) => {
-    const { userId } = req.query
-    const coupons = await Coupon.find({ user: { $in: [userId] }}).populate('user admin').populate({
-        path: 'instructor'
-    }).populate({
+    let { userId } = req.query
+   
+    const coupons = await Coupon.find({user: userId})
+    .populate('user admin').populate({
         path: 'courses.course'
     })
+    
 
     if(!coupons || coupons.length === 0) return res.status(400).send({message: "Coupons not found for user"})
     
@@ -264,14 +182,79 @@ const getCouponsUsedbyUser = asyncHandler(async (req, res) => {
     
 })
 
+
+const getCouponsByInstructor = asyncHandler(async (req, res) => {
+    let { instructor } = req.query;
+    
+    if (!instructor) return res.status(400).send({ message: 'Instructor not found' });
+    instructor = new mongoose.Types.ObjectId(instructor);
+    const searchCriteria = [
+        { $unwind: "$courses" },
+        {
+            $lookup: {
+                from: "courses",
+                localField: 'courses.course',
+                foreignField: '_id',
+                as: 'courseDetails'
+            }
+        },
+        { 
+            $unwind: { 
+                path: '$courseDetails', 
+                preserveNullAndEmptyArrays: true 
+            } 
+        },
+        {
+            $lookup: {
+                from: "livecourses",
+                localField: 'courses.course',
+                foreignField: '_id',
+                as: 'liveCourseDetails'
+            }
+        },
+        { 
+            $unwind: { 
+                path: '$liveCourseDetails', 
+                preserveNullAndEmptyArrays: true 
+            } 
+        },
+       
+        {
+            $match: {
+                $or: [
+                    { 'courseDetails.instructor': instructor },
+                    { 'liveCourseDetails.instructor': instructor }
+                ]
+            }
+        },
+        {
+            $group: {
+                _id: "$_id",
+                code: { $first: "$code" },
+                discountType: { $first: "$discountType" },
+                usageCount: { $first: "$usageCount" },
+                usageLimit: { $first: "$usageLimit" },
+                isActive: { $first: "$isActive" },
+                discount: { $first: "$discount" },
+                courses: { $push: "$courses" },
+                courseDetails: { $addToSet: "$courseDetails" },
+                liveCourseDetails: { $addToSet: "$liveCourseDetails" }
+            }
+        }
+    ];
+
+    const coupons = await Coupon.aggregate(searchCriteria);
+    res.status(200).send({ coupons });
+});
+
+
 module.exports = {
     createCoupon,
     checkCouponValidity,
     updateCouponDetails,
-    getCouponsByInstructor,
     getCouponsByCourse,
     deleteCoupons,
     applyCouponToOrders,
-    getCouponByCode,
-    getCouponsUsedbyUser
+    getCouponsUsedbyUser,
+    getCouponsByInstructor
 }
