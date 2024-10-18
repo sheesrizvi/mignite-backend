@@ -81,10 +81,10 @@ const createSection = asyncHandler(async (req, res) => {
 });
 const getSectionsByCourse = asyncHandler(async (req, res) => {
   const { course } = req.query;
-
-  const sections = await Section.find({ course: course , status: 'approved'})
+  
+  const sections = await Section.find({ course: course })
     .populate("assignment")
-    .sort(srNumber);
+    .sort({srNumber: 1});
   if (sections) {
     res.status(201).json(sections);
   } else {

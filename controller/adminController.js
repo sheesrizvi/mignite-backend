@@ -149,11 +149,9 @@ const updateAllModuleStatus = asyncHandler(async (req, res) => {
   await LiveCourse.updateMany({}, {
     status: 'approved'
   })
-  await Section.updateMany({}, {
-    status: 'approved'
-  })
+  
 
-  res.status(200).send({message: 'Course, Instructor, LiveCourse, Section updated successfully'})
+  res.status(200).send({message: 'Course, Instructor, LiveCourse updated successfully'})
 })
 
 module.exports = {
