@@ -5,9 +5,12 @@ const Category = require("../models/category");
 const { Plan } = require("../models/planModel");
 const Instructor = require("../models/instructorModel");
 const LiveSection = require("../models/liveSectionModel");
+const { subDays } = require("date-fns");
+const { agenda } = require("../jobs/agendaConnection");
+
 
 const createLiveCourse = asyncHandler(async (req, res) => {
- 
+  
   let {
     name,
     category,
@@ -46,7 +49,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
     image,
     plan: allPlanIds
   });
-
+ 
   if (liveCourse) {
    // Instructor LiveCourse Added
 
@@ -61,6 +64,17 @@ const createLiveCourse = asyncHandler(async (req, res) => {
         }, { new: true })
       }
     }
+   
+      const now = new Date();
+      const afterOneMin = new Date(now.getTime() + 1 * 60 * 1000)
+     
+          const sevenDaysBefore = subDays(startDate, 7);
+          const msg = {
+            title: `Course Start`,
+            body: `Hurray!! Your ${liveCourse.name} Course will start in 7 days!!`
+          }
+     
+      await agenda.schedule(afterOneMin, 'send-notification-before-course-start', { courseId: '66efe23a48b088262386aa65', msg })
 
     res.status(201).json(liveCourse);
   } else {

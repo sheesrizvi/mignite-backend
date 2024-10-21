@@ -16,6 +16,7 @@ const reviewRoutes = require("./routes/reviewRoutes.js")
 const couponRoutes = require("./routes/couponRoutes.js")
 const notificationRoutes = require("./routes/notificationRoutes.js")
 const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
+const { startAgenda } = require("./jobs/agendaConnection.js");
 const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
 
@@ -28,7 +29,7 @@ const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
 
 const app = express();
-const source = process.env.MONGO_URI;
+const source = process.env.MONGO_URL
 app.use(
   cors({
     origin: "*",
@@ -59,7 +60,10 @@ app.use(errorHandler)
 
 mongoose
   .connect(source)
-  .then(() => console.log("DB connected"))
+  .then(() => {
+    console.log("DB connected")
+    startAgenda();
+  })
   .catch((err) => console.log("DB connection error", err));
 
 const PORT = process.env.PORT || 8000;

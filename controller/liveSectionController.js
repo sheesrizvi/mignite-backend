@@ -5,6 +5,8 @@ const Assignment = require("../models/assignmentModel");
 const LiveCourse = require("../models/liveCourseModel");
 const LiveSection = require("../models/liveSectionModel");
 const { createMeeting } = require("../middleware/meetingLinkGenerate");
+const { agenda } = require("../jobs/agendaConnection");
+
 
 const createLiveSection = asyncHandler(async (req, res) => {
 
@@ -34,13 +36,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
   }
 
   if (type == "live") {
-
+  console.log('live')
   const startMeetingTime = new Date(startTime);
   const endMeetingTime = new Date(endTime);
-  if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
-    console.error("Invalid Time(s)");
-    throw new Error("Invalid Time")
-  }
+  // if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
+  //   console.error("Invalid Time(s)");
+  //   throw new Error("Invalid Time")
+  // }
 
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
   let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);
@@ -66,12 +68,22 @@ const createLiveSection = asyncHandler(async (req, res) => {
         { $push: { liveSections: section._id } }
       );
      
+      const now = new Date();
+      const startNotficationTime = new Date(startTime)
+      const notificationTime = new Date(startNotficationTime.getTime() - 15 * 60 * 1000);
+      const msg = {
+        title: `Lecture Start`,
+        body: `Your ${section.name} section will start in 15 minutes!! Attach Link: ${section.link}`
+      }
+      //const afterOneMin = new Date(now.getTime() + 1 * 60 * 1000)
+      await agenda.schedule(notificationTime, 'send notification', { sectionId: section._id, msg })
       res.status(201).json(section);
     } else {
       res.status(404);
       throw new Error("Error");
     }
   } else {
+   
     const assignment = await Assignment.create({
       name,
       livecourse: liveCourse,

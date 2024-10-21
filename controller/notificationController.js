@@ -192,8 +192,9 @@ const sendNotificationsInsideApplicationToSingleUser = asyncHandler(async (title
 });
 
 
-const sendNotificationsInsideApplicationToMultipleUser = asyncHandler(async (title, body, users) => {
+const sendNotificationsInsideApplicationToMultipleUser = asyncHandler(async (users, msg) => {
   const tokens = users.map(user => user.pushToken)
+  const {title, body} = msg
   const message = {
     notification: {
       title,
