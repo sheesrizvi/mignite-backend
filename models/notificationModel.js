@@ -1,7 +1,17 @@
-// var admin = require("firebase-admin");
+const mongoose = require("mongoose")
 
-// var serviceAccount = require("path/to/serviceAccountKey.json");
+const notificationSchema = mongoose.Schema({
+    users: [{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        isRead: { type: Boolean, default: false}
+    }],
+    message: {
+        title: { type: String, required: true },
+        body: { type: String, required: true },
+        image: { type: String }
+    }
+})
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount)
-// });
+const Notification = mongoose.model('Notification', notificationSchema)
+
+module.exports = Notification

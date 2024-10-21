@@ -4,22 +4,45 @@ const User = require('../models/userModel');
 const Notification = require('../models/notificationModel');
 
 const sendPushNotification = asyncHandler(async (req, res) => {
-    const message = {
-        token: 'eV0cuHuNBbICw2F6J21Pki:APA91bESs8tiH3_mbbLq5Q6yZTfaPc9WL_0Ecy2Pm90tI0QM1xIdLCgMSqHjK5OL5NbabBkC1rmzSrqRE4NYacCiTQYeYI9_0UfhUSkh3x7dFExUWDu7v8LdXSMMjMisaE8p8sFd_AGI',
-        notification: {
-            title: 'Hi',
-            body: 'Hi',
-        },
-    };
+    const { title, body, image, token } = req.body
 
-    try {
-        const response = await firebaseAdmin.messaging().send(message);
-        console.log('Successfully sent message:', response);
+        // token: 'eV0cuHuNBbICw2F6J21Pki:APA91bESs8tiH3_mbbLq5Q6yZTfaPc9WL_0Ecy2Pm90tI0QM1xIdLCgMSqHjK5OL5NbabBkC1rmzSrqRE4NYacCiTQYeYI9_0UfhUSkh3x7dFExUWDu7v8LdXSMMjMisaE8p8sFd_AGI',
+    const message = {
+        notification: {
+          title,
+          body
+        },
+        data: {
+          title,
+          body,
+          image
+        },
+        android: {
+          notification: {
+            imageUrl: image,
+          },
+        },
+        apns: {
+            payload: {
+              aps: {
+                'mutable-content': 1
+              }
+            },
+            fcm_options: {
+              image: image
+            }
+          },
+        webpush: {
+          headers: {
+            image
+          }
+        },
+        tokens: [token]
+      };
+
+        const response = await firebaseAdmin.messaging().sendEachForMulticast(message);
         return res.status(200).send({ message: response });
-    } catch (error) {
-        console.error('Error sending message:', error);
-        return res.status(500).send({ error: 'Failed to send notification' });
-    }
+    
 });
 
 
@@ -27,16 +50,66 @@ const sendNotificationToAllUsers = asyncHandler(async (req, res) => {
     const { title, body, image } = req.body;
     let users = await User.find({ pushToken: { $exists: true, $ne: null } });
     const tokens = users.map((user) => user.pushToken);
-    users = users.map(user => ({ user: user._id, isRead: false, readAt: null }));
-    const notification = { title, body, image };
-    const response = await firebaseAdmin.messaging().sendEachForMulticast({ tokens, notification });
+    
+    const message = {
+      notification: {
+        title,
+        body
+      },
+      data: {
+        title,
+        body,
+        image
+      },
+      android: {
+        notification: {
+          imageUrl: image,
+        },
+      },
+      apns: {
+          payload: {
+            aps: {
+              'mutable-content': 1
+            }
+          },
+          fcm_options: {
+            image: image
+          }
+        },
+      webpush: {
+        headers: {
+          image
+        }
+      },
+      tokens
+    };
+      
 
+    const response = await firebaseAdmin.messaging().sendEachForMulticast(message);
+    const unNotifiedUsers = [];
+    const notifiedUsers = []
+    response.responses.forEach((resp, index) => {
+        if (!resp.success) {
+            const user = users[index]; 
+            if (user) {
+                unNotifiedUsers.push(user.email);
+            }
+        }
+        if (resp.success) {
+          const user = users[index]; 
+          if (user) {
+              notifiedUsers.push({user: user._id, isRead: false});
+          }
+      }
+    });
+    const notification = { title, body, image };
+  
     const notifications = await Notification.create({
-        users,
+        users: notifiedUsers,
         message: notification
     });
 
-    res.status(200).send({ message: 'Notification sent successfully', notifications });
+    res.status(200).send({ message: 'Notification sent successfully', response, notifications });
 });
 
 const sendNotificationToOneUser = asyncHandler(async (req, res) => {
@@ -44,26 +117,120 @@ const sendNotificationToOneUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({ _id: id, pushToken: { $exists: true, $ne: null } });
     if (!user) return res.status(400).send({ message: 'User not found' });
     const token = user.pushToken;
-    const notification = { title, body, image };
-    await firebaseAdmin.messaging().send({ token, notification });
+
+    const message = {
+      notification: {
+        title,
+        body
+      },
+      data: {
+        title,
+        body,
+        image
+      },
+      android: {
+        notification: {
+          imageUrl: image,
+        },
+      },
+      apns: {
+          payload: {
+            aps: {
+              'mutable-content': 1
+            }
+          },
+          fcm_options: {
+            image: image
+          }
+        },
+      webpush: {
+        headers: {
+          image
+        }
+      },
+      token
+    };
+
+
+   const notification = { title, body, image };
+   const response = await firebaseAdmin.messaging().send(message);
 
     const notifications = await Notification.create({
-        users: [{ user: user._id, isRead: false, readAt: null }],
+        users: [{ user: user._id, isRead: false }],
         message: notification
     });
 
-    res.status(200).send({ message: 'Notification sent successfully', notifications });
+    res.status(200).send({ message: 'Notification sent successfully', response, notifications });
 });
 
-const sendNotificationsInsideApplication = asyncHandler(async (users, tokens, message) => {
-    const response = await firebaseAdmin.messaging().sendEachForMulticast({ tokens, notification: message });
+
+const sendNotificationsInsideApplicationToSingleUser = asyncHandler(async (title, body, userId) => {
+  const user = await User.findOne({ _id: userId, pushToken: { $exists: true, $ne: null } })
+  if(!user) return `User not found or Push Token not exist`
+
+  token = user.pushToken
+  
+  const message = {
+    notification: {
+      title,
+      body
+    },
+    data: {
+      title,
+      body
+    },
+    token
+  };
+    const response = await firebaseAdmin.messaging().send(message);
 
     const notifications = await Notification.create({
-        users,
+        users: [{ user: userId, isRead: false }],
         message
     });
 
-    return `Notification Sent Successfully ${notifications}`;
+    return `Notification Sent Status ${response} ${notifications}`;
+});
+
+
+const sendNotificationsInsideApplicationToMultipleUser = asyncHandler(async (title, body, users) => {
+  const tokens = users.map(user => user.pushToken)
+  const message = {
+    notification: {
+      title,
+      body
+    },
+    data: {
+      title,
+      body
+    },
+    tokens
+  };
+   
+    const response = await firebaseAdmin.messaging().sendEachForMulticast(message);
+    const unNotifiedUsers = [];
+    const notifiedUsers = []
+    response.responses.forEach((resp, index) => {
+        if (!resp.success) {
+            const user = users[index]; 
+            if (user) {
+                unNotifiedUsers.push(user._id);
+            }
+        }
+        if (resp.success) {
+          const user = users[index]; 
+          if (user) {
+              notifiedUsers.push({user: user._id, isRead: false});
+          }
+      }
+    });
+    const notification = { title, body };
+  
+    const notifications = await Notification.create({
+        users: notifiedUsers,
+        message: notification
+    });
+
+    return `Notification Sent Status ${response} ${notifications}`;
 });
 
 const getNotificationById = asyncHandler(async (req, res) => {
@@ -76,18 +243,30 @@ const getNotificationById = asyncHandler(async (req, res) => {
 });
 
 const getNotifications = asyncHandler(async (req, res) => {
-    const { id } = req.query;
-
-    const notifications = await Notification.find({ 'users.user': id }).populate('users.user', 'name email');
-
-    if (notifications.length === 0) res.status(200).send({ message: 'Notifications', notifications });
+    const notifications = await Notification.find({})
+    if(notifications.length === 0) res.status(400).send({message: "No Notifications found"})
+    res.status(200).send({ message: 'Notifications', notifications });
 });
+
+const readStatusUpdate = asyncHandler(async (req, res) => {
+    const { notificationId, userId, read } = req.query
+   
+   const notification = await Notification.findOneAndUpdate({ notification: notificationId , 'users.user': userId, }, {
+        $set: { 'users.$.isRead': read }
+    }, {new: true })
+    
+   if(!notification) return res.status(400).send({message: "Read status Update failed, Please check user details again"})
+
+    res.status(200).send({message: "Notification read status updated successfully", notification})
+})
 
 module.exports = {
     sendPushNotification,
     sendNotificationToAllUsers,
     sendNotificationToOneUser,
-    sendNotificationsInsideApplication,
+    sendNotificationsInsideApplicationToSingleUser,
+    sendNotificationsInsideApplicationToMultipleUser,
     getNotificationById,
-    getNotifications
+    getNotifications,
+    readStatusUpdate
 };
