@@ -105,6 +105,8 @@ const createCourseOrder = asyncHandler(async (req, res) => {
 
   await couponToUpdate.save()
   }
+
+    
     res.status(201).json({
         message: "Course purchased successfully",
         course: order

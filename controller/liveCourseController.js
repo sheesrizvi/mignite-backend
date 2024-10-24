@@ -74,7 +74,7 @@ const createLiveCourse = asyncHandler(async (req, res) => {
             body: `Hurray!! Your ${liveCourse.name} Course will start in 7 days!!`
           }
      
-      await agenda.schedule(afterOneMin, 'send-notification-before-course-start', { courseId: '66efe23a48b088262386aa65', msg })
+      await agenda.schedule(sevenDaysBefore, 'send-notification-before-course-start', { courseId: '66efe23a48b088262386aa65', msg })
 
     res.status(201).json(liveCourse);
   } else {

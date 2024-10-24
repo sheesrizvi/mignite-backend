@@ -10,7 +10,7 @@ const notificationSchema = mongoose.Schema({
         body: { type: String, required: true },
         image: { type: String }
     }
-})
+}, { timestamps: true })
 
 const Notification = mongoose.model('Notification', notificationSchema)
 

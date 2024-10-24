@@ -29,7 +29,7 @@ const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 
 
 const app = express();
-const source = process.env.MONGO_URL
+const source = process.env.MONGO_URI
 app.use(
   cors({
     origin: "*",

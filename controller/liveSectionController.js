@@ -39,10 +39,10 @@ const createLiveSection = asyncHandler(async (req, res) => {
   console.log('live')
   const startMeetingTime = new Date(startTime);
   const endMeetingTime = new Date(endTime);
-  // if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
-  //   console.error("Invalid Time(s)");
-  //   throw new Error("Invalid Time")
-  // }
+  if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
+    console.error("Invalid Time(s)");
+    throw new Error("Invalid Time")
+  }
 
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
   let durationInHours = differenceInMilliseconds / (1000 * 60 * 60);

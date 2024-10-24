@@ -261,6 +261,16 @@ const readStatusUpdate = asyncHandler(async (req, res) => {
     res.status(200).send({message: "Notification read status updated successfully", notification})
 })
 
+const deleteNotification = asyncHandler(async (req, res) => {
+  const { notificationId } = req.query
+  
+  const notification = await Notification.findOne({ _id: notificationId })
+  
+  if(!notification) return res.status(400).send({message: "Notification deleted successfully"})
+  await Notification.findByIdAndDelete(notification._id)
+  res.status(200).send({message: "Notification deleted successfully", notification})
+})
+
 module.exports = {
     sendPushNotification,
     sendNotificationToAllUsers,
@@ -269,5 +279,6 @@ module.exports = {
     sendNotificationsInsideApplicationToMultipleUser,
     getNotificationById,
     getNotifications,
-    readStatusUpdate
+    readStatusUpdate,
+    deleteNotification
 };

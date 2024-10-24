@@ -9,7 +9,9 @@ const { createCoupon,
     getCouponByCode, 
     getCouponsUsedbyUser,
     getPlatformCoupons,
-    getAllCoupons} = require('../controller/couponController')
+    getAllCoupons,
+    searchCoupons,
+    deleteAllCoupons} = require('../controller/couponController')
 const {  admin } = require('../middleware/authMiddleware')
 const router = express.Router()
 
@@ -28,5 +30,8 @@ router.get('/apply-coupon-to-order', applyCouponToOrders) // order checkout page
 router.get('/get-coupons-used-by-user', getCouponsUsedbyUser)  // coupons used by user
 router.get('/get-coupons-by-instructor', getCouponsByInstructor) // coupons by instructor
 router.get('/get-all', getAllCoupons) // get all coupons
+router.get('/search-all-coupons', searchCoupons)
+router.delete("/delete-all-coupons", deleteAllCoupons)
+router.delete("/delete-coupon-by-id", deleteCoupons)
 
 module.exports = router

@@ -387,12 +387,13 @@ const deleteCourse = asyncHandler(async (req, res) => {
 
 
   const sub = await Course.findById(subid);
-  console.log(sub)
   if(!sub) {
     return res.status(400).send({message: "Course not found"})
   }
-  if (sub.sections.length !== 0) {
+  
 
+  if (sub.sections.length !== 0) {
+   
     res.status(404).json("Delete all sections of this course first")
 
   } else {

@@ -4,23 +4,23 @@ const Admin = require('../models/adminModel')
 const mongoose = require('mongoose')
 
 const createCoupon = asyncHandler(async (req, res) => {
-    let {adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
+    let {adminId,  discount, max, usageLimit, startDate, expiryDate, isActive, courses } = req.body
     let code
        
         const admin = await Admin.findById(adminId)
         if(!admin) return res.status(400).send({message: "Admin not found"})
-        const getInitials = (value) => { 
+        const getInitials = (value) => {
            return value.split(' ').map(word => word[0].toUpperCase()).join('')
         }
         const generateUniqueId = () => Math.random().toString(36).substring(2, 7).toUpperCase();
-        code = `${getInitials(admin.name)}-${discount.toString()}${getInitials(discountType)}-${generateUniqueId()}`
+        code = `${getInitials(admin.name)}-${discount.toString()}-${generateUniqueId()}`
     
         
     const coupon = await Coupon.create({
         admin: adminId,
         code,
-        discountType,
         discount,
+        max,
         usageLimit,
         startDate,
         expiryDate,
@@ -33,7 +33,7 @@ const createCoupon = asyncHandler(async (req, res) => {
 
 
 const updateCouponDetails = asyncHandler(async (req, res) => {
-    let {couponId, adminId, discountType, discount, usageLimit, startDate, expiryDate, isActive, courses } = req.body
+    let {couponId, adminId, discount, max,  usageLimit, startDate, expiryDate, isActive, courses } = req.body
     let coupon
     
     if(!couponId || !adminId) {
@@ -43,8 +43,9 @@ const updateCouponDetails = asyncHandler(async (req, res) => {
         if(!coupon) return res.status(400).send({coupon})
     
 
-    coupon.discountType = discountType || coupon.discountType
+   
     coupon.discount = discount || coupon.discount
+    coupon.max = max || coupon.max
     coupon.usageLimit = usageLimit || coupon.usageLimit
     coupon.startDate = startDate || coupon.startDate
     coupon.expiryDate = expiryDate || coupon.expiryDate
@@ -143,6 +144,13 @@ const deleteCoupons = asyncHandler(async (req, res) => {
   res.status(200).send({message: "Coupon deleted succesfully"})
 })
 
+const deleteAllCoupons = asyncHandler(async (req, res) => {
+    const coupons = await Coupon.deleteMany({})
+    if(coupons.length === 0) return res.status(4000).send({ message: 'No Coupons found for delete' })
+
+    res.status(200).send({ message: 'All Coupon deleted' })
+})
+
 const applyCouponToOrders = asyncHandler(async (req, res) => {
     const { code, courses, userId } = req.query
     const now = Date.now()
@@ -175,9 +183,8 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
    
     if(!coupon.courses || coupon.courses.length === 0) {
         const couponCode = coupon.code
-        const discountType = coupon.discountType
         const discount = coupon.discount 
-        return res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon})
+        return res.status(200).send({message: 'Coupon Details found', discount, couponCode, coupon, platformCoupon: true})
     }
 
     const courseArray = Array.isArray(courses) ? courses: [courses]
@@ -186,10 +193,9 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
     if(matchingCourses.length === 0) return res.status(400).send({message: "Coupon not valid with these courses"})
     
     const couponCode = coupon.code
-    const discountType = coupon.discountType
     const discount = coupon.discount
 
-    res.status(200).send({message: 'Coupon Details found', discount, discountType, couponCode, coupon, matchingCourses})
+    res.status(200).send({message: 'Coupon Details found', courseCoupon: true, discount, couponCode, coupon, matchingCourses})
 })
 
 
@@ -224,7 +230,27 @@ const getPlatformCoupons = asyncHandler(async (req, res) => {
 })
 
 const getAllCoupons = asyncHandler(async (req, res) => {
+    const pageNumber = req.query.pageNumber || 1
+    const pageSize = req.query.pageSize || 1
+
+    
+
     const now = Date.now()
+
+
+    const totalCount = await Coupon.countDocuments({
+        startDate: { $lte: now },
+        expiryDate: { $gte: now },
+        isActive: true,
+        $expr: {
+            $or:[
+                { $eq: [ '$usageLimit', null ] },
+                { $lt: [ '$usageCount', '$usageLimit' ] }
+            ]
+        }
+    })
+
+    const pageCount = Math.ceil(totalCount/pageSize)
     const coupons = await Coupon.find({
         startDate: { $lte: now },
         expiryDate: { $gte: now },
@@ -239,12 +265,13 @@ const getAllCoupons = asyncHandler(async (req, res) => {
        
     }).populate('user').populate({
         path: 'courses.course'
-    })
+    }).skip(pageSize * (pageNumber - 1) )
+    .limit(pageSize)
     
     
     if(coupons.length === 0) return res.status(400).send({activeCoupons: coupons})
 
-    res.status(200).send({coupons})
+    res.status(200).send({coupons, pageCount})
 })
 
 const getCouponsUsedbyUser = asyncHandler(async (req, res) => {
@@ -327,6 +354,17 @@ const getCouponsByInstructor = asyncHandler(async (req, res) => {
     res.status(200).send({ coupons });
 });
 
+const searchCoupons = asyncHandler(async (req, res) => {
+    const query = req.query.Query?.trim()
+    const coupons = await Coupon.find({
+        $or: [
+            {code: { $regex: query, $options: 'i' }},
+        ]
+    })
+    console.log(coupons)
+    if(coupons.length === 0) return res.status(400).send({message: 'Error Founding Coupons'})
+    res.status(200).send({coupons})
+})
 
 module.exports = {
     createCoupon,
@@ -335,8 +373,11 @@ module.exports = {
     getCouponsByCourse,
     getAllCoupons,
     deleteCoupons,
+    deleteAllCoupons,
     applyCouponToOrders,
     getCouponsUsedbyUser,
     getCouponsByInstructor,
-    getPlatformCoupons
+    getPlatformCoupons,
+    searchCoupons
 }
+
