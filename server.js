@@ -14,6 +14,7 @@ const subscriptionRoutes = require("./routes/subscriptionRoutes.js")
 const orderRoutes = require("./routes/orderRoutes.js")
 const reviewRoutes = require("./routes/reviewRoutes.js")
 const couponRoutes = require("./routes/couponRoutes.js")
+const rnPushTokenRoutes = require("./routes/rnPushToken.js")
 const notificationRoutes = require("./routes/notificationRoutes.js")
 const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 const { startAgenda } = require("./jobs/agendaConnection.js");
@@ -53,6 +54,8 @@ app.use("/api/order", orderRoutes)
 app.use("/api/reviews", reviewRoutes)
 app.use("/api/coupons", couponRoutes)
 app.use("/api/notifications", notificationRoutes)
+app.use("/api/rnPushTokens", rnPushTokenRoutes)
+
 app.use(notFound)
 app.use(errorHandler)
 // app.use("/api/send", send);

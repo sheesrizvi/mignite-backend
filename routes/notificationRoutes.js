@@ -3,7 +3,7 @@ const { sendPushNotification, sendNotificationToAllUsers, sendNotificationToOneU
 const { admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.get("/send-notification", sendPushNotification);
+router.get("/send-notification", sendPushNotification) // this only for testing purpose
 router.post("/send-push-notification-to-all-users", sendNotificationToAllUsers);
 router.post("/send-push-notification-to-single-user", sendNotificationToOneUser);
 router.get("/get-notification-by-id", getNotificationById);
