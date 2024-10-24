@@ -1,7 +1,7 @@
 const Agenda = require('agenda');
 const { sendNotificationsInsideApplicationToMultipleUser } = require('../controller/notificationController');
 const LiveCourse = require('../models/liveCourseModel');
-const mongoConnectionString = process.env.MONGO_URL; 
+const mongoConnectionString = process.env.MONGO_URI; 
 
 sendNotificationsInsideApplicationToMultipleUser
 const agenda = new Agenda({ db: { address: mongoConnectionString, collection: 'jobs' } });
