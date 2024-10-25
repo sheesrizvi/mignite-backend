@@ -8,6 +8,7 @@ const Instructor = require("../models/instructorModel");
 const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
 const LiveCourse = require("../models/liveCourseModel");
+const Order = require("../models/orderModel");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -729,6 +730,10 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
     const allCourses = [...courses, ...livecourses]
 
     res.status(200).send({status: true, courses, livecourses, allCourses})
+})
+
+const topInstructor = asyncHandler(async (req, res) => {
+   
 })
 
 module.exports = {
