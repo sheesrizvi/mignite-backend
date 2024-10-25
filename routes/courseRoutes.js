@@ -25,7 +25,7 @@ router.route("/update").post(updateCourse);
 router.route("/get-all").get(getCourses);
 router.route("/get-pending-courses").get(getPendingCourses);
 router.route("/by-id").get(getCourseById)
-router.route("/get-all-for-admin").get(getAllCoursesForAdmin);
+router.route("/get-all-with-pagination").get(getAllCoursesForAdmin);
 router.route("/by-instructor-for-admin").get(getAllCoursesOfInstructorForAdmin)
 router.route("/search-by-instructor-for-admin").get(searchCoursesWithinInstructor)
 router.route("/search-courses").get(searchCourses)
