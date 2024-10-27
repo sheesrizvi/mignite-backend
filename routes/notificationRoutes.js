@@ -1,5 +1,5 @@
 const express = require("express");
-const { sendPushNotification, sendNotificationToAllUsers, sendNotificationToOneUser, getNotifications, getNotificationById, readStatusUpdate, deleteNotification } = require("../controller/notificationController")
+const { sendPushNotification, sendNotificationToAllUsers, sendNotificationToOneUser, getNotifications, getNotificationById, readStatusUpdate, deleteNotification, getNotificationByUserId } = require("../controller/notificationController")
 const { admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
@@ -7,6 +7,7 @@ router.get("/send-notification", sendPushNotification) // this only for testing 
 router.post("/send-push-notification-to-all-users", sendNotificationToAllUsers);
 router.post("/send-push-notification-to-single-user", sendNotificationToOneUser);
 router.get("/get-notification-by-id", getNotificationById);
+router.get("/get-notification-by-user-id", getNotificationByUserId);
 router.get("/get-all-notifications", getNotifications);
 router.get("/read-notfication", readStatusUpdate);
 router.delete("/delete-notification", deleteNotification)

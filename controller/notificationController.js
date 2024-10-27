@@ -243,6 +243,16 @@ const getNotificationById = asyncHandler(async (req, res) => {
     res.status(200).send(notification);
 });
 
+
+const getNotificationByUserId = asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+
+  const notification = await Notification.findOne({'users.user': userId}).populate('users.user');
+  if (!notification) return res.status(400).send({ message: "No Notification Found" });
+
+  res.status(200).send({notification});
+});
+
 const getNotifications = asyncHandler(async (req, res) => {
     const notifications = await Notification.find({})
     if(notifications.length === 0) return res.status(400).send({message: "No Notifications found"})
@@ -277,6 +287,7 @@ module.exports = {
     sendNotificationToOneUser,
     sendNotificationsInsideApplicationToSingleUser,
     sendNotificationsInsideApplicationToMultipleUser,
+    getNotificationByUserId,
     getNotificationById,
     getNotifications,
     readStatusUpdate,
