@@ -109,7 +109,7 @@ const sendNotificationToAllUsers = asyncHandler(async (req, res) => {
         message: notification
     });
      
-    res.status(200).send({ message: 'Notification sent successfully', response });
+    res.status(200).send({ message: 'Notification sent successfully', response, notifications });
 });
 
 const sendNotificationToOneUser = asyncHandler(async (req, res) => {
@@ -160,7 +160,7 @@ const sendNotificationToOneUser = asyncHandler(async (req, res) => {
         message: notification
     });
 
-    res.status(200).send({ message: 'Notification sent successfully', response});
+    res.status(200).send({ message: 'Notification sent successfully', response, notifications});
 });
 
 
@@ -247,7 +247,7 @@ const getNotificationById = asyncHandler(async (req, res) => {
 const getNotificationByUserId = asyncHandler(async (req, res) => {
   const { userId } = req.query;
 
-  const notification = await Notification.findOne({'users.user': userId}).populate('users.user');
+  const notification = await Notification.find({'users.user': userId}).populate('users.user');
   if (!notification) return res.status(400).send({ message: "No Notification Found" });
 
   res.status(200).send({notification});
