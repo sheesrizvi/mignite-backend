@@ -766,10 +766,13 @@ const updateUserProgress = asyncHandler(async (req, res) => {
   progressPercentage = Math.min(progressPercentage, 100);
 
   userProgress.courseCompletePercentage = progressPercentage
-
   await userProgress.save()
 
-  res.status(200).send({ userProgress, courseCompletePercentage: progressPercentage  })
+  const viewedSectionCount = userProgress.viewedSections.length > 0 ? userProgress.viewedSections.length : 0
+  const totalSectionsCount = course.sections.length || 0
+  
+
+  res.status(200).send({ userProgress, courseCompletePercentage: progressPercentage, viewedSectionCount, totalSectionsCount  })
   
 })
 
@@ -783,9 +786,19 @@ const checkUserUpdateProgress = asyncHandler(async (req, res) => {
       return res.status(400).send({ message: 'User Progress not found' });
     }
 
+
+  
+  const course = await Course.findOne({ _id: courseId }).select('sections')
+
+  if (!course || course.sections.length === 0) {
+    return res.status(400).send({ message: 'Course or Course Sections not found' });
+  }
+
   const courseCompletePercentage = userProgress.courseCompletePercentage
- 
-  res.status(200).send({ userProgress, courseCompletePercentage })
+  const viewedSectionCount = userProgress.viewedSections?.length > 0 ? userProgress.viewedSections.length : 0
+  const totalSectionsCount = course.sections.length || 0
+
+  res.status(200).send({ userProgress, courseCompletePercentage, viewedSectionCount, totalSectionsCount})
 
 })
 
