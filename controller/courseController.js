@@ -9,6 +9,8 @@ const { instructor } = require("../middleware/authMiddleware");
 const Category = require("../models/category");
 const LiveCourse = require("../models/liveCourseModel");
 const Order = require("../models/orderModel");
+const UserProgress = require("../models/userProgressModel");
+const User = require("../models/userModel");
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -268,6 +270,7 @@ const getCourseById = asyncHandler(async (req, res) => {
     })
     ;
   if (course) {
+    console.log(course.sections.length)
     res.status(200).json({status: true, course});
   } else {
     res.status(404);
@@ -732,9 +735,74 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
     res.status(200).send({status: true, courses, livecourses, allCourses})
 })
 
-const topInstructor = asyncHandler(async (req, res) => {
-   
+const updateUserProgress = asyncHandler(async (req, res) => {
+  const { userId, courseId, sectionId } = req.body
+
+  if(!userId || !courseId || !sectionId) return res.status(400).send({ message: 'All Fields are required' })
+
+  const course = await Course.findOne({ _id: courseId }).select('sections')
+
+  if (!course || course.sections.length === 0) {
+    return res.status(400).send({ message: 'Course or Course Sections not found' });
+  }
+
+
+  const userProgressExist = await UserProgress.findOne({ user: userId, course: courseId, 'viewedSections.section': sectionId })
+  if(userProgressExist) return res.status(400).send({ message: 'Section Already Viewed' })
+
+  const userProgress = await UserProgress.findOneAndUpdate({ user: userId, course: courseId }, {$addToSet: {
+    viewedSections: { section: sectionId,  viewedAt: new Date() }
+  }}, { new: true })
+
+
+  if(!userProgress) return res.status(400).send({ message: 'User Progress Details not found' })
+
+  
+  const totalSections = course.sections.length
+ 
+  const userViewedSections = userProgress.viewedSections?.length || 0
+  let progressPercentage = (userViewedSections/totalSections) * 100
+  progressPercentage = parseFloat(progressPercentage.toFixed(2));
+  progressPercentage = Math.min(progressPercentage, 100);
+
+  userProgress.courseCompletePercentage = progressPercentage
+
+  await userProgress.save()
+
+  res.status(200).send({ userProgress, courseCompletePercentage: progressPercentage  })
+  
 })
+
+const checkUserUpdateProgress = asyncHandler(async (req, res) => {
+  const { userId, courseId } = req.query
+
+  if(!userId || !courseId) return res.status(400).send({ message: 'All Fields are required' })
+
+    const course = await Course.findOne({ _id: courseId }).select('sections')
+    if (!course || course.sections.length === 0) {
+      return res.status(400).send({ message: 'Course or Course Sections not found' });
+    }
+
+    const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
+
+    if(!userProgress) {
+      return res.status(400).send({ message: 'User Progress not found' });
+    }
+
+  const totalSections = course.sections.length
+  const userViewedSections = userProgress.viewedSections?.length || 0
+  let progressPercentage = (userViewedSections/totalSections) * 100
+  progressPercentage = Math.min(progressPercentage, 100);
+
+  progressPercentage = parseFloat(progressPercentage.toFixed(2));
+  res.status(200).send({ userProgress, courseCompletePercentage: progressPercentage })
+
+})
+
+
+
+
+
 
 module.exports = {
   createCourse,
@@ -752,5 +820,7 @@ module.exports = {
   getAllCoursesByType,
   searchAllCourses,
   topPickCourses,
-  topPickCoursesByCategory
+  topPickCoursesByCategory,
+  updateUserProgress,
+  checkUserUpdateProgress
 };

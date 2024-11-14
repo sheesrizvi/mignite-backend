@@ -15,7 +15,9 @@ const {
   searchAllCourses,
   topPickCourses,
   topPickCoursesByCategory,
-  getPendingCourses
+  getPendingCourses,
+  updateUserProgress,
+  checkUserUpdateProgress
 } = require("../controller/courseController");
 
 const router = express.Router();
@@ -36,5 +38,10 @@ router.route("/get-courses-by-category-type").get(getAllCoursesByType)
 router.route("/search-all-courses").get(searchAllCourses)
 router.route("/top-pick-courses").get(topPickCourses)
 router.route("/top-pick-courses-by-category").get(topPickCoursesByCategory)
+router.route("/update-user-progress").post(updateUserProgress)
+router.route("/check-user-update-progress").get(checkUserUpdateProgress)
+
+
+
 module.exports = router;
 

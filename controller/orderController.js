@@ -5,6 +5,7 @@ const LiveCourse = require('../models/liveCourseModel');
 const User = require('../models/userModel');
 const Coupon = require('../models/couponModel');
 const { options, search } = require('../routes/adminRoutes');
+const UserProgress = require('../models/userProgressModel');
 
 const createCourseOrder = asyncHandler(async (req, res) => {
     const {
@@ -59,6 +60,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
       });
 
   if(order) {
+  
     for(let i = 0; i < orderCourses.length; i++) {
         const item = orderCourses[i];
         let course;
@@ -92,10 +94,18 @@ const createCourseOrder = asyncHandler(async (req, res) => {
           });
 
         await user.save()
+
+        if(item.course) {
+         await UserProgress.create({
+            user: userId,
+            course: item.course
+          })
+        
+        }
+
     }
   if(coupon) {
     let couponToUpdate = await Coupon.findById(coupon.id)
-    
     if(couponToUpdate.usageCount > couponToUpdate.usageLimit) {
       couponToUpdate.isActive = false
     } else {
