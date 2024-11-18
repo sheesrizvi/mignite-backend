@@ -267,6 +267,7 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
 
   if(user.otp !== otp) return res.status(400).send({ message: 'OTP not valid' })
   user.active = true
+  user.otp = ""
   await user.save()
 
   res.status(200).send({ message: 'User verified successfully', user, token: generateTokenUser(user._id, user.name, user.email, user.age, user.type) })

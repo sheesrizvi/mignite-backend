@@ -542,6 +542,7 @@ const verifyInstructorProfile = asyncHandler(async (req, res) => {
 
   if(instructor.otp !== otp) return res.status(400).send({ message: 'OTP not valid' })
   instructor.active = true
+  instructor.otp = ""
   await instructor.save()
   res.status(200).send({ message: 'Instructor verified successfully', instructor, token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type ), })
 })
