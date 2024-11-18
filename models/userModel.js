@@ -60,7 +60,7 @@ const userSchema = mongoose.Schema(
     active: {
       type: Boolean,
       required: true,
-      default: true,
+      default: false,
     },
     type: {
       type: String,
@@ -81,7 +81,9 @@ const userSchema = mongoose.Schema(
         }
       }
     ],
-    
+    otp: {
+      type: String
+    }
   },
   {
     timestamps: true,

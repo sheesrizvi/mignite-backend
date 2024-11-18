@@ -781,10 +781,10 @@ const checkUserUpdateProgress = asyncHandler(async (req, res) => {
 
   if(!userId || !courseId) return res.status(400).send({ message: 'All Fields are required' })
 
-    const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
-    if(!userProgress) {
+  const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
+  if(!userProgress) {
       return res.status(400).send({ message: 'User Progress not found' });
-    }
+  }
 
 
   
@@ -801,8 +801,6 @@ const checkUserUpdateProgress = asyncHandler(async (req, res) => {
   res.status(200).send({ userProgress, courseCompletePercentage, viewedSectionCount, totalSectionsCount})
 
 })
-
-
 
 
 

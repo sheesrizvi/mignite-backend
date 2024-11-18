@@ -10,6 +10,9 @@ const mongoose = require('mongoose');
 const { populate } = require("dotenv");
 const { instructor } = require("../middleware/authMiddleware.js");
 const Order = require("../models/orderModel.js");
+const generator = require('generate-password')
+const { sendResetEmail, sendVerificationEmail } = require("../middleware/handleEmail.js");
+
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 //  @access   Public
@@ -20,6 +23,10 @@ const authInstructor = asyncHandler(async (req, res) => {
   const instructor = await Instructor.findOne({ email });
 
   if (instructor && (await instructor.matchPassword(password))) {
+    if(!instructor.active) {
+      return res.status(400).send({ message: 'Instructor not found or active. Please verify profile first' })
+    }
+
     if(instructor.status === 'pending' || instructor.status === 'rejected') {
       return res.status(400).send({message: 'Instructor status not approved yet. Please wait till admin approval'})
     }
@@ -49,6 +56,10 @@ const registerInstructor = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Instructor already exists");
   }
+  let otp = generator.generate({
+    length: 10,
+    numbers: true
+  })
 
   const instructor = await Instructor.create({
     name,
@@ -56,16 +67,18 @@ const registerInstructor = asyncHandler(async (req, res) => {
     password,
     phone,
     description,
-    
+    otp
   });
 
   if (instructor) {
+   
+    sendVerificationEmail(instructor.otp, instructor.email)
     res.json({
         _id: instructor._id,
         name: instructor.name,
         email: instructor.email,
         //token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
-        message:'Instructor created succesfully, Please wait till admin approval'
+        message:'Instructor created succesfully, Please wait till admin approval and verification email sent'
       });
   } else {
     res.status(404);
@@ -521,6 +534,35 @@ const getInstructorDataById = asyncHandler(async (req, res) => {
   res.status(200).send({ message: 'Instructor', instructor: instructorDetails })
 })
 
+const verifyInstructorProfile = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  const instructor = await Instructor.findOne({ email })
+  if(!instructor) return res.status(400).send({message: 'Instructor not found'})
+
+  if(instructor.otp !== otp) return res.status(400).send({ message: 'OTP not valid' })
+  instructor.active = true
+  await instructor.save()
+  res.status(200).send({ message: 'Instructor verified successfully', instructor, token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type ), })
+})
+
+const resetPassword = asyncHandler(async(req, res) => {
+  const {  email } = req.body
+  if(!email) {
+      return res.status(400).send({status:true, message: 'Email not Found'})
+  }
+  const existedInstructor = await Instructor.findOne({email})
+  if(!existedInstructor) {
+      return res.status(400).send({status: false, message: 'Email not exist'})
+  }
+  
+  const randomPassword = await sendResetEmail(existedInstructor.email)
+  existedInstructor.password = randomPassword
+  await existedInstructor.save()
+  res.status(200).send({status: true, message: 'Check Your Email for Password Reset'})
+})
+
+
 module.exports = {
   authInstructor,
   registerInstructor,
@@ -534,5 +576,7 @@ module.exports = {
   getInstructorPendingData,
   getTopInstructors,
   getInstructorSalesData,
-  getInstructorDataById
+  getInstructorDataById,
+  verifyInstructorProfile,
+  resetPassword
 };

@@ -3,15 +3,19 @@ const { generateTokenUser } = require("../utils/generateToken.js");
 const User = require("../models/userModel.js");
 const mongoose = require("mongoose");
 const { Subscription } = require("../models/subscriptionModel.js");
-const { sendResetEmail } = require("../middleware/handleEmail.js");
+const { sendResetEmail, sendVerificationEmail } = require("../middleware/handleEmail.js");
+const generator = require('generate-password')
 
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
-
+ 
   if (user && (await user.matchPassword(password))) {
+    if(!user.active) {
+      return res.status(400).send({ message: 'User not found or active. Please verify profile first' })
+    }
     res.json({
       _id: user._id,
       name: user.name,
@@ -53,6 +57,12 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
+  let otp = generator.generate({
+    length: 10,
+    numbers: true
+  })
+
+
   const user = await User.create({
     name,
     email,
@@ -68,15 +78,18 @@ const registerUser = asyncHandler(async (req, res) => {
     gender,
     profile,
     pushToken,
+    otp
   });
   
   if (user) {
    const age = user.age
+    sendVerificationEmail(user.otp, user.email)
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
-      token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
+      // token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
+      message: 'Verification OTP sent to your email. Please verify your email for login'
     });
   } else {
     res.status(404);
@@ -240,10 +253,23 @@ const resetPassword = asyncHandler(async(req, res) => {
       return res.status(400).send({status: false, message: 'Email not exist'})
   }
   
-  const randomPassword = await sendResetEmail()
+  const randomPassword = await sendResetEmail(existedUser.email)
   existedUser.password = randomPassword
   await existedUser.save()
-  res.status(200).send({status: true, message: 'Check Your Email for Password Reset'})
+  res.status(200).send({status: true, message: 'OTP sent to your email. Please check for passwrod reset'})
+})
+
+const verifyUserProfile = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  const user = await User.findOne({ email })
+  if(!user) return res.status(400).send({message: 'User not found'})
+
+  if(user.otp !== otp) return res.status(400).send({ message: 'OTP not valid' })
+  user.active = true
+  await user.save()
+
+  res.status(200).send({ message: 'User verified successfully', user, token: generateTokenUser(user._id, user.name, user.email, user.age, user.type) })
 })
 
 module.exports = {
@@ -253,5 +279,6 @@ module.exports = {
   getCoursesBoughtByUser,
   getSubscriptionByUser,
   updateUserProfile,
-  resetPassword
+  resetPassword,
+  verifyUserProfile
 };

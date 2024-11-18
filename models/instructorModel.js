@@ -36,7 +36,7 @@ const instructorSchema = mongoose.Schema(
     active: {
       type: Boolean,
       required: true,
-      default: true
+      default: false
     },
     type: {
       type: String,
@@ -54,8 +54,12 @@ const instructorSchema = mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'LiveCourse'
       }
-    ]
+    ],
+    otp: {
+      type: String
+    },
   },
+  
   {
     timestamps: true,
   }

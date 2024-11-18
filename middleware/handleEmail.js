@@ -24,31 +24,47 @@ const verifyTransporter = asyncHandler(async (req, res, next) => {
     await transporter.verify();
     next();  
   } catch (error) {
+    console.log(error)
     throw new Error('Email transporter verification failed');
   }
 });
 
 
 
-const sendResetEmail = asyncHandler(async() => {
+const sendResetEmail = asyncHandler(async(email) => {
     let password = generator.generate({
       length: 10,
       numbers: true
     })
+  
     const info = await transporter.sendMail({
       from: process.env.USER_EMAIL, 
-      to: process.env.USER_EMAIL, 
+      to: email, 
       subject: `Your OTP - PASSWORD`, 
       text: `Your OTP/Temporary Password for Login is ${password}`, 
-      html: `<h1>OTP/Password is ${password}</h1>`, 
+      html: `<h4>OTP/Password is ${password}</h4>`, 
     });
     return password
     
   })
 
+  const sendVerificationEmail = asyncHandler(async(otp, email) => {
+   
+    const info =  await transporter.sendMail({
+      from: process.env.USER_EMAIL, 
+      to: email, 
+      subject: `Your OTP - PASSWORD`, 
+      text: `Your OTP/Temporary Password for Login is ${otp}`, 
+      html: `<h4>Verification OTP: ${otp}</h4>`, 
+    });
+    
+    return true
+    
+  })
 
 
   module.exports = {
     sendResetEmail,
-    verifyTransporter
+    verifyTransporter,
+    sendVerificationEmail
   }

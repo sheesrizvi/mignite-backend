@@ -17,7 +17,7 @@ const {
   topPickCoursesByCategory,
   getPendingCourses,
   updateUserProgress,
-  checkUserUpdateProgress
+  checkUserUpdateProgress,
 } = require("../controller/courseController");
 
 const router = express.Router();
