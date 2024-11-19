@@ -234,7 +234,7 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
 
        progressReport.push(
         {
-          course: courseItem,
+          course: courseItem._id,
           userProgress: 0, 
           courseCompletePercentage:0, 
           viewedSectionCount:0, 
@@ -250,25 +250,28 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
     const totalSectionsCount = course.sections.length || 0
   
    progressReport.push({
-      course: courseItem,
+      course: courseItem._id,
       userProgress, 
       courseCompletePercentage, 
       viewedSectionCount, 
       totalSectionsCount
     })
   }
- 
-  const allCourses = [...courses, ...livecourses];
+ let updatedCourse = []
+  for (let report of progressReport) {
+    let result = courses.find((course) => course._id === report.course)
+    updatedCourse.push({...result.toObject(), report})
+  }
+  const allCourses = [...updatedCourse, ...livecourses];
 
   
 
   res.status(200).json({ 
     status: true, 
     message: 'User Courses Found', 
-    courses, 
+    courses: updatedCourse, 
     livecourses, 
     allCourses,
-    progressReport
   });
 });
 
