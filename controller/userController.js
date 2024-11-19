@@ -5,7 +5,8 @@ const mongoose = require("mongoose");
 const { Subscription } = require("../models/subscriptionModel.js");
 const { sendResetEmail, sendVerificationEmail } = require("../middleware/handleEmail.js");
 const generator = require('generate-password')
-
+const UserProgress = require("../models/userProgressModel");
+const Course = require("../models/coursesModel");
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -219,17 +220,55 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
     return res.status(404).json({ status: false, message: 'User not found' });
   }
 
-  const courses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
+  let courses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
   const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse);
 
+  let progressReport = []
+  for (let courseItem of courses) {
+    const courseId = courseItem._id
+
+    const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
+    const course = await Course.findOne({ _id: courseId }).select('sections')
+   
+    if (course.sections.length === 0) {
+
+       progressReport.push(
+        {
+          course: courseItem,
+          userProgress: 0, 
+          courseCompletePercentage:0, 
+          viewedSectionCount:0, 
+          totalSectionsCount:0
+        }
+    )
+      
+    }
+  
+    const courseCompletePercentage = userProgress.courseCompletePercentage
+  
+    const viewedSectionCount = userProgress.viewedSections?.length > 0 ? userProgress.viewedSections.length : 0
+    const totalSectionsCount = course.sections.length || 0
+  
+   progressReport.push({
+      course: courseItem,
+      userProgress, 
+      courseCompletePercentage, 
+      viewedSectionCount, 
+      totalSectionsCount
+    })
+  }
+ 
   const allCourses = [...courses, ...livecourses];
+
+  
 
   res.status(200).json({ 
     status: true, 
     message: 'User Courses Found', 
     courses, 
     livecourses, 
-    allCourses 
+    allCourses,
+    progressReport
   });
 });
 

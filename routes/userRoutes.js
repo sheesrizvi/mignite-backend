@@ -10,7 +10,7 @@ resetPassword
 router.route("/register").post(registerUser);
 router.route("/login").post(authUser);
 router.route("/get-user").get(isUser, getUserDetails)
-router.route("/courses-bought-by-user").get(isUser, getCoursesBoughtByUser)
+router.route("/courses-bought-by-user").get(getCoursesBoughtByUser)
 router.route("/subscription-by-user").get(getSubscriptionByUser)
 router.route("/update-user-profile").post(isUser, updateUserProfile)
 router.post('/reset-password', resetPassword)
