@@ -57,6 +57,16 @@ router.post(
   }
 );
 
+router.post(
+  "/uploadSingleImageUser",
+  upload.single("image"),
+  async (req, res) => {
+    const result = req.file;
+    //define what to do if result is empty
+    res.send(`${result.location}`);
+  }
+);
+
 router.delete("/deleteImage", isAdminorInstructor, async (req, res) => {
   const image = req.query.image;
   // console.log(image);
