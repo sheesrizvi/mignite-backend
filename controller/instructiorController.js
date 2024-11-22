@@ -207,6 +207,10 @@ const deleteInstructor = asyncHandler(async (req, res) => {
 
 const getInstructorData = asyncHandler(async (req, res) => {
   const instructor = req.query.instructor 
+  
+  const instructorDetails = await Instructor.findById(instructor)
+
+  if(!instructorDetails) return res.status(400).send({message: "Instructor not found"})
 
   const courses = await Course.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
     path: 'sections',
@@ -246,7 +250,7 @@ const getInstructorData = asyncHandler(async (req, res) => {
  res.status(200).send({ 
     coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
     enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
-    courses, livecourses , allCourses
+    courses, livecourses , allCourses, instructor: instructorDetails
   })
 })
 
