@@ -48,7 +48,7 @@ const authInstructor = asyncHandler(async (req, res) => {
 //@access   Public
 
 const registerInstructor = asyncHandler(async (req, res) => {
-  const { name, email, password, description, phone } = req.body;
+  const { name, email, password, description, phone , profileImage} = req.body;
 
   const userExists = await Instructor.findOne({ email });
 
@@ -67,7 +67,8 @@ const registerInstructor = asyncHandler(async (req, res) => {
     password,
     phone,
     description,
-    otp
+    otp,
+    profileImage
   });
 
   if (instructor) {
@@ -88,7 +89,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
 
 
 const updateInstructor = asyncHandler(async (req, res) => {
-  const { instructorId, name, email, description, phone } = req.body;
+  const { instructorId, name, email, description, phone, profileImage } = req.body;
 
   const instructor = await Instructor.findById(instructorId);
 
@@ -108,6 +109,7 @@ const updateInstructor = asyncHandler(async (req, res) => {
   instructor.description = description || instructor.description;
   instructor.phone = phone || instructor.phone;
   instructor.active = active || instructor.active
+  instructor.profileImage = profileImage || instructor.profileImage
   const updatedInstructor = await instructor.save();
 
   if (updatedInstructor) {
