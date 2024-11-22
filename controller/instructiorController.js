@@ -254,6 +254,15 @@ const getInstructorData = asyncHandler(async (req, res) => {
   })
 })
 
+const getInstructorById = asyncHandler(async (req, res) => {
+  const instructor = req.query.instructor 
+  
+  const instructorDetails = await Instructor.findById(instructor)
+
+  if(!instructorDetails) return res.status(400).send({message: "Instructor not found"})
+
+  res.status(200).send({instructor: instructorDetails})
+})
 
 const getInstructorSalesData = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
@@ -585,5 +594,6 @@ module.exports = {
   getInstructorSalesData,
   getInstructorDataById,
   verifyInstructorProfile,
-  resetPassword
+  resetPassword,
+  getInstructorById
 };
