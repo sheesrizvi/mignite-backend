@@ -89,7 +89,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
 
 
 const updateInstructor = asyncHandler(async (req, res) => {
-  const { instructorId, name, email, description, phone, profileImage } = req.body;
+  const { instructorId, name, email, description, phone, profileImage, active } = req.body;
 
   const instructor = await Instructor.findById(instructorId);
 
