@@ -18,6 +18,7 @@ const createPlan = asyncHandler(async (req, res) => {
     const coursesFromCourseModel = await Course.find({ _id: { $in: courses } });
     const coursesFromLiveCourseModel = await LiveCourse.find({ _id: { $in: courses } });
 
+    
     courseIds = coursesFromCourseModel.map((course) => course._id);
     liveCourseIds = coursesFromLiveCourseModel.map((liveCourse) => liveCourse._id);
   }

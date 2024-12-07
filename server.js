@@ -16,6 +16,7 @@ const reviewRoutes = require("./routes/reviewRoutes.js")
 const couponRoutes = require("./routes/couponRoutes.js")
 const rnPushTokenRoutes = require("./routes/rnPushToken.js")
 const notificationRoutes = require("./routes/notificationRoutes.js")
+const dashboardRoutes = require('./routes/analyticsRoutes.js')
 const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 const { startAgenda } = require("./jobs/agendaConnection.js");
 const upload = require("./routes/upload");
@@ -55,6 +56,7 @@ app.use("/api/reviews", reviewRoutes)
 app.use("/api/coupons", couponRoutes)
 app.use("/api/notifications", notificationRoutes)
 app.use("/api/rnPushTokens", rnPushTokenRoutes)
+app.use("/api/analytics", dashboardRoutes)
 
 app.use(notFound)
 app.use(errorHandler)
