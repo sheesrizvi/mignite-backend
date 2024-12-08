@@ -240,7 +240,7 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
 
 const getAllPendingLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
-  const pageSize = Number(req.query.pageSize) || 2
+  const pageSize = Number(req.query.pageSize) || 20
 
   const totalCourses = await LiveCourse.countDocuments({status: 'pending'})
   const pageCount = Math.ceil(totalCourses/pageSize)
@@ -336,6 +336,49 @@ const searchLiveCourse = asyncHandler(async (req, res) => {
  
   const searchCriteria = {
    status: 'approved',
+   $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
+  }
+  const totalCourses = await LiveCourse.countDocuments(searchCriteria)
+  const pageCount = Math.ceil(totalCourses/pageSize)
+  const livecourses = await LiveCourse.find(searchCriteria)
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  });
+  return res.status(200).send({status: true, message: 'Search Successfull', livecourses,  pageCount})
+})
+
+
+const searchPendingLiveCourse = asyncHandler(async (req, res) => {
+  const query = req.query.Query
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = 20;
+ 
+  const searchCriteria = {
+   status: 'pending',
    $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
   }
   const totalCourses = await LiveCourse.countDocuments(searchCriteria)
@@ -564,5 +607,6 @@ module.exports = {
   getLiveCourseById,
   getAllPendingLiveCoursesForAdmin,
   getAllLiveCoursesOfInstructorForAdmin,
-  searchLiveCoursesWithinInstructor
+  searchLiveCoursesWithinInstructor,
+  searchPendingLiveCourse
 };

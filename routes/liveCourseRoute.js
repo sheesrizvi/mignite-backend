@@ -12,7 +12,8 @@ const {
     searchLiveCoursesWithinInstructor,
     getAllLiveCoursesOfInstructorForAdmin,
     getLiveCourseById,
-    getAllPendingLiveCoursesForAdmin
+    getAllPendingLiveCoursesForAdmin,
+    searchPendingLiveCourse
 } = require("../controller/liveCourseController");
 const { instructor, admin } = require("../middleware/authMiddleware.js");
 
@@ -26,6 +27,7 @@ router.route("/get-all-live-courses").get(getAllLiveCoursesForAdmin);
 router.route("/get-all-pending-live-courses").get(getAllPendingLiveCoursesForAdmin);
 router.route("/by-id").get(getLiveCourseById)
 router.route("/search-live-courses").get(searchLiveCourse)
+router.route("/search-pending-live-courses").get(searchPendingLiveCourse)
 router.route("/by-instructor-for-admin").get(getAllLiveCoursesOfInstructorForAdmin);
 router.route("/search-by-instructor-for-admin").get(searchLiveCoursesWithinInstructor)
 router.route("/by-category").get(getLiveCoursesByCategory);

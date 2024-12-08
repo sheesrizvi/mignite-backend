@@ -231,15 +231,13 @@ const getPlatformCoupons = asyncHandler(async (req, res) => {
 
 const getAllCoupons = asyncHandler(async (req, res) => {
     const pageNumber = req.query.pageNumber || 1
-    const pageSize = req.query.pageSize || 1
+    const pageSize = req.query.pageSize || 20
 
-    
 
     const now = Date.now()
 
 
     const totalCount = await Coupon.countDocuments({
-        startDate: { $lte: now },
         expiryDate: { $gte: now },
         isActive: true,
         $expr: {
@@ -252,7 +250,6 @@ const getAllCoupons = asyncHandler(async (req, res) => {
 
     const pageCount = Math.ceil(totalCount/pageSize)
     const coupons = await Coupon.find({
-        startDate: { $lte: now },
         expiryDate: { $gte: now },
         isActive: true,
         $expr: {
@@ -270,7 +267,7 @@ const getAllCoupons = asyncHandler(async (req, res) => {
     
     
     if(coupons.length === 0) return res.status(400).send({activeCoupons: coupons})
-
+    
     res.status(200).send({coupons, pageCount})
 })
 
@@ -356,12 +353,21 @@ const getCouponsByInstructor = asyncHandler(async (req, res) => {
 
 const searchCoupons = asyncHandler(async (req, res) => {
     const query = req.query.Query?.trim()
+    const now = Date.now()
     const coupons = await Coupon.find({
         $or: [
             {code: { $regex: query, $options: 'i' }},
-        ]
+        ],
+        expiryDate: { $gte: now },
+        isActive: true,
+        $expr: {
+            $or:[
+                { $eq: [ '$usageLimit', null ] },
+                { $lt: [ '$usageCount', '$usageLimit' ] }
+            ]
+        }
     })
-    console.log(coupons)
+   
     if(coupons.length === 0) return res.status(400).send({message: 'Error Founding Coupons'})
     res.status(200).send({coupons})
 })

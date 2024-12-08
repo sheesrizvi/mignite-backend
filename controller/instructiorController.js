@@ -167,6 +167,23 @@ const fetchInstructorBySearch = asyncHandler(async (req, res) => {
  return res.status(200).send({status: true, message: 'Search Successfull', instructors,  pageCount})
 })
 
+const fetchPendingInstructorBySearch = asyncHandler(async (req, res) => {
+  const query = req.query.Query
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = 20;
+ 
+  const searchCriteria = {
+   status: 'pending',
+   $or: [ {name: { $regex: query, $options: 'i' }}, {email: { $regex: query, $options: 'i' }}]
+  }
+  const totalInstructors = await Instructor.countDocuments(searchCriteria)
+  const pageCount = Math.ceil(totalInstructors/pageSize)
+  const instructors = await Instructor.find(searchCriteria).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+  return res.status(200).send({status: true, message: 'Search Successfull', instructors,  pageCount})
+ })
+ 
+
 const getPendingInstructor = asyncHandler(async (req, res) => {
   const pageNumber = parseInt(req.query.pageNumber) || 1
   const pageSize = parseInt(req.query.pageSize) || 20;
@@ -595,5 +612,6 @@ module.exports = {
   getInstructorDataById,
   verifyInstructorProfile,
   resetPassword,
-  getInstructorById
+  getInstructorById,
+  fetchPendingInstructorBySearch
 };

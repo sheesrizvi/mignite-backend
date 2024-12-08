@@ -215,7 +215,7 @@ const getCourses = asyncHandler(async (req, res) => {
 
 const getPendingCourses = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
-  const pageSize = Number(req.query.pageSize) || 2
+  const pageSize = Number(req.query.pageSize) || 20
 
   const totalCourses = await Course.countDocuments({status: 'pending'})
   const pageCount = Math.ceil(totalCourses/pageSize)
@@ -363,6 +363,35 @@ const searchCourses = asyncHandler(async (req, res) => {
   
   const searchCriteria = {
    status: 'approved',
+   $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
+  }
+  const totalCourses = await Course.countDocuments(searchCriteria)
+  const pageCount = Math.ceil(totalCourses/pageSize)
+  const courses = await Course.find(searchCriteria)
+  .skip((pageNumber - 1) * pageSize)
+  .limit(pageSize)
+  .populate('instructor')
+  .populate('plan')
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  })
+  
+  return res.status(200).send({status: true, message: 'Search Successfull', courses,  pageCount})
+})
+
+const searchAllPendingCourses = asyncHandler(async (req, res) => {
+  const query = req.query.Query
+  const pageNumber = Number(req.query.pageNumber) || 1
+  const pageSize = 20;
+  
+  const searchCriteria = {
+   status: 'pending',
    $or: [ {name: { $regex: query, $options: 'i' }}, {details: { $regex: query, $options: 'i' }}]
   }
   const totalCourses = await Course.countDocuments(searchCriteria)
@@ -823,5 +852,6 @@ module.exports = {
   topPickCourses,
   topPickCoursesByCategory,
   updateUserProgress,
-  checkUserUpdateProgress
+  checkUserUpdateProgress,
+  searchAllPendingCourses
 };
