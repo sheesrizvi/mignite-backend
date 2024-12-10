@@ -137,6 +137,16 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
   res.status(200).send({orders, pageCount})
 })
+
+const getAllOrdersForDownload = asyncHandler(async (req, res) => {
+
+  const orders = await Order.find({}).sort({createdAt: -1}).populate('user')
+  if(!orders || orders.length === 0) {
+    return res.status(400).send({ message:'No Orders Found' })
+  }
+  res.status(200).send({orders})
+})
+
 const deleteOrder = asyncHandler(async (req, res) => {
   const { orderId  } = req.query
 
@@ -212,5 +222,6 @@ module.exports = {
     createCourseOrder,
     getAllOrders,
     deleteOrder,
-    searchOrder
+    searchOrder,
+    getAllOrdersForDownload
 }

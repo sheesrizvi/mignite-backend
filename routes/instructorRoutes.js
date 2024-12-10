@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerInstructor, authInstructor, getAllInstructor, fetchInstructorBySearch, deleteInstructor, updateInstructor, getPendingInstructor, getInstructorData, getInstructorSalesData, getSalesHistory, getInstructorPendingData, getTopInstructors, getInstructorDataById, verifyInstructorProfile, resetPassword, getInstructorById, fetchPendingInstructorBySearch} = require("../controller/instructiorController");
+const { registerInstructor, authInstructor, getAllInstructor, fetchInstructorBySearch, deleteInstructor, updateInstructor, getPendingInstructor, getInstructorData, getInstructorSalesData, getSalesHistory, getInstructorPendingData, getTopInstructors, getInstructorDataById, verifyInstructorProfile, resetPassword, getInstructorById, fetchPendingInstructorBySearch, getAllInstructorForDownload} = require("../controller/instructiorController");
 const { instructor, isAdminorInstructor } = require("../middleware/authMiddleware");
 const {  generateLiveStreamToken } = require("../middleware/meetingLinkGenerate");
 
@@ -11,6 +11,7 @@ router.route("/register").post(registerInstructor);
 router.route("/verify-instructor-profile").post(verifyInstructorProfile);
 router.route("/login").post(authInstructor);
 router.route("/get-all").get(getAllInstructor)
+router.route("/get-all-for-download").get(getAllInstructorForDownload)
 router.route("/pending-instructor").get(getPendingInstructor);
 router.route("/search").get(fetchInstructorBySearch)
 router.route("/search-pending").get(fetchPendingInstructorBySearch)
