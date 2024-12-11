@@ -6,7 +6,7 @@ const Course = require('../models/coursesModel')
 
 const createPlan = asyncHandler(async (req, res) => {
   const { name, price, durationInMonths, discount, features, courses, level } = req.body;
-  
+
   if (!name || !price || !durationInMonths) {
     return res.status(400).send({ status: true, message: 'All Fields are required' });
   }
@@ -76,6 +76,7 @@ const deletePlan = asyncHandler(async (req, res) => {
 
 const updatePlan = asyncHandler(async (req, res) => {
   const { planId } = req.params;
+  
   const { name, price, durationInMonths, discount, features, courses, level } = req.body;
 
   if (!planId) {
@@ -130,11 +131,14 @@ const updatePlan = asyncHandler(async (req, res) => {
 });
 
 const getAllPlans = asyncHandler(async (req, res) => {
-  const plans = await Plan.find({}).populate('courses').populate('liveCourses')
+  const { pageNumber = 1, pageSize = 20 } = req.query
+  const plans = await Plan.find({}).populate('courses').populate('liveCourses').sort({ createdAt: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
   if (plans.length === 0) {
     return res.status(400).send({ status: false, message: 'No plans found' })
   }
-  res.status(200).send({ status: true, message: 'Your Plans', plans })
+  const totalDocuments = await Plan.countDocuments({})
+  const pageCount = Math.ceil(totalDocuments/pageSize)
+  res.status(200).send({ status: true, message: 'Your Plans', plans,   pageCount })
 })
 
 const getSpecificPlan = asyncHandler(async (req, res) => {
@@ -175,11 +179,34 @@ const getPlanByLevels = asyncHandler(async (req, res) => {
 
 })
 
+const searchPlan = asyncHandler(async (req, res) => {
+  const { Query: query, pageNumber = 1, pageSize = 20 } = req.query
+  const plans = await Plan.find({
+    $or: [
+      { name: { $regex: query, $options: 'i' } }
+    ]
+  }).sort({createdAt: -1}).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+  if(!plans || plans.length === 0) {
+    return res.status(400).send({ message: 'No Plan found' })
+  }
+
+  const totalDocuments = await Plan.countDocuments({
+    $or: [
+      { name: { $regex: query, $options: 'i' } }
+    ]
+  })
+
+  const pageCount = Math.ceil(totalDocuments/pageSize)
+  res.status(200).send({ plans, pageCount })
+})
+
 module.exports = {
   createPlan,
   deletePlan,
   updatePlan,
   getAllPlans,
   getPlanByLevels,
-  getSpecificPlan
+  getSpecificPlan,
+  searchPlan
 }

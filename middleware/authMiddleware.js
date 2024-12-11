@@ -63,20 +63,20 @@ const isUser = asyncHandler(async (req, res, next) => {
 const isAdminorInstructor = async (req, res, next) => {
   try {
     const token = req.header("x-auth-token");
-    console.log(token)
+
     if (!token) return res.status(403).send("Access denied. Login Required");
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded)
-    console.log(decoded.type)
-    if (decoded.type === 'admin') {
+   
 
+    if (decoded.type === 'admin') {
+      console.log(decoded.type)
       req.user = await Admin.findById(decoded.id);
     }
     if (decoded.type === 'instructor') {
       req.user = await Instructor.findById(decoded.id);
     }
-    console.log(req.user)
+  
     if (!req.user) {
       return res.status(400).send({ status: false, message: 'Not authorized' })
     }

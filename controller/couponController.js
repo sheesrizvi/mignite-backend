@@ -33,11 +33,11 @@ const createCoupon = asyncHandler(async (req, res) => {
 
 
 const updateCouponDetails = asyncHandler(async (req, res) => {
-    let {couponId, adminId, discount, max,  usageLimit, startDate, expiryDate, isActive, courses } = req.body
+    let {couponId, discount, max,  usageLimit, startDate, expiryDate, isActive, courses } = req.body
     let coupon
     
-    if(!couponId || !adminId) {
-        return res.status(400).send({message: 'Both Fields are required'})
+    if(!couponId) {
+        return res.status(400).send({message: ' Coupon Id is required'})
     }
         coupon = await Coupon.findOne({_id: couponId})
         if(!coupon) return res.status(400).send({coupon})
