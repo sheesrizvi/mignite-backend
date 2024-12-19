@@ -561,14 +561,60 @@ const getInstructorDataById = asyncHandler(async (req, res) => {
   const { instructor } = req.query
   const instructorDetails = await Instructor.findOne({_id: instructor}).populate({
     path: 'courses',
-    populate: {
-      path: 'reviews'
-    }
+    populate: [
+      {
+        path: 'reviews',
+        populate: [
+          {
+            path: 'user'
+          },
+          {
+            path: 'course'
+          }
+        ]
+      },
+      {
+        path: 'instructor'
+      },
+      {
+        path: 'category'
+      },
+      {
+        path: 'sections',
+        populate: {
+          path: 'assignment'
+        }
+      }
+    ]
+      
+    
   }).populate({
     path: 'livecourses',
-    populate: {
-      path: 'reviews'
-    }
+    populate: [
+      {
+        path: 'reviews',
+        populate: [
+          {
+            path: 'user'
+          },
+          {
+            path: 'course'
+          }
+        ]
+      },
+      {
+        path: 'instructor'
+      },
+      {
+        path: 'category'
+      },
+      {
+        path: 'plan'
+      },
+      {
+        path: 'liveSections'
+      }
+    ]
   })
 
   if(!instructorDetails) return res.status(400).send({ message: 'No Instructor found' })
