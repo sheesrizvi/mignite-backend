@@ -185,7 +185,16 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
   
     res.json(subscriptions);
   });
-  
+
+
+const checkAndUpdateSubscriptions = asyncHandler(async (req, res) => {
+    const now = Date.now()
+    const result = await Subscription.deleteMany({
+      endDate: { $lte: now },
+      status: 'active'
+  });
+  console.log(`Deleted ${result.deletedCount} expired subscriptions.`);
+})
 
 module.exports = {
     getAllSubscriptions,
@@ -193,5 +202,6 @@ module.exports = {
     deleteSubscription,
     createSubscription,
     editSubscription,
-    getSubscriptionByUser
+    getSubscriptionByUser,
+    checkAndUpdateSubscriptions
 }

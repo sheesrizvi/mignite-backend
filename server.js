@@ -21,11 +21,11 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 const { startAgenda } = require("./jobs/agendaConnection.js");
 const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
-
+const cron = require('node-cron')
 const cors = require("cors");
 const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
-
+const { checkAndUpdateSubscriptions } = require('./controller/subscriptionController.js')
 
 
 
@@ -74,7 +74,10 @@ mongoose
 const PORT = process.env.PORT || 8000;
 
 
-
+cron.schedule('0 0 * * *', () => {
+  console.log('Running the Subscription expiry check')
+  checkAndUpdateSubscriptions()
+})
 
 
 app.listen(PORT, () => {

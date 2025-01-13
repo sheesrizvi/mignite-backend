@@ -20,13 +20,12 @@ const {
   checkUserUpdateProgress,
   searchAllPendingCourses,
 } = require("../controller/courseController");
-
 const router = express.Router();
 //need to create a middleware for admin and instructor both
-router.route("/create").post(createCourse);
-router.route("/update").post(updateCourse);
-router.route("/get-all").get(getCourses);
-router.route("/get-pending-courses").get(getPendingCourses);
+router.route("/create").post(createCourse)
+router.route("/update").post(updateCourse)
+router.route("/get-all").get(getCourses)
+router.route("/get-pending-courses").get(getPendingCourses)
 router.route("/by-id").get(getCourseById)
 router.route("/get-all-with-pagination").get(getAllCoursesForAdmin);
 router.route("/by-instructor-for-admin").get(getAllCoursesOfInstructorForAdmin)
