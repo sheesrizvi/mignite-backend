@@ -206,7 +206,11 @@ const checkAndUpdateSubscriptions = asyncHandler(async () => {
 const getActiveSubscriptionsOfUser = asyncHandler(async (req, res) => {
   const { user } = req.query
 
-  const subscriptions = await Subscription.find({ user, status: 'active' })
+  const subscriptions = await Subscription.find({ user, status: 'active' }).populate('user')
+  .populate({
+    path: 'plan',
+    model: 'Plan'
+  })
 
   if(!subscriptions || subscriptions.length === 0) {
     return res.status(400).send({ message: 'No Active Subscriptions found for user' })
