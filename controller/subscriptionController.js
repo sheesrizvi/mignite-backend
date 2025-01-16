@@ -198,7 +198,7 @@ const checkAndUpdateSubscriptions = asyncHandler(async () => {
     });
       console.log(`Updated ${result.modifiedCount} expired subscriptions.`);
     } catch(e) {
-      console.error('Error updating subscriptions:', error);
+      console.error('Error updating subscriptions:', e);
     }
    
 })
