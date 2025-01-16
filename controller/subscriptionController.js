@@ -187,7 +187,7 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
   });
 
 
-const checkAndUpdateSubscriptions = asyncHandler(async (req, res) => {
+const checkAndUpdateSubscriptions = asyncHandler(async () => {
     const now = Date.now()
     try {
       const result = await Subscription.updateMany({
@@ -196,10 +196,9 @@ const checkAndUpdateSubscriptions = asyncHandler(async (req, res) => {
     }, {
       status: 'inactive'
     });
-      console.log(`Deleted ${result.deletedCount} expired subscriptions.`);
+      console.log(`Updated ${result.modifiedCount} expired subscriptions.`);
     } catch(e) {
       console.error('Error updating subscriptions:', error);
-      res.status(500).json({ error: 'An error occurred while updating subscriptions.' });
     }
    
 })
