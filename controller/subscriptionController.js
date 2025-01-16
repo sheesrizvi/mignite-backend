@@ -189,11 +189,31 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
 
 const checkAndUpdateSubscriptions = asyncHandler(async (req, res) => {
     const now = Date.now()
-    const result = await Subscription.deleteMany({
-      endDate: { $lte: now },
-      status: 'active'
-  });
-  console.log(`Deleted ${result.deletedCount} expired subscriptions.`);
+    try {
+      const result = await Subscription.updateMany({
+        endDate: { $lte: now },
+        status: 'active'
+    }, {
+      status: 'inactive'
+    });
+      console.log(`Deleted ${result.deletedCount} expired subscriptions.`);
+    } catch(e) {
+      console.error('Error updating subscriptions:', error);
+      res.status(500).json({ error: 'An error occurred while updating subscriptions.' });
+    }
+   
+})
+
+const getActiveSubscriptionsOfUser = asyncHandler(async (req, res) => {
+  const { user } = req.query
+
+  const subscriptions = await Subscription.find({ user, status: 'active' })
+
+  if(!subscriptions || subscriptions.length === 0) {
+    return res.status(400).send({ message: 'No Active Subscriptions found for user' })
+  }
+
+  res.status(200).send({ subscriptions })
 })
 
 module.exports = {
@@ -203,5 +223,6 @@ module.exports = {
     createSubscription,
     editSubscription,
     getSubscriptionByUser,
-    checkAndUpdateSubscriptions
+    checkAndUpdateSubscriptions,
+    getActiveSubscriptionsOfUser
 }
