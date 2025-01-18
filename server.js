@@ -26,7 +26,7 @@ const cors = require("cors");
 const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 const { checkAndUpdateSubscriptions } = require('./controller/subscriptionController.js')
-
+const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js')
 
 
 
@@ -57,7 +57,7 @@ app.use("/api/coupons", couponRoutes)
 app.use("/api/notifications", notificationRoutes)
 app.use("/api/rnPushTokens", rnPushTokenRoutes)
 app.use("/api/analytics", dashboardRoutes)
-
+app.use("/api/aifeature", aiFeatureRoutes)
 app.use(notFound)
 app.use(errorHandler)
 // app.use("/api/send", send);
