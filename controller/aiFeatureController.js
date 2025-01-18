@@ -85,7 +85,7 @@ const updateFeaturePlan = asyncHandler(async (req, res) => {
   
   const getFeaturePlanById = asyncHandler(async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id } = req.query;
       const featurePlan = await AiFeaturePlan.findById(id).populate('plans');
   
       if (!featurePlan) {
