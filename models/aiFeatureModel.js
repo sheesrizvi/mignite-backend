@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 
 const FeatureEnum = [
-  'CHATBOT',
-  'RECOMMENDATION',
-  'ANALYTICS',
-  'AUTOMATION',
+  'vocal assessment (eduenginmate)',
+  'image search (mignitebuddy)',
+  'chat assistant(learnmate)',
 ];
 
 const AiFeaturePlanSchema  = new mongoose.Schema({
