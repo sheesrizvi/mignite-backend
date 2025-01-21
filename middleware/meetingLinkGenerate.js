@@ -1,6 +1,7 @@
 require('dotenv').config()
 const asyncHandler = require("express-async-handler");
 const { StreamClient, StreamChat } = require('@stream-io/node-sdk');
+
 const client = new StreamClient(process.env.STREAM_SECRET_ACCESS_KEY, process.env.STREAM_SECRET_TOKEN, {
   timeout: 30000
 });
@@ -56,12 +57,29 @@ const createMeeting = asyncHandler(async (instructorId, time) => {
 })
 
 
+const callIdStatus = asyncHandler(async (req, res) => {
+  const { callId } = req.query
+ 
+  const result = await client.video.queryCalls({
+    filter_conditions: {
+      $and: [
+        { id: { $eq: callId } },
+        { ongoing: { $eq: true } },
+      ],
+    },
+  });
+  
+  
+  res.status(200).send({ result })
+})
+
 module.exports = {
   createMeeting,
   scheduleMeeting,
   generateLiveStreamToken,
   startMeeting,
   endMeeting,
-  client
+  client,
+  callIdStatus
 }
 

@@ -287,7 +287,7 @@ const getAllLiveCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
   
   const pageNumber = parseInt(req.query.pageNumber) || 1
-  const pageSize = parseInt(req.query.pageSize) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 20;
 
 
   const totalCourses = await LiveCourse.countDocuments({ instructor: instructor, status: 'approved' });

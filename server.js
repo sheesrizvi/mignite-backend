@@ -32,6 +32,7 @@ const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js')
 
 const app = express();
 const source = process.env.MONGO_URI
+
 app.use(
   cors({
     origin: "*",
