@@ -149,18 +149,55 @@ const deleteSubscription = asyncHandler(async (req, res) => {
 
 
 const getAllSubscriptions = async (req, res) => {
+    let { pageNumber = 1, pageSize = 20 } = req.query
+   
     const subscriptions = await Subscription.find()
       .populate('user')
       .populate({
         path: 'plan',
         model: 'Plan'
-      })
+      }).sort({ startDate: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
       
+    const totalDocuments = await Subscription.countDocuments({})
+    const pageCount = Math.ceil(totalDocuments/pageSize)
   
-    res.status(200).json({ status: true, subscriptions });
-  };
+    res.status(200).json({ status: true, subscriptions, pageCount });
+};
   
+const getAllSubscriptionsForDownload = async (req, res) => {
+ 
+  const subscriptions = await Subscription.find()
+    .populate('user')
+    .populate({
+      path: 'plan',
+      model: 'Plan'
+    }).sort({ startDate: -1 })
+    
 
+  res.status(200).json({ status: true, subscriptions });
+};
+
+
+const searchSubscriptions = async (req, res) => {
+
+      let { pageNumber = 1, pageSize = 20, status } = req.query;
+    
+      const subscriptions = await Subscription.find({ status })
+          .populate("user")
+          .populate({
+              path: "plan",
+              model: "Plan"
+          })
+          .sort({ startDate: -1 })
+          .skip((pageNumber - 1) * pageSize)
+          .limit(parseInt(pageSize));
+
+      const totalDocuments = await Subscription.countDocuments({status});
+      const pageCount = Math.ceil(totalDocuments / pageSize);
+     
+      res.status(200).json({ status: true, subscriptions, pageCount });
+  
+};
 
 const getSpecificSubscription = asyncHandler(async (req, res) => {
     const { id } = req.query;
@@ -227,5 +264,7 @@ module.exports = {
     editSubscription,
     getSubscriptionByUser,
     checkAndUpdateSubscriptions,
-    getActiveSubscriptionsOfUser
+    getActiveSubscriptionsOfUser,
+    searchSubscriptions,
+    getAllSubscriptionsForDownload
 }

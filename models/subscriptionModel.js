@@ -28,7 +28,7 @@ const subscriptionSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["active", "inactive", "cancelled", "expired"],
+        enum: ["active", "inactive", "cancelled"],
         default: "active"
     },
     paymentStatus: {
@@ -50,7 +50,7 @@ const subscriptionSchema = new mongoose.Schema({
     autoRenew: { type: Boolean, default: true },
     trialPeriod: { type: Boolean, default: false },
 
-})
+}, { timestamps: true })
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema)
 
