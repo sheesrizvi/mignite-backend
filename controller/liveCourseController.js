@@ -196,7 +196,7 @@ const getLiveCourseById = asyncHandler(async (req, res) => {
 
 const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageNumber = Number(req.query.pageNumber) || 1
-  const pageSize = Number(req.query.pageSize) || 2
+  const pageSize = Number(req.query.pageSize) || 20
 
   const totalCourses = await LiveCourse.countDocuments({status: 'approved'})
   const pageCount = Math.ceil(totalCourses/pageSize)
