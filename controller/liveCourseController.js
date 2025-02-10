@@ -122,7 +122,7 @@ const getLiveCoursesByCategory = asyncHandler(async (req, res) => {
 
 
 const getLiveCourses = asyncHandler(async (req, res) => {
-  const liveCourses = await LiveCourse.find({status: 'approved'}).populate('category instructor plan')
+  const liveCourses = await LiveCourse.find({status: 'approved'}).sort({ createdAt: -1 }).populate('category instructor plan')
   .populate({
     path: 'liveSections',
     model: 'LiveSection',
@@ -202,6 +202,7 @@ const getAllLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageCount = Math.ceil(totalCourses/pageSize)
 
   const livecourses = await LiveCourse.find({status: 'approved'})
+  .sort({ createdAt: -1 })
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
   .populate('category instructor plan')
@@ -246,6 +247,7 @@ const getAllPendingLiveCoursesForAdmin = asyncHandler(async (req, res) => {
   const pageCount = Math.ceil(totalCourses/pageSize)
 
   const livecourses = await LiveCourse.find({status: 'pending'})
+  .sort({ createdAt: -1 })
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
   .populate('category instructor plan')

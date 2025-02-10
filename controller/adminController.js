@@ -94,9 +94,8 @@ const updateCourseStatus = asyncHandler(async (req, res) => {
 
   const validStatus = ['approved', 'pending', 'rejected']
   if(!validStatus.includes(status)) return res.status(400).send({message: 'Invalid status'})
-
+ 
   course.status = status
-
   await course.save()
   return res.status(200).send({message: `Course got ${status}`, course})
 

@@ -187,7 +187,7 @@ const getAllCoursesOfInstructorForAdmin = asyncHandler(async (req, res) => {
 })
 
 const getCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({status: 'approved'}).populate({
+  const courses = await Course.find({status: 'approved'}).sort({ createdAt: -1 }).populate({
     path: "sections",
     populate: [
       {
@@ -220,7 +220,7 @@ const getPendingCourses = asyncHandler(async (req, res) => {
   const totalCourses = await Course.countDocuments({status: 'pending'})
   const pageCount = Math.ceil(totalCourses/pageSize)
 
-  const courses = await Course.find({ status: 'pending' }).populate({
+  const courses = await Course.find({ status: 'pending' }).sort({ createdAt: -1 }).populate({
     path: "sections",
     populate: [
       {
@@ -293,6 +293,7 @@ const getAllCoursesForAdmin = asyncHandler(async (req, res) => {
       },
     ],
   })
+  .sort({ createdAt: -1 })
   .skip((pageNumber - 1) * pageSize)
   .limit(pageSize)
   .populate('instructor category')
