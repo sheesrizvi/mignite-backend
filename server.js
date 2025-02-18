@@ -21,12 +21,14 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware.js')
 const { startAgenda } = require("./jobs/agendaConnection.js");
 const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
+const bannerRoutes = require('./routes/bannerRoutes.js')
 const cron = require('node-cron')
 const cors = require("cors");
 const LiveSection = require("./models/liveSectionModel");
 const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 const { checkAndUpdateSubscriptions } = require('./controller/subscriptionController.js')
-const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js')
+const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js');
+const Instructor = require("./models/instructorModel.js");
 
 
 
@@ -59,6 +61,7 @@ app.use("/api/notifications", notificationRoutes)
 app.use("/api/rnPushTokens", rnPushTokenRoutes)
 app.use("/api/analytics", dashboardRoutes)
 app.use("/api/aifeature", aiFeatureRoutes)
+app.use('/api/banner', bannerRoutes)
 app.use(notFound)
 app.use(errorHandler)
 // app.use("/api/send", send);
@@ -66,7 +69,7 @@ app.use(errorHandler)
 
 mongoose
   .connect(source)
-  .then(() => {
+  .then(async () => {
     console.log("DB connected")
     startAgenda();
   })

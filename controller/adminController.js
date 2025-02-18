@@ -35,7 +35,6 @@ const authAdmin = asyncHandler(async (req, res) => {
 
 const registerAdmin = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
-
   const userExists = await Admin.findOne({ email });
 
   if (userExists) {
@@ -77,11 +76,11 @@ const updateInstructorStatus = asyncHandler(async (req, res) => {
     instructor.status = status
   } else {
     instructor.status = status
+    instructor.active = true
     instructor.rejectedAt = Date.now()
   }
-
+  
   await instructor.save()
-
   return res.status(200).send({message: `Instructor got ${status}`, instructor})
 
 })

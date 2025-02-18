@@ -23,6 +23,7 @@ const authInstructor = asyncHandler(async (req, res) => {
   const instructor = await Instructor.findOne({ email });
 
   if (instructor && (await instructor.matchPassword(password))) {
+    
     if(!instructor.active) {
       return res.status(400).send({ message: 'Instructor not found or active. Please verify profile first' })
     }
