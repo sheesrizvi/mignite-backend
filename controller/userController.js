@@ -315,6 +315,19 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
   res.status(200).send({ message: 'User verified successfully', user, token: generateTokenUser(user._id, user.name, user.email, user.age, user.type) })
 })
 
+const deleteUser = asyncHandler(async (req, res) => {
+  const { userId } = req.query
+
+  const user = await User.findOneAndUpdate({ _id: userId }, { active: false })
+  
+  if(!user) {
+    return res.status(400).send({ message: 'User not found' })
+  }
+
+  res.status(200).send({ message: 'User deleted successfully' })
+  
+})
+
 module.exports = {
   authUser,
   registerUser,
@@ -323,5 +336,6 @@ module.exports = {
   getSubscriptionByUser,
   updateUserProfile,
   resetPassword,
-  verifyUserProfile
+  verifyUserProfile,
+  deleteUser
 };

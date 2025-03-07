@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, authUser, getUserDetails, getCoursesBoughtByUser, getSubscriptionByUser, updateUserProfile, resetPassword, verifyUserProfile } = require("../controller/userController");
+const { registerUser, authUser, getUserDetails, getCoursesBoughtByUser, getSubscriptionByUser, updateUserProfile, resetPassword, verifyUserProfile, deleteUser } = require("../controller/userController");
 const { isUser } = require("../middleware/authMiddleware");
 const { verifyTransporter } = require("../middleware/handleEmail.js");
 
@@ -15,5 +15,5 @@ router.route("/subscription-by-user").get(getSubscriptionByUser)
 router.route("/update-user-profile").post(isUser, updateUserProfile)
 router.post('/reset-password', resetPassword)
 router.route('/verify-user-profile').post(verifyUserProfile)
-
+router.route('/delete-user').delete(deleteUser)
 module.exports = router;
