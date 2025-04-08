@@ -85,7 +85,7 @@ cron.schedule('0 0 * * *', () => {
 
 
 app.listen(PORT, () => {
-  console.log(`Successfully served on port: ${PORT}.`);
+  console.log(`Successfully served on this port: ${PORT}.`);
 });
 
 
