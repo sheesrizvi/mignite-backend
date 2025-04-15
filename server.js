@@ -30,8 +30,6 @@ const { checkAndUpdateSubscriptions } = require('./controller/subscriptionContro
 const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js');
 const Instructor = require("./models/instructorModel.js");
 
-
-
 const app = express();
 const source = process.env.MONGO_URI
 

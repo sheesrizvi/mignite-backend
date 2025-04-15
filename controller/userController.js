@@ -194,7 +194,14 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
             model: 'Assignment'
           }
         }  ,
-        { path: 'reviews', model: 'Review' }     
+        { 
+          path: 'reviews', 
+          model: 'Review', 
+          populate: {
+            path: 'user',
+            model: 'User'
+          }
+        }     
       ]
     })
     .populate({
@@ -212,7 +219,14 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
             path: 'assignment',
             model: 'Assignment'
           }
-        },  { path: 'reviews', model: 'Review' }     
+        },  { 
+          path: 'reviews', 
+          model: 'Review',
+          populate: {
+            path: 'user',
+            model: 'User'
+          }
+        }     
       ]
     });
 

@@ -81,6 +81,11 @@ const livecourseSchema = mongoose.Schema(
       type: Number, 
       default: 0
      },
+    courseType: {
+      type: String,
+      enum: ["livecourse"],
+      default: "livecourse"
+     },
     totalReviews: {
        type: Number, 
        default: 0 

@@ -70,7 +70,11 @@ const courseSchema = mongoose.Schema(
        type: Number, 
        default: 0 
       },
-      
+    courseType: {
+        type: String,
+        enum: ["course"],
+        default: "course"
+      },
       reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Review'
