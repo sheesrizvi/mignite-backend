@@ -29,7 +29,8 @@ const { scheduleMeeting } = require("./middleware/meetingLinkGenerate");
 const { checkAndUpdateSubscriptions } = require('./controller/subscriptionController.js')
 const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js');
 const Instructor = require("./models/instructorModel.js");
-
+const Course = require('./models/coursesModel.js')
+const LiveCourse = require('./models/liveCourseModel.js')
 const app = express();
 const source = process.env.MONGO_URI
 

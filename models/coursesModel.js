@@ -72,8 +72,8 @@ const courseSchema = mongoose.Schema(
       },
     courseType: {
         type: String,
-        enum: ["course"],
-        default: "course"
+        enum: ["Course"],
+        default: "Course"
       },
       reviews: [{
         type: mongoose.Schema.Types.ObjectId,
