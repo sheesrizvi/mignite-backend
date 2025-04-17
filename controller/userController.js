@@ -14,13 +14,27 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
  
   if (user && (await user.matchPassword(password))) {
-    if(!user.active) {
-      return res.status(400).send({ message: 'User not found or active. Please verify profile first' })
+    if(!user || user.isDeleted) {
+      return res.status(400).send({ message: 'User not found' })
     }
+
+    let otp = generator.generate({
+      length: 10,
+      numbers: true
+    })
+  
+    if(!user.active) {
+      sendVerificationEmail(user.otp, user.email)
+      user.otp = otp
+      await user.save()
+      return res.status(400).send({ message: 'OTP Sent. Please verified profile first for login', active: false })
+    }
+
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      active: true,
       token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
     });
   } else {
@@ -53,7 +67,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const userExists = await User.findOne({ email });
  
-  if (userExists) {
+  if (userExists && !userExists.isDeleted) {
     res.status(404);
     throw new Error("User already exists");
   }
@@ -63,6 +77,31 @@ const registerUser = asyncHandler(async (req, res) => {
     numbers: true
   })
 
+ if(userExists && userExists.isDeleted) {
+    userExists.name = name || userExists.name
+    userExists.password = password 
+    userExists.age = age
+    userExists.phone = phone
+    userExists.aboutme = aboutme
+    userExists.aspiration = aspiration
+    userExists.education = education
+    userExists.address = address
+    userExists.country = country
+    userExists.gender = gender
+    userExists.profile = profile
+    userExists.pushToken = pushToken
+    userExists.otp = otp
+
+    await userExists.save()
+
+    return res.status(200).send({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      // token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
+      message: 'Verification OTP sent to your email. Please verify your email for login'
+    })
+ }
 
   const user = await User.create({
     name,
@@ -83,7 +122,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
   
   if (user) {
-   const age = user.age
+  
     sendVerificationEmail(user.otp, user.email)
     res.status(201).json({
       _id: user._id,
@@ -333,7 +372,7 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
 const deleteUser = asyncHandler(async (req, res) => {
   const { userId } = req.query
 
-  const user = await User.findOneAndUpdate({ _id: userId }, { active: false })
+  const user = await User.findOneAndUpdate({ _id: userId }, { active: false, isDeleted: true })
   
   if(!user) {
     return res.status(400).send({ message: 'User not found' })

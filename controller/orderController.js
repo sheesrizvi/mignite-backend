@@ -87,7 +87,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         if(item.course) {
           expiresAt = null
         } else if (item.livecourse) {
-          expiresAt = item.livecourse.endDate || null
+          expiresAt = item.livecourse?.endDate || null
         }
         
         user.purchasedCourses.push({

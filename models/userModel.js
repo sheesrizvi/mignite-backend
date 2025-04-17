@@ -67,7 +67,10 @@ const userSchema = mongoose.Schema(
       default: 'user'
     },
     reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-    
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
     purchasedCourses: [
       {
         course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },

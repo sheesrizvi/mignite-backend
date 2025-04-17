@@ -24,8 +24,21 @@ const authInstructor = asyncHandler(async (req, res) => {
 
   if (instructor && (await instructor.matchPassword(password))) {
     
+    if(!instructor || instructor.isDeleted) {
+      return res.status(400).send({ message: "Instructor not found" })
+    }
+
+    let otp = generator.generate({
+      length: 10,
+      numbers: true
+    })
+  
+
     if(!instructor.active) {
-      return res.status(400).send({ message: 'Instructor not found or active. Please verify profile first' })
+      sendVerificationEmail(instructor.otp, instructor.email)
+      instructor.otp = otp
+      await instructor.save()
+      return res.status(400).send({ message: 'OTP Sent. Please verify your profile first' })
     }
 
     if(instructor.status === 'pending' || instructor.status === 'rejected') {
@@ -52,15 +65,37 @@ const registerInstructor = asyncHandler(async (req, res) => {
   const { name, email, password, description, phone , profileImage} = req.body;
 
   const userExists = await Instructor.findOne({ email });
-
-  if (userExists) {
+  if(userExists && !userExists.isDeleted) {
     res.status(404);
     throw new Error("Instructor already exists");
   }
+
   let otp = generator.generate({
     length: 10,
     numbers: true
   })
+
+
+  if (userExists && userExists.isDeleted) {
+    userExists.name = name
+    userExists.password = password
+    userExists.description = description
+    userExists.phone = phone
+    userExists.profileImage = profileImage
+    userExists.otp = otp
+    await userExists.save()
+
+    sendVerificationEmail(userExists.otp, userExists.email)
+    res.json({
+      _id: instructor._id,
+      name: instructor.name,
+      email: instructor.email,
+      //token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
+      message:'Instructor created succesfully, Please wait till admin approval and verification email sent'
+    });
+
+  }
+ 
 
   const instructor = await Instructor.create({
     name,
@@ -229,7 +264,7 @@ const deleteInstructor = asyncHandler(async (req, res) => {
   if(instructor.courses.length > 0) {
     return res.status(400).send({success: false, message: "Delete courses first"})
   }
-  await Instructor.findByIdAndDelete(id)
+  await Instructor.findOneAndDelete({ _id: id }, { isDeleted: true, active: false })
   res.status(200).send({status: true, message: 'Instructor Deleted successfully'})
 })
 

@@ -60,7 +60,11 @@ const instructorSchema = mongoose.Schema(
     },
     profileImage: {
       type: String
-    }
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false
+    },
   },
   
   {
