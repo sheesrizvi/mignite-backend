@@ -340,6 +340,7 @@ const getInstructorData = asyncHandler(async (req, res) => {
   const instructorCoursesFiltered = instructorDetails.courses.filter(cId =>
     courseIdsInResponse.has(cId.toString())
   );
+
   const instructorLiveCoursesFiltered = instructorDetails.livecourses.filter(lcId =>
     livecourseIdsInResponse.has(lcId.toString())
   );
@@ -640,69 +641,218 @@ const getTopInstructors = async (req, res) => {
 };
 
 const getInstructorDataById = asyncHandler(async (req, res) => {
-  const { instructor } = req.query
-  const instructorDetails = await Instructor.findOne({_id: instructor}).populate({
-    path: 'courses',
-    populate: [
-      {
-        path: 'reviews',
-        populate: [
-          {
-            path: 'user'
-          },
-          {
-            path: 'course'
-          }
-        ]
-      },
-      {
-        path: 'instructor'
-      },
-      {
-        path: 'category'
-      },
-      {
-        path: 'sections',
-        populate: {
-          path: 'assignment'
+  const { instructor } = req.query;
+
+  const instructorDetails = await Instructor.findOne({ _id: instructor })
+    .populate({
+      path: 'courses',
+      match: { status: 'approved' },
+      populate: [
+        {
+          path: 'reviews',
+          populate: [
+            { path: 'user' },
+            { path: 'course' }
+          ]
+        },
+        { path: 'instructor' },
+        { path: 'category' },
+        {
+          path: 'sections',
+          populate: { path: 'assignment' }
         }
-      }
-    ]
+      ]
+    })
+    .populate({
+      path: 'livecourses',
+      match: { status: 'approved' },
+      populate: [
+        {
+          path: 'reviews',
+          populate: [
+            { path: 'user' },
+            { path: 'course' }
+          ]
+        },
+        { path: 'instructor' },
+        { path: 'category' },
+        { path: 'plan' },
+        { path: 'liveSections' }
+      ]
+    });
+
+  if (!instructorDetails) {
+    return res.status(400).send({ message: 'No Instructor found' });
+  }
+
+  res.status(200).send({
+    message: 'Instructor',
+    instructor: instructorDetails
+  });
+});
+
+
+// const getInstructorDataById = asyncHandler(async (req, res) => {
+//   const { instructor } = req.query
+//   const instructorDetails = await Instructor.findOne({_id: instructor}).populate({
+//     path: 'courses',
+//     populate: [
+//       {
+//         path: 'reviews',
+//         populate: [
+//           {
+//             path: 'user'
+//           },
+//           {
+//             path: 'course'
+//           }
+//         ]
+//       },
+//       {
+//         path: 'instructor'
+//       },
+//       {
+//         path: 'category'
+//       },
+//       {
+//         path: 'sections',
+//         populate: {
+//           path: 'assignment'
+//         }
+//       }
+//     ]
       
     
-  }).populate({
-    path: 'livecourses',
-    populate: [
-      {
-        path: 'reviews',
-        populate: [
-          {
-            path: 'user'
-          },
-          {
-            path: 'course'
-          }
-        ]
-      },
-      {
-        path: 'instructor'
-      },
-      {
-        path: 'category'
-      },
-      {
-        path: 'plan'
-      },
-      {
-        path: 'liveSections'
-      }
-    ]
-  })
+//   }).populate({
+//     path: 'livecourses',
+//     populate: [
+//       {
+//         path: 'reviews',
+//         populate: [
+//           {
+//             path: 'user'
+//           },
+//           {
+//             path: 'course'
+//           }
+//         ]
+//       },
+//       {
+//         path: 'instructor'
+//       },
+//       {
+//         path: 'category'
+//       },
+//       {
+//         path: 'plan'
+//       },
+//       {
+//         path: 'liveSections'
+//       }
+//     ]
+//   })
 
-  if(!instructorDetails) return res.status(400).send({ message: 'No Instructor found' })
+//   if(!instructorDetails) return res.status(400).send({ message: 'No Instructor found' })
 
-  res.status(200).send({ message: 'Instructor', instructor: instructorDetails })
-})
+//   res.status(200).send({ message: 'Instructor', instructor: instructorDetails })
+// })
+
+// const getInstructorDataById = asyncHandler(async (req, res) => {
+//   const { instructor } = req.query;
+
+//  
+//   const instructorDetails = await Instructor.findOne({ _id: instructor })
+//     .populate({
+//       path: 'courses',
+//       populate: [
+//         {
+//           path: 'reviews',
+//           populate: [
+//             {
+//               path: 'user',
+//             },
+//             {
+//               path: 'course',
+//             },
+//           ],
+//         },
+//         {
+//           path: 'instructor',
+//         },
+//         {
+//           path: 'category',
+//         },
+//         {
+//           path: 'sections',
+//           populate: {
+//             path: 'assignment',
+//           },
+//         },
+//       ],
+//     })
+//     .populate({
+//       path: 'livecourses',
+//       populate: [
+//         {
+//           path: 'reviews',
+//           populate: [
+//             {
+//               path: 'user',
+//             },
+//             {
+//               path: 'course',
+//             },
+//           ],
+//         },
+//         {
+//           path: 'instructor',
+//         },
+//         {
+//           path: 'category',
+//         },
+//         {
+//           path: 'plan',
+//         },
+//         {
+//           path: 'liveSections',
+//         },
+//       ],
+//     });
+
+//   if (!instructorDetails) {
+//     return res.status(400).send({ message: 'No Instructor found' });
+//   }
+
+//   
+//   const [actualCourses, actualLiveCourses] = await Promise.all([
+//     Course.find({ instructor, status: 'approved' }),
+//     LiveCourse.find({ instructor, status: 'approved' }),
+//   ]);
+
+//   
+//   const actualCourseIds = actualCourses.map(c => c._id.toString());
+//   const actualLiveCourseIds = actualLiveCourses.map(lc => lc._id.toString());
+
+// 
+//   const filteredCourses = instructorDetails.courses.filter(course =>
+//     actualCourseIds.includes(course._id.toString())
+//   );
+
+//   const filteredLiveCourses = instructorDetails.livecourses.filter(livecourse =>
+//     actualLiveCourseIds.includes(livecourse._id.toString())
+//   );
+
+//  
+//   res.status(200).send({
+//     message: 'Instructor',
+//     instructor: {
+//       ...instructorDetails.toObject(),
+//       courses: filteredCourses,
+//       livecourses: filteredLiveCourses,
+//     },
+//   });
+// });
+
 
 const verifyInstructorProfile = asyncHandler(async (req, res) => {
   const { email, otp } = req.body
