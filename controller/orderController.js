@@ -77,13 +77,18 @@ const createCourseOrder = asyncHandler(async (req, res) => {
             await course.save();
         }
         let expiresAt;
-        if(course?.durationType === "lifetime") {
-            expiresAt = null
-        } else {
-            expiresAt = new Date()
-            expiresAt.setMonth(now.getMonth() + course.duration)
-        }
+        // if(course?.durationType === "lifetime") {
+        //     expiresAt = null
+        // } else {
+        //     expiresAt = new Date()
+        //     expiresAt.setMonth(now.getMonth() + course.duration)
+        // }
         
+        if(item.course) {
+          expiresAt = null
+        } else if (item.livecourse) {
+          expiresAt = item.livecourse.endDate || null
+        }
         
         user.purchasedCourses.push({
             course: item.course ? item.course : null,

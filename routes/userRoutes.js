@@ -2,7 +2,7 @@ const express = require("express");
 const { registerUser, authUser, getUserDetails, getCoursesBoughtByUser, getSubscriptionByUser, updateUserProfile, resetPassword, verifyUserProfile, deleteUser } = require("../controller/userController");
 const { isUser } = require("../middleware/authMiddleware");
 const { verifyTransporter } = require("../middleware/handleEmail.js");
-
+const { getAllUsers } = require('../controller/userController.js')
 
 const router = express.Router();
 resetPassword
@@ -16,4 +16,10 @@ router.route("/update-user-profile").post(isUser, updateUserProfile)
 router.post('/reset-password', resetPassword)
 router.route('/verify-user-profile').post(verifyUserProfile)
 router.route('/delete-user').delete(deleteUser)
+router.get('/get-all-users', getAllUsers)
+
 module.exports = router;
+
+
+//  Jack dore
+// 

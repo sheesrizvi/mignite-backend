@@ -310,6 +310,7 @@ const resetPassword = asyncHandler(async(req, res) => {
   }
   
   const randomPassword = await sendResetEmail(existedUser.email)
+  console.log(randomPassword)
   existedUser.password = randomPassword
   await existedUser.save()
   res.status(200).send({status: true, message: 'OTP sent to your email. Please check for passwrod reset'})
@@ -342,6 +343,11 @@ const deleteUser = asyncHandler(async (req, res) => {
   
 })
 
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find({})
+    res.send({ users })
+})
+
 module.exports = {
   authUser,
   registerUser,
@@ -351,5 +357,6 @@ module.exports = {
   updateUserProfile,
   resetPassword,
   verifyUserProfile,
-  deleteUser
+  deleteUser,
+  getAllUsers
 };
