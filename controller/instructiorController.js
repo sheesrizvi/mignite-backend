@@ -537,22 +537,35 @@ const getInstructorPendingData = asyncHandler(async (req, res) => {
   })
 })
 
-
 const getTopInstructors = async (req, res) => {
   const topInstructors = await Instructor.aggregate([
     {
       $lookup: {
         from: 'courses',
-        localField: '_id',
-        foreignField: 'instructor',
+        let: { instructorId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$instructor', '$$instructorId'] },
+              status: 'approved',
+            },
+          },
+        ],
         as: 'courses',
       },
     },
     {
       $lookup: {
         from: 'livecourses',
-        localField: '_id',
-        foreignField: 'instructor',
+        let: { instructorId: '$_id' },
+        pipeline: [
+          {
+            $match: {
+              $expr: { $eq: ['$instructor', '$$instructorId'] },
+              status: 'approved',
+            },
+          },
+        ],
         as: 'livecourses',
       },
     },
@@ -589,7 +602,10 @@ const getTopInstructors = async (req, res) => {
     {
       $lookup: {
         from: 'reviews',
-        let: { courseIds: { $ifNull: ['$courses._id', []] }, liveCourseIds: { $ifNull: ['$livecourses._id', []] } },
+        let: {
+          courseIds: { $map: { input: '$courses', as: 'c', in: '$$c._id' } },
+          liveCourseIds: { $map: { input: '$livecourses', as: 'lc', in: '$$lc._id' } },
+        },
         pipeline: [
           {
             $match: {
@@ -620,16 +636,19 @@ const getTopInstructors = async (req, res) => {
       $sort: { enrolledStudentsCount: -1, reviewsCount: -1 },
     },
     {
-      $limit: 6
+      $limit: 6,
     },
     {
       $project: {
         name: 1,
         email: 1,
+        profileImage: 1,
         courseCount: '$totalCourseCount',
         reviewsCount: 1,
         enrolledStudentsCount: 1,
         categories: 1,
+        courses: 1,
+        livecourses: 1,
       },
     },
   ]);
@@ -639,6 +658,109 @@ const getTopInstructors = async (req, res) => {
     data: topInstructors,
   });
 };
+
+
+// const getTopInstructors = async (req, res) => {
+//   const topInstructors = await Instructor.aggregate([
+//     {
+//       $lookup: {
+//         from: 'courses',
+//         localField: '_id',
+//         foreignField: 'instructor',
+//         as: 'courses',
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'livecourses',
+//         localField: '_id',
+//         foreignField: 'instructor',
+//         as: 'livecourses',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         courseCount: { $size: '$courses' },
+//         liveCourseCount: { $size: '$livecourses' },
+//         totalCourseCount: { $add: [{ $size: '$courses' }, { $size: '$livecourses' }] },
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'categories',
+//         localField: 'courses.category',
+//         foreignField: '_id',
+//         as: 'courseCategories',
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'categories',
+//         localField: 'livecourses.category',
+//         foreignField: '_id',
+//         as: 'liveCourseCategories',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         categories: {
+//           $setUnion: ['$courseCategories.name', '$liveCourseCategories.name'],
+//         },
+//       },
+//     },
+//     {
+//       $lookup: {
+//         from: 'reviews',
+//         let: { courseIds: { $ifNull: ['$courses._id', []] }, liveCourseIds: { $ifNull: ['$livecourses._id', []] } },
+//         pipeline: [
+//           {
+//             $match: {
+//               $expr: {
+//                 $or: [
+//                   { $in: ['$course', '$$courseIds'] },
+//                   { $in: ['$livecourse', '$$liveCourseIds'] },
+//                 ],
+//               },
+//             },
+//           },
+//         ],
+//         as: 'allReviews',
+//       },
+//     },
+//     {
+//       $addFields: {
+//         reviewsCount: { $size: '$allReviews' },
+//         enrolledStudentsCount: {
+//           $sum: [
+//             { $sum: '$courses.enrolledStudentsCount' },
+//             { $sum: '$livecourses.enrolledStudentsCount' },
+//           ],
+//         },
+//       },
+//     },
+//     {
+//       $sort: { enrolledStudentsCount: -1, reviewsCount: -1 },
+//     },
+//     {
+//       $limit: 6
+//     },
+//     {
+//       $project: {
+//         name: 1,
+//         email: 1,
+//         courseCount: '$totalCourseCount',
+//         reviewsCount: 1,
+//         enrolledStudentsCount: 1,
+//         categories: 1,
+//       },
+//     },
+//   ]);
+
+//   res.status(200).send({
+//     success: true,
+//     data: topInstructors,
+//   });
+// };
 
 const getInstructorDataById = asyncHandler(async (req, res) => {
   const { instructor } = req.query;
