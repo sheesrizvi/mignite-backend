@@ -19,6 +19,7 @@ const {
   updateUserProgress,
   checkUserUpdateProgress,
   searchAllPendingCourses,
+  syncInstructorCourses,
 } = require("../controller/courseController");
 const router = express.Router();
 //need to create a middleware for admin and instructor both
@@ -42,7 +43,8 @@ router.route("/top-pick-courses-by-category").get(topPickCoursesByCategory)
 router.route("/update-user-progress").post(updateUserProgress)
 router.route("/check-user-update-progress").get(checkUserUpdateProgress)
 
-
+router.get('/sync-instructor-courses', syncInstructorCourses)
 
 module.exports = router;
 
+// 43.204.142.30

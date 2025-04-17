@@ -419,7 +419,6 @@ const deleteCourse = asyncHandler(async (req, res) => {
   const subid = req.query.id;
   const instructor = req.query.instructor
 
-
   const sub = await Course.findById(subid);
   if(!sub) {
     return res.status(400).send({message: "Course not found"})
@@ -443,9 +442,11 @@ const deleteCourse = asyncHandler(async (req, res) => {
       const response = await s3.send(command);
     }
     await Course.deleteOne({ _id: req.query.id });
+
     await Instructor.findByIdAndUpdate(instructor, {
       $pull: {courses: subid}
     })
+
     if(sub.plan.length > 0) {
       for(const p of sub.plan) {
         await Plan.findByIdAndUpdate(p, {
@@ -832,6 +833,47 @@ const checkUserUpdateProgress = asyncHandler(async (req, res) => {
 
 })
 
+const syncInstructorCourses = asyncHandler(async (req, res) => {
+  const { instructorId } = req.query;
+
+  const instructor = await Instructor.findById(instructorId);
+
+  if (!instructor) {
+    return res.status(404).json({ message: 'Instructor not found' });
+  }
+
+  const [existingCourses, existingLiveCourses] = await Promise.all([
+    Course.find({ instructor: instructorId }),
+    LiveCourse.find({ instructor: instructorId })
+  ]);
+
+  const validCourseIds = existingCourses.map(c => c._id.toString());
+  const validLiveCourseIds = existingLiveCourses.map(lc => lc._id.toString());
+
+  const filteredCourseIds = instructor.courses.filter(id =>
+    validCourseIds.includes(id.toString())
+  );
+
+  const filteredLiveCourseIds = instructor.livecourses.filter(id =>
+    validLiveCourseIds.includes(id.toString())
+  );
+
+  const isCoursesChanged = filteredCourseIds.length !== instructor.courses.length;
+  const isLiveCoursesChanged = filteredLiveCourseIds.length !== instructor.livecourses.length;
+
+  if (isCoursesChanged || isLiveCoursesChanged) {
+    instructor.courses = filteredCourseIds;
+    instructor.livecourses = filteredLiveCourseIds;
+    await instructor.save();
+  }
+
+  res.status(200).json({
+    message: 'Instructor course references synced successfully',
+    validCourses: validCourseIds,
+    validLiveCourses: validLiveCourseIds
+  });
+});
+
 
 
 
@@ -854,5 +896,6 @@ module.exports = {
   topPickCoursesByCategory,
   updateUserProgress,
   checkUserUpdateProgress,
-  searchAllPendingCourses
+  searchAllPendingCourses,
+  syncInstructorCourses
 };

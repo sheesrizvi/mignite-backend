@@ -233,54 +233,135 @@ const deleteInstructor = asyncHandler(async (req, res) => {
   res.status(200).send({status: true, message: 'Instructor Deleted successfully'})
 })
 
-const getInstructorData = asyncHandler(async (req, res) => {
-  const instructor = req.query.instructor 
+// const getInstructorData = asyncHandler(async (req, res) => {
+//   const instructor = req.query.instructor 
   
-  const instructorDetails = await Instructor.findById(instructor)
+//   const instructorDetails = await Instructor.findById(instructor)
 
-  if(!instructorDetails) return res.status(400).send({message: "Instructor not found"})
+//   if(!instructorDetails) return res.status(400).send({message: "Instructor not found"})
 
-  const courses = await Course.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
-    path: 'sections',
-    model: 'Section',
-    populate: [
-      {
-        path: "assignment",
-      },
-    ],
-  }).populate({
-    path: 'enrolledStudents',
-    model: 'User'
-  })
+//   const courses = await Course.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
+//     path: 'sections',
+//     model: 'Section',
+//     populate: [
+//       {
+//         path: "assignment",
+//       },
+//     ],
+//   }).populate({
+//     path: 'enrolledStudents',
+//     model: 'User'
+//   })
 
-  const coursesCount = await Course.countDocuments({instructor, status: 'approved'})
+//   const coursesCount = await Course.countDocuments({instructor, status: 'approved'})
 
-  const livecourses = await LiveCourse.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
-    path: 'liveSections',
-    model: 'LiveSection'
-  }).populate({
-    path: 'enrolledStudents',
-    model: 'User'
-  })
+//   const livecourses = await LiveCourse.find({instructor, status: 'approved'}).populate('instructor plan category').populate({
+//     path: 'liveSections',
+//     model: 'LiveSection'
+//   }).populate({
+//     path: 'enrolledStudents',
+//     model: 'User'
+//   })
 
-  const livecourseCount = await LiveCourse.countDocuments({instructor, status: 'approved'})
+//   const livecourseCount = await LiveCourse.countDocuments({instructor, status: 'approved'})
 
-  const enrolledStudentsInCourseCount = courses.reduce((sum, course) => {
-    return sum += course.enrolledStudentsCount
-  }, 0)
-  const enrolledStudentsInLiveCourseCount = livecourses.reduce((sum, course) => {
-   return sum += course.enrolledStudentsCount
-  }, 0)
+//   const enrolledStudentsInCourseCount = courses.reduce((sum, course) => {
+//     return sum += course.enrolledStudentsCount
+//   }, 0)
+//   const enrolledStudentsInLiveCourseCount = livecourses.reduce((sum, course) => {
+//    return sum += course.enrolledStudentsCount
+//   }, 0)
 
- const totalCourseCount = coursesCount + livecourseCount
- const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount
- const allCourses = [...courses, ...livecourses]
- res.status(200).send({ 
-    coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
-    enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
-    courses, livecourses , allCourses, instructor: instructorDetails
-  })
-})
+//  const totalCourseCount = coursesCount + livecourseCount
+//  const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount
+//  const allCourses = [...courses, ...livecourses]
+//  res.status(200).send({ 
+//     coursesCount, livecourseCount, totalCourseCount, enrolledStudentsInCourseCount,          
+//     enrolledStudentsInLiveCourseCount, totalEnrolledStudents,
+//     courses, livecourses , allCourses, instructor: instructorDetails
+//   })
+// })
+
+const getInstructorData = asyncHandler(async (req, res) => {
+  const instructorId = req.query.instructor;
+
+  const instructorDetails = await Instructor.findById(instructorId);
+
+  if (!instructorDetails) {
+    return res.status(400).send({ message: "Instructor not found" });
+  }
+
+  const [courses, livecourses] = await Promise.all([
+    Course.find({ instructor: instructorId, status: 'approved' })
+      .populate('instructor plan category')
+      .populate({
+        path: 'sections',
+        model: 'Section',
+        populate: [{ path: 'assignment' }],
+      })
+      .populate({
+        path: 'enrolledStudents',
+        model: 'User',
+      }),
+
+    LiveCourse.find({ instructor: instructorId, status: 'approved' })
+      .populate('instructor plan category')
+      .populate({
+        path: 'liveSections',
+        model: 'LiveSection',
+      })
+      .populate({
+        path: 'enrolledStudents',
+        model: 'User',
+      })
+  ]);
+
+  const [coursesCount, livecourseCount] = await Promise.all([
+    Course.countDocuments({ instructor: instructorId, status: 'approved' }),
+    LiveCourse.countDocuments({ instructor: instructorId, status: 'approved' })
+  ]);
+
+  const enrolledStudentsInCourseCount = courses.reduce(
+    (sum, course) => sum + course.enrolledStudentsCount,
+    0
+  );
+  const enrolledStudentsInLiveCourseCount = livecourses.reduce(
+    (sum, course) => sum + course.enrolledStudentsCount,
+    0
+  );
+
+  const totalCourseCount = coursesCount + livecourseCount;
+  const totalEnrolledStudents = enrolledStudentsInCourseCount + enrolledStudentsInLiveCourseCount;
+  const allCourses = [...courses, ...livecourses];
+
+  const courseIdsInResponse = new Set(courses.map(c => c._id.toString()));
+  const livecourseIdsInResponse = new Set(livecourses.map(lc => lc._id.toString()));
+
+  const instructorCoursesFiltered = instructorDetails.courses.filter(cId =>
+    courseIdsInResponse.has(cId.toString())
+  );
+  const instructorLiveCoursesFiltered = instructorDetails.livecourses.filter(lcId =>
+    livecourseIdsInResponse.has(lcId.toString())
+  );
+
+  res.status(200).send({
+    coursesCount,
+    livecourseCount,
+    totalCourseCount,
+    enrolledStudentsInCourseCount,
+    enrolledStudentsInLiveCourseCount,
+    totalEnrolledStudents,
+    courses,
+    livecourses,
+    allCourses,
+    instructor: {
+      ...instructorDetails.toObject(),
+      courses: instructorCoursesFiltered,
+      livecourses: instructorLiveCoursesFiltered,
+    }
+  });
+});
+
 
 const getInstructorById = asyncHandler(async (req, res) => {
   const instructor = req.query.instructor 
