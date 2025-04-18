@@ -329,7 +329,7 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
 
 const getSubscriptionByUser = asyncHandler(async (req, res) => {
   const { userId } = req.query;
-  const subscriptions = await Subscription.find({ user: userId })
+  const subscriptions = await Subscription.find({ user: userId, status: "active" })
     .populate('user')
     .populate('plan');
 
