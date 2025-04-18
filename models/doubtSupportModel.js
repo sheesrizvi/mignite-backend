@@ -1,11 +1,24 @@
+const mongoose = require('mongoose')
+
 const DoubtThreadSchema = new mongoose.Schema({
-    section: { type: mongoose.Schema.Types.ObjectId, ref: 'Section', required: true },
+    courseInfo: {
+      course: { type: mongoose.Schema.Types.ObjectId, refPath: "courseType" },
+      courseType: {
+        type: String,
+        enum: ['Course', 'LiveCourse']
+      }
+    },
+    sectionInfo: {
+      section: { type: mongoose.Schema.Types.ObjectId, refPath: 'sectionType' },
+      sectionType: { type: String, enum: ['Section', 'LiveSection'] }
+    },
     student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'Instructor', required: true },
   }, { timestamps: true });
   
+  
   const MessageSchema = new mongoose.Schema({
-    threadId: {
+    thread: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'DoubtThread',
       required: true
@@ -26,9 +39,17 @@ const DoubtThreadSchema = new mongoose.Schema({
         required: true
     },
     messageText: {
-      type: [String],
+      type: String,
       required: true
     },
     attachments: [String],
   }, {timestamps: true});
   
+
+const AskYourDoubt = mongoose.model('AskYourDoubt', DoubtThreadSchema)
+const Message = mongoose.model('Message', MessageSchema)
+
+module.exports = {
+  AskYourDoubt,
+  Message
+}

@@ -11,6 +11,7 @@ const LiveCourse = require("../models/liveCourseModel");
 const Order = require("../models/orderModel");
 const UserProgress = require("../models/userProgressModel");
 const User = require("../models/userModel");
+const Review = require('../models/reviewModel.js')
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -250,7 +251,9 @@ const getPendingCourses = asyncHandler(async (req, res) => {
 });
 
 const getCourseById = asyncHandler(async (req, res) => {
-  const id = req.query.courseId
+  
+  const { courseId, userId } = req.query
+  const id = courseId
   const course = await Course.findOne({_id: id, status: 'approved'}).populate({
     path: "sections",
     populate: [
@@ -269,9 +272,12 @@ const getCourseById = asyncHandler(async (req, res) => {
       }
     })
     ;
+
+  const review = await Review.findOne({ user: userId, course: id })
+
   if (course) {
     console.log(course.sections.length)
-    res.status(200).json({status: true, course});
+    res.status(200).json({status: true, course: { ...course.toObject(), hasReviewed: !!review }});
   } else {
     res.status(404);
     throw new Error("Error");

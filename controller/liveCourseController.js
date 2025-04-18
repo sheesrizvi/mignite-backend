@@ -7,7 +7,7 @@ const Instructor = require("../models/instructorModel");
 const LiveSection = require("../models/liveSectionModel");
 const { subDays } = require("date-fns");
 const { agenda } = require("../jobs/agendaConnection");
-
+const Review = require('../models/reviewModel.js')
 
 const createLiveCourse = asyncHandler(async (req, res) => {
   
@@ -158,7 +158,8 @@ const getLiveCourses = asyncHandler(async (req, res) => {
 });
 
 const getLiveCourseById = asyncHandler(async (req, res) => {
-  const id = req.query.courseId
+  const { courseId , userId } = req.query
+  const id = courseId
   const liveCourse = await LiveCourse.findOne({_id: id, status: 'approved'}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
@@ -185,8 +186,10 @@ const getLiveCourseById = asyncHandler(async (req, res) => {
     }
   });
 
+  const review = await Review.findOne({ user: userId, course: courseId })
+
   if (liveCourse) {
-    res.status(200).json({status: true, liveCourse});
+    res.status(200).json({status: true, liveCourse: { ...liveCourse.toObject(), hasReviewed: !!review }});
   } else {
     res.status(404);
     throw new Error("No live courses available");
