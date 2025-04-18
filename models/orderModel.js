@@ -11,13 +11,9 @@ const orderSchema = mongoose.Schema(
         {
           name: { type: String, required: true },
           price: { type: Number, required: true },
-          course: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Course",
-          },
-          livecourse: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "LiveCourse",
+          courseInfo: {
+            course: { type: mongoose.Schema.Types.ObjectId, refPath: 'courseType' },
+            courseType: { type: String, enum: ['Course', 'LiveCourse'] }
           },
           instructor: {
             type: mongoose.Schema.Types.ObjectId,

@@ -154,16 +154,21 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     return res.status(400).send({ status: false, message: 'User not Found' });
   }
 
-  for (const item of orderCourses) {
-    const alreadyPurchased = user.purchasedCourses.some(purchasedCourse =>
-      (item.course && purchasedCourse.course?.toString() === item.course) ||
-      (item.livecourse && purchasedCourse.livecourse?.toString() === item.livecourse)
-    );
+ 
+  const orderedCourseIds = orderCourses.map(item => item.courseInfo.course);
 
-    if (alreadyPurchased) {
-      return res.status(400).json({ status: false, message: "You have already purchased this course." });
-    }
+  const existingOrders = await Order.find({
+    user: userId,
+    'orderCourses.courseInfo.course': { $in: orderedCourseIds },
+  });
+  
+  if (existingOrders.length > 0) {
+    return res.status(400).json({
+      status: false,
+      message: "You have already purchased one or more of these courses.",
+    });
   }
+  
 
   const order = await Order.create({
     orderCourses,
@@ -183,38 +188,40 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     const now = new Date();
 
     for (const item of orderCourses) {
-      if (item.course) {
-        const course = await Course.findById(item.course);
-        if (course) {
-          course.enrolledStudents.push(userId);
-          course.enrolledStudentsCount = course.enrolledStudents.length;
-          await course.save();
-
+      const { course, courseType } = item.courseInfo;
+    
+      if (courseType === 'Course') {
+        const foundCourse = await Course.findById(course);
+        if (foundCourse) {
+          foundCourse.enrolledStudents.push(userId);
+          foundCourse.enrolledStudentsCount = foundCourse.enrolledStudents.length;
+          await foundCourse.save();
+    
           user.purchasedCourses.push({
-            course: item.course,
+            course: course,
             livecourse: null,
             startedAt: now,
             expiresAt: null,
             status: "Enrolled",
           });
-
+    
           await UserProgress.create({
             user: userId,
-            course: item.course,
+            course: course,
           });
         }
-      } else if (item.livecourse) {
-        const livecourse = await LiveCourse.findById(item.livecourse);
-        if (livecourse) {
-          livecourse.enrolledStudents.push(userId);
-          livecourse.enrolledStudentsCount = livecourse.enrolledStudents.length;
-          await livecourse.save();
-
-          const expiresAt = livecourse.endDate || null;
-
+      } else if (courseType === 'LiveCourse') {
+        const foundLiveCourse = await LiveCourse.findById(course);
+        if (foundLiveCourse) {
+          foundLiveCourse.enrolledStudents.push(userId);
+          foundLiveCourse.enrolledStudentsCount = foundLiveCourse.enrolledStudents.length;
+          await foundLiveCourse.save();
+    
+          const expiresAt = foundLiveCourse.endDate || null;
+    
           user.purchasedCourses.push({
             course: null,
-            livecourse: item.livecourse,
+            livecourse: course,
             startedAt: now,
             expiresAt,
             status: "Enrolled",
@@ -222,6 +229,7 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         }
       }
     }
+    
 
     await user.save();
 
