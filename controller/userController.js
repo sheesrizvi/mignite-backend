@@ -267,13 +267,15 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
       ]
     });
 
+  const userExist = await User.findById(userId)
+  console.log(userExist)
   if (!user) {
     return res.status(404).json({ status: false, message: 'User not found' });
   }
 
   let courses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
   const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse);
-
+  console.log(livecourses)
   let progressReport = []
   for (let courseItem of courses) {
     const courseId = courseItem._id

@@ -7,129 +7,245 @@ const Coupon = require('../models/couponModel');
 const { options, search } = require('../routes/adminRoutes');
 const UserProgress = require('../models/userProgressModel');
 
-const createCourseOrder = asyncHandler(async (req, res) => {
-    const {
-        orderCourses,
-        paymentMethod,
-        itemsPrice,
-        totalPrice,
-        invoiceId,
-        userId,
-        notes,
-        discountedValue,
-        coupon
-      } = req.body;
+// const createCourseOrder = asyncHandler(async (req, res) => {
+//     const {
+//         orderCourses,
+//         paymentMethod,
+//         itemsPrice,
+//         totalPrice,
+//         invoiceId,
+//         userId,
+//         notes,
+//         discountedValue,
+//         coupon
+//       } = req.body;
 
-      if (!orderCourses || orderCourses.length === 0) {
-        return res.status(400).json({ message: "No order courses" });
-      }
+//       if (!orderCourses || orderCourses.length === 0) {
+//         return res.status(400).json({ message: "No order courses" });
+//       }
     
-    //   let totalCoursePrice = orderCourses.reduce((total, item) => {
-    //     return total  + item.price 
-    //   }, 0)
+//     //   let totalCoursePrice = orderCourses.reduce((total, item) => {
+//     //     return total  + item.price 
+//     //   }, 0)
 
-     // totalCoursePrice = totalCoursePrice - (discountedValue || 0)
-     const user = await User.findById(userId);
-     if(!user) {
-        return res.status(400).send({status: false, message: 'User not Found'})
-     }
-     for (const item of orderCourses) {
-        const alreadyPurchased = user.purchasedCourses.some(purchasedCourse =>
-          purchasedCourse.course && purchasedCourse.course.toString() === item.course ||
-          purchasedCourse.livecourse && purchasedCourse.livecourse.toString() === item.livecourse
-        );
+//      // totalCoursePrice = totalCoursePrice - (discountedValue || 0)
+//      const user = await User.findById(userId);
+//      if(!user) {
+//         return res.status(400).send({status: false, message: 'User not Found'})
+//      }
+//      for (const item of orderCourses) {
+//         console.log(user.purchasedCourses)
+//         const alreadyPurchased = user.purchasedCourses.some(purchasedCourse =>
+//           purchasedCourse.course && purchasedCourse.course.toString() === item.course ||
+//           purchasedCourse.livecourse && purchasedCourse.livecourse.toString() === item.livecourse
+//         );
     
-        if (alreadyPurchased) {
-          return res.status(400).json({status: false,  message: "You have already purchased this course." });
-        }
-      }
+//         if (alreadyPurchased) {
+//           return res.status(400).json({status: false,  message: "You have already purchased this course." });
+//         }
+//       }
     
 
-      const order = await Order.create({
-        orderCourses,
-        user: userId,
-        paymentMethod,
-        itemsPrice: itemsPrice,
-        deliveryStatus: "Enrolled", 
-        totalPrice: totalPrice,
-        invoiceId,
-        discountedValue,
-        notes,
-        coupon,
-        isPaid: true,  
-      });
+//       const order = await Order.create({
+//         orderCourses,
+//         user: userId,
+//         paymentMethod,
+//         itemsPrice: itemsPrice,
+//         deliveryStatus: "Enrolled", 
+//         totalPrice: totalPrice,
+//         invoiceId,
+//         discountedValue,
+//         notes,
+//         coupon,
+//         isPaid: true,  
+//       });
 
-  if(order) {
+//   if(order) {
   
-    for(let i = 0; i < orderCourses.length; i++) {
-        const item = orderCourses[i];
-        let course;
-        const now = new Date();
-        if (item.course) {
-            course = await Course.findById(item.course);
+//     for(let i = 0; i < orderCourses.length; i++) {
+//         const item = orderCourses[i];
+//         let course;
+//         const now = new Date();
+//         if (item.course) {
+//             course = await Course.findById(item.course);
             
-          } else if (item.livecourse) {
-            course = await LiveCourse.findById(item.livecourse);
-          }
-          if (course) {
-            course.enrolledStudents.push(userId)
-            course.enrolledStudentsCount = course.enrolledStudents.length
-            await course.save();
-        }
-        let expiresAt;
-        // if(course?.durationType === "lifetime") {
-        //     expiresAt = null
-        // } else {
-        //     expiresAt = new Date()
-        //     expiresAt.setMonth(now.getMonth() + course.duration)
-        // }
+//           } else if (item.livecourse) {
+//             course = await LiveCourse.findById(item.livecourse);
+//           }
+//           if (course) {
+//             course.enrolledStudents.push(userId)
+//             course.enrolledStudentsCount = course.enrolledStudents.length
+//             await course.save();
+//         }
+//         let expiresAt;
+//         // if(course?.durationType === "lifetime") {
+//         //     expiresAt = null
+//         // } else {
+//         //     expiresAt = new Date()
+//         //     expiresAt.setMonth(now.getMonth() + course.duration)
+//         // }
         
-        if(item.course) {
-          expiresAt = null
-        } else if (item.livecourse) {
-          expiresAt = item.livecourse?.endDate || null
-        }
+//         if(item.course) {
+//           expiresAt = null
+//         } else if (item.livecourse) {
+//           expiresAt = item.livecourse?.endDate || null
+//         }
         
-        user.purchasedCourses.push({
-            course: item.course ? item.course : null,
-            livecourse: item.livecourse ? item.livecourse : null,
+//         user.purchasedCourses.push({
+//             course: item.course ? item.course : null,
+//             livecourse: item.livecourse ? item.livecourse : null,
+//             startedAt: now,
+//             expiresAt: expiresAt,
+//             status: "Enrolled",
+//           });
+
+//         await user.save()
+
+//         if(item.course) {
+//          await UserProgress.create({
+//             user: userId,
+//             course: item.course
+//           })
+        
+//         }
+
+//     }
+//   if(coupon) {
+//     let couponToUpdate = await Coupon.findById(coupon.id)
+//     if(couponToUpdate.usageCount > couponToUpdate.usageLimit) {
+//       couponToUpdate.isActive = false
+//     } else {
+//       couponToUpdate.usageCount = couponToUpdate.usageCount + 1
+//       couponToUpdate.user.push(userId)
+//     }
+
+//   await couponToUpdate.save()
+//   }
+
+    
+//     res.status(201).json({
+//         message: "Course purchased successfully",
+//         course: order
+//     });
+//   }
+
+
+// })
+
+const createCourseOrder = asyncHandler(async (req, res) => {
+  const {
+    orderCourses,
+    paymentMethod,
+    itemsPrice,
+    totalPrice,
+    invoiceId,
+    userId,
+    notes,
+    discountedValue,
+    coupon,
+  } = req.body;
+
+  if (!orderCourses || orderCourses.length === 0) {
+    return res.status(400).json({ message: "No order courses" });
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(400).send({ status: false, message: 'User not Found' });
+  }
+
+  for (const item of orderCourses) {
+    const alreadyPurchased = user.purchasedCourses.some(purchasedCourse =>
+      (item.course && purchasedCourse.course?.toString() === item.course) ||
+      (item.livecourse && purchasedCourse.livecourse?.toString() === item.livecourse)
+    );
+
+    if (alreadyPurchased) {
+      return res.status(400).json({ status: false, message: "You have already purchased this course." });
+    }
+  }
+
+  const order = await Order.create({
+    orderCourses,
+    user: userId,
+    paymentMethod,
+    itemsPrice,
+    deliveryStatus: "Enrolled",
+    totalPrice,
+    invoiceId,
+    discountedValue,
+    notes,
+    coupon,
+    isPaid: true,
+  });
+
+  if (order) {
+    const now = new Date();
+
+    for (const item of orderCourses) {
+      if (item.course) {
+        const course = await Course.findById(item.course);
+        if (course) {
+          course.enrolledStudents.push(userId);
+          course.enrolledStudentsCount = course.enrolledStudents.length;
+          await course.save();
+
+          user.purchasedCourses.push({
+            course: item.course,
+            livecourse: null,
             startedAt: now,
-            expiresAt: expiresAt,
+            expiresAt: null,
             status: "Enrolled",
           });
 
-        await user.save()
-
-        if(item.course) {
-         await UserProgress.create({
+          await UserProgress.create({
             user: userId,
-            course: item.course
-          })
-        
+            course: item.course,
+          });
+        }
+      } else if (item.livecourse) {
+        const livecourse = await LiveCourse.findById(item.livecourse);
+        if (livecourse) {
+          livecourse.enrolledStudents.push(userId);
+          livecourse.enrolledStudentsCount = livecourse.enrolledStudents.length;
+          await livecourse.save();
+
+          const expiresAt = livecourse.endDate || null;
+
+          user.purchasedCourses.push({
+            course: null,
+            livecourse: item.livecourse,
+            startedAt: now,
+            expiresAt,
+            status: "Enrolled",
+          });
+        }
+      }
+    }
+
+    await user.save();
+
+    if (coupon) {
+      const couponToUpdate = await Coupon.findById(coupon.id);
+      if (couponToUpdate) {
+        if (couponToUpdate.usageCount >= couponToUpdate.usageLimit) {
+          couponToUpdate.isActive = false;
+        } else {
+          couponToUpdate.usageCount += 1;
+          couponToUpdate.user.push(userId);
         }
 
-    }
-  if(coupon) {
-    let couponToUpdate = await Coupon.findById(coupon.id)
-    if(couponToUpdate.usageCount > couponToUpdate.usageLimit) {
-      couponToUpdate.isActive = false
-    } else {
-      couponToUpdate.usageCount = couponToUpdate.usageCount + 1
-      couponToUpdate.user.push(userId)
+        await couponToUpdate.save();
+      }
     }
 
-  await couponToUpdate.save()
-  }
-
-    
     res.status(201).json({
-        message: "Course purchased successfully",
-        course: order
+      message: "Course purchased successfully",
+      course: order,
     });
   }
+});
 
-
-})
 
 const getAllOrders = asyncHandler(async (req, res) => {
   const page = req.query.pageNumber || 1
