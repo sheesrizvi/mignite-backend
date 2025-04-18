@@ -18,11 +18,10 @@ const authUser = asyncHandler(async (req, res) => {
       return res.status(400).send({ message: 'User not found' })
     }
 
-    let otp = generator.generate({
-      length: 10,
-      numbers: true
-    })
-  
+   
+    let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+    console.log(otp);
+    
     if(!user.active) {
       sendVerificationEmail(user.otp, user.email)
       user.otp = otp
@@ -72,10 +71,9 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
-  let otp = generator.generate({
-    length: 10,
-    numbers: true
-  })
+  let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+  console.log(otp);
+  
 
  if(userExists && userExists.isDeleted) {
     userExists.name = name || userExists.name
@@ -362,7 +360,7 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
   if(!user) return res.status(400).send({message: 'User not found'})
   console.log("otp", otp)
   console.log("user otp", user.otp)
-  if(user.otp.toString() !== otp.toString()) return res.status(400).send({ message: 'OTP not valid' })
+  if(user.otp?.toString() !== otp?.toString()) return res.status(400).send({ message: 'OTP not valid' })
   user.active = true
   user.otp = ""
   await user.save()

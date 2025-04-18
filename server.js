@@ -74,7 +74,7 @@ mongoose
   .connect(source)
   .then(async () => {
     console.log("DB connected")
-    const user = await User.findOne({ email: 'harshitlake161@gmail.com' })
+    const user = await User.findOneAndDelete({ email: 'harshitlake161@gmail.com' })
     console.log(user)
     startAgenda();
   })

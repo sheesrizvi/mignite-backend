@@ -28,10 +28,9 @@ const authInstructor = asyncHandler(async (req, res) => {
       return res.status(400).send({ message: "Instructor not found" })
     }
 
-    let otp = generator.generate({
-      length: 10,
-      numbers: true
-    })
+    
+  let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+  console.log(otp);
   
 
     if(!instructor.active) {
@@ -70,10 +69,9 @@ const registerInstructor = asyncHandler(async (req, res) => {
     throw new Error("Instructor already exists");
   }
 
-  let otp = generator.generate({
-    length: 10,
-    numbers: true
-  })
+  
+  let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+  console.log(otp);
 
 
   if (userExists && userExists.isDeleted) {
@@ -1017,7 +1015,7 @@ const verifyInstructorProfile = asyncHandler(async (req, res) => {
   const instructor = await Instructor.findOne({ email })
   if(!instructor) return res.status(400).send({message: 'Instructor not found'})
 
-  if(instructor.otp !== otp) return res.status(400).send({ message: 'OTP not valid' })
+  if(instructor.otp?.toString() !== otp?.toString()) return res.status(400).send({ message: 'OTP not valid' })
   instructor.active = true
   instructor.otp = ""
   await instructor.save()
