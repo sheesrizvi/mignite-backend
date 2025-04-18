@@ -361,6 +361,7 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email })
   if(!user) return res.status(400).send({message: 'User not found'})
   console.log("otp", otp)
+  console.log("user otp", user.otp)
   if(user.otp.toString() !== otp.toString()) return res.status(400).send({ message: 'OTP not valid' })
   user.active = true
   user.otp = ""
