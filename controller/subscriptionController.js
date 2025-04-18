@@ -20,7 +20,7 @@ const createSubscription = asyncHandler(async (req, res) => {
     const existingSubscription = await Subscription.find({user: userId, status: "active"})
     
     if(existingSubscription && existingSubscription.length > 0) {
-        return res.status(400).send({message: 'User has already subscribed to existing plans', existingSubscription})
+        return res.status(400).send({message: 'User has already subscribed to existing plan', existingSubscription})
     }
     
     let endDate = new Date(startDate);
