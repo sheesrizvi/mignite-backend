@@ -32,8 +32,10 @@ const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js');
 const Instructor = require("./models/instructorModel.js");
 const Course = require('./models/coursesModel.js')
 const LiveCourse = require('./models/liveCourseModel.js')
+const User = require('./models/userModel.js')
 const app = express();
 const source = process.env.MONGO_URI
+
 
 app.use(
   cors({
@@ -72,6 +74,8 @@ mongoose
   .connect(source)
   .then(async () => {
     console.log("DB connected")
+    const user = await User.findOne({ email: 'harshitlake161@gmail.com' })
+    console.log(user)
     startAgenda();
   })
   .catch((err) => console.log("DB connection error", err));
