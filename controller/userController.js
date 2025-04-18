@@ -23,7 +23,7 @@ const authUser = asyncHandler(async (req, res) => {
     console.log(otp);
     
     if(!user.active) {
-      sendVerificationEmail(user.otp, user.email)
+      sendVerificationEmail(otp, user.email)
       user.otp = otp
       await user.save()
       return res.status(400).send({ message: 'OTP Sent. Please verified profile first for login', active: false })
