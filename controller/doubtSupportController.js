@@ -117,7 +117,7 @@ const getAllThreadsOfInstructor = asyncHandler(async (req, res) => {
 
 
 const getMessagesByThread = asyncHandler(async (req, res) => {
-  const { threadId, studentId, sectionId, pageNumber = 1, limit = 10 } = req.query;
+  const { threadId, studentId, sectionId, pageNumber = 1, limit = 200 } = req.query;
 
   let thread;
 

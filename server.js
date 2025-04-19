@@ -75,8 +75,6 @@ mongoose
   .then(async () => {
     console.log("DB connected")
     startAgenda();
-    const user = await User.findOne({ email: 'pp.pinkipal08@gmail.com' })
-    console.log(user)
   })
   .catch((err) => console.log("DB connection error", err));
 
