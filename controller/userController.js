@@ -7,6 +7,9 @@ const { sendResetEmail, sendVerificationEmail } = require("../middleware/handleE
 const generator = require('generate-password')
 const UserProgress = require("../models/userProgressModel");
 const Course = require("../models/coursesModel");
+const LiveCourse = require("../models/liveCourseModel");
+const { Plan } = require('../models/planModel')
+
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -211,119 +214,263 @@ const getUserDetails = asyncHandler(async (req, res) => {
 })
 
 
+// const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
+//   const userId = req.query.userId;
+  
+//   const user = await User.findById(userId)
+//     .populate({
+//       path: 'purchasedCourses.course',
+//       model: 'Course',
+//       populate: [
+//         { 
+//           path: 'instructor', 
+//           model: 'Instructor' 
+//         },
+//         { 
+//           path: 'sections', 
+//           model: 'Section', 
+//           populate: {
+//             path: 'assignment',
+//             model: 'Assignment'
+//           }
+//         }  ,
+//         { 
+//           path: 'reviews', 
+//           model: 'Review', 
+//           populate: {
+//             path: 'user',
+//             model: 'User'
+//           }
+//         }     
+//       ]
+//     })
+//     .populate({
+//       path: 'purchasedCourses.livecourse',
+//       model: 'LiveCourse',
+//       populate: [
+//         { 
+//           path: 'instructor', 
+//           model: 'Instructor' 
+//         },
+//         { 
+//           path: 'liveSections', 
+//           model: 'LiveSection', 
+//           populate: {
+//             path: 'assignment',
+//             model: 'Assignment'
+//           }
+//         },  { 
+//           path: 'reviews', 
+//           model: 'Review',
+//           populate: {
+//             path: 'user',
+//             model: 'User'
+//           }
+//         }     
+//       ]
+//     });
+
+//   const userExist = await User.findById(userId)
+//   console.log(userExist)
+//   if (!user) {
+//     return res.status(404).json({ status: false, message: 'User not found' });
+//   }
+
+//   let courses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
+//   const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse);
+ 
+//   let progressReport = []
+//   for (let courseItem of courses) {
+//     const courseId = courseItem._id
+
+//     const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
+//     const course = await Course.findOne({ _id: courseId }).select('sections')
+   
+//     if (course.sections.length === 0) {
+
+//        progressReport.push(
+//         {
+//           course: courseItem._id,
+//           userProgress: 0, 
+//           courseCompletePercentage:0, 
+//           viewedSectionCount:0, 
+//           totalSectionsCount:0
+//         }
+//     )
+      
+//     }
+  
+//     const courseCompletePercentage = userProgress.courseCompletePercentage
+  
+//     const viewedSectionCount = userProgress.viewedSections?.length > 0 ? userProgress.viewedSections.length : 0
+//     const totalSectionsCount = course.sections.length || 0
+  
+//    progressReport.push({
+//       course: courseItem._id,
+//       userProgress, 
+//       courseCompletePercentage, 
+//       viewedSectionCount, 
+//       totalSectionsCount
+//     })
+//   }
+//  let updatedCourse = []
+//   for (let report of progressReport) {
+//     let result = courses.find((course) => course._id === report.course)
+//     updatedCourse.push({...result.toObject(), report})
+//   }
+//   const allCourses = [...updatedCourse, ...livecourses];
+
+  
+
+//   res.status(200).json({ 
+//     status: true, 
+//     message: 'User Courses Found', 
+//     courses: updatedCourse, 
+//     livecourses, 
+//     allCourses,
+//   });
+// });
+
 const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
   const userId = req.query.userId;
-  
+
   const user = await User.findById(userId)
     .populate({
       path: 'purchasedCourses.course',
       model: 'Course',
       populate: [
-        { 
-          path: 'instructor', 
-          model: 'Instructor' 
+        { path: 'instructor', model: 'Instructor' },
+        {
+          path: 'sections',
+          model: 'Section',
+          populate: { path: 'assignment', model: 'Assignment' },
         },
-        { 
-          path: 'sections', 
-          model: 'Section', 
-          populate: {
-            path: 'assignment',
-            model: 'Assignment'
-          }
-        }  ,
-        { 
-          path: 'reviews', 
-          model: 'Review', 
-          populate: {
-            path: 'user',
-            model: 'User'
-          }
-        }     
-      ]
+        {
+          path: 'reviews',
+          model: 'Review',
+          populate: { path: 'user', model: 'User' },
+        },
+      ],
     })
     .populate({
       path: 'purchasedCourses.livecourse',
       model: 'LiveCourse',
       populate: [
-        { 
-          path: 'instructor', 
-          model: 'Instructor' 
+        { path: 'instructor', model: 'Instructor' },
+        {
+          path: 'liveSections',
+          model: 'LiveSection',
+          populate: { path: 'assignment', model: 'Assignment' },
         },
-        { 
-          path: 'liveSections', 
-          model: 'LiveSection', 
-          populate: {
-            path: 'assignment',
-            model: 'Assignment'
-          }
-        },  { 
-          path: 'reviews', 
+        {
+          path: 'reviews',
           model: 'Review',
-          populate: {
-            path: 'user',
-            model: 'User'
-          }
-        }     
-      ]
+          populate: { path: 'user', model: 'User' },
+        },
+      ],
     });
 
-  const userExist = await User.findById(userId)
-  console.log(userExist)
   if (!user) {
     return res.status(404).json({ status: false, message: 'User not found' });
   }
 
-  let courses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
+  let purchasedCourses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
   const livecourses = user.purchasedCourses.filter(item => item.livecourse).map(item => item.livecourse);
-  console.log(livecourses)
-  let progressReport = []
-  for (let courseItem of courses) {
-    const courseId = courseItem._id
 
-    const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
-    const course = await Course.findOne({ _id: courseId }).select('sections')
-   
-    if (course.sections.length === 0) {
+  let progressReport = [];
 
-       progressReport.push(
-        {
-          course: courseItem._id,
-          userProgress: 0, 
-          courseCompletePercentage:0, 
-          viewedSectionCount:0, 
-          totalSectionsCount:0
-        }
-    )
-      
+  for (let courseItem of purchasedCourses) {
+    const courseId = courseItem._id;
+    const userProgress = await UserProgress.findOne({ user: userId, course: courseId });
+    const course = await Course.findOne({ _id: courseId }).select('sections');
+
+    if (!userProgress || !course || course.sections.length === 0) {
+      progressReport.push({
+        course: courseId,
+        userProgress: 0,
+        courseCompletePercentage: 0,
+        viewedSectionCount: 0,
+        totalSectionsCount: course?.sections?.length || 0,
+      });
+      continue;
     }
-  
-    const courseCompletePercentage = userProgress.courseCompletePercentage
-  
-    const viewedSectionCount = userProgress.viewedSections?.length > 0 ? userProgress.viewedSections.length : 0
-    const totalSectionsCount = course.sections.length || 0
-  
-   progressReport.push({
-      course: courseItem._id,
-      userProgress, 
-      courseCompletePercentage, 
-      viewedSectionCount, 
-      totalSectionsCount
-    })
+
+    progressReport.push({
+      course: courseId,
+      userProgress,
+      courseCompletePercentage: userProgress.courseCompletePercentage,
+      viewedSectionCount: userProgress.viewedSections?.length || 0,
+      totalSectionsCount: course.sections.length,
+    });
   }
- let updatedCourse = []
+
+  let updatedPurchasedCourses = [];
   for (let report of progressReport) {
-    let result = courses.find((course) => course._id === report.course)
-    updatedCourse.push({...result.toObject(), report})
+    let result = purchasedCourses.find((course) => course._id.equals(report.course));
+    updatedPurchasedCourses.push({ ...result.toObject(), report });
   }
-  const allCourses = [...updatedCourse, ...livecourses];
 
-  
+  const subscription = await Subscription.findOne({ user: userId, status: 'active' }).populate('plan');
 
-  res.status(200).json({ 
-    status: true, 
-    message: 'User Courses Found', 
-    courses: updatedCourse, 
-    livecourses, 
+  let subscribedCourses = [];
+  let subscribedLiveCourses = [];
+
+  if (subscription) {
+    const subscriptionLevel = subscription.plan.level;
+    const plans = await Plan.find({ level: { $gte: subscriptionLevel } })
+      .populate('courses')
+      .populate('liveCourses');
+
+    const courseSet = new Set();
+    const liveCourseSet = new Set();
+
+    for (const plan of plans) {
+      plan.courses.forEach(course => courseSet.add(course._id.toString()));
+      plan.liveCourses.forEach(liveCourse => liveCourseSet.add(liveCourse._id.toString()));
+    }
+
+    const purchasedCourseIds = new Set(purchasedCourses.map(course => course._id.toString()));
+    const subscribedCourseIds = Array.from(courseSet).filter(id => !purchasedCourseIds.has(id));
+
+    const allSubscribedCourses = await Course.find({ _id: { $in: subscribedCourseIds } })
+      .populate('instructor')
+      .populate({ path: 'sections', populate: { path: 'assignment' } })
+      .populate({ path: 'reviews', populate: { path: 'user' } });
+
+    for (let course of allSubscribedCourses) {
+      const userProgress = await UserProgress.findOne({ user: userId, course: course._id });
+      const courseData = await Course.findOne({ _id: course._id }).select('sections');
+      const totalSectionsCount = courseData?.sections?.length || 0;
+
+      let report = {
+        course: course._id,
+        userProgress: userProgress || 0,
+        courseCompletePercentage: userProgress?.courseCompletePercentage || 0,
+        viewedSectionCount: userProgress?.viewedSections?.length || 0,
+        totalSectionsCount,
+      };
+
+      subscribedCourses.push({ ...course.toObject(), report });
+    }
+
+    const purchasedLiveCourseIds = new Set(livecourses.map(lc => lc._id.toString()));
+    const subscribedLiveCourseIds = Array.from(liveCourseSet).filter(id => !purchasedLiveCourseIds.has(id));
+
+    subscribedLiveCourses = await LiveCourse.find({ _id: { $in: subscribedLiveCourseIds } })
+      .populate('instructor')
+      .populate({ path: 'liveSections', populate: { path: 'assignment' } })
+      .populate({ path: 'reviews', populate: { path: 'user' } });
+  }
+
+  const allCourses = [...updatedPurchasedCourses, ...livecourses, ...subscribedCourses, ...subscribedLiveCourses];
+
+  res.status(200).json({
+    status: true,
+    message: 'User Courses Found',
+    courses: updatedPurchasedCourses,
+    livecourses,
+    subscribedCourses,
+    subscribedLiveCourses,
     allCourses,
   });
 });
@@ -387,6 +534,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
     const users = await User.find({})
     res.send({ users })
 })
+
 
 module.exports = {
   authUser,

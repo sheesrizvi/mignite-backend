@@ -11,6 +11,10 @@ const createPlan = asyncHandler(async (req, res) => {
     return res.status(400).send({ status: true, message: 'All Fields are required' });
   }
 
+  if(!courses || courses.length <= 0) {
+    return res.status(400).send({ message: "No Course added in Plan" })
+  }
+
   let courseIds = [];
   let liveCourseIds = [];
 
@@ -86,6 +90,10 @@ const updatePlan = asyncHandler(async (req, res) => {
   const planToUpdate = await Plan.findById(planId);
   if (!planToUpdate) {
     return res.status(400).send({ status: false, message: 'Plan not found' });
+  }
+
+  if(!courses || courses.length <= 0) {
+    return res.status({ message: "No Course Included in Plans" })
   }
 
   planToUpdate.name = name || planToUpdate.name;

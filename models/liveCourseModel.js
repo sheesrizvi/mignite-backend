@@ -41,6 +41,11 @@ const livecourseSchema = mongoose.Schema(
     },
     batchSize: {
       type: Number,
+      required: true
+    },
+    bookedStatus: {
+      type: Boolean,
+      default: false
     },
     requirement: {
       type: String,

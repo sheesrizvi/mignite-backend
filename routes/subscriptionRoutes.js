@@ -1,5 +1,5 @@
 const express = require('express');
-const { createSubscription, editSubscription, getAllSubscriptions, getSpecificSubscription, deleteSubscription, getActiveSubscriptionsOfUser, searchSubscriptions, getAllSubscriptionsForDownload } = require('../controller/subscriptionController');
+const { createSubscription, editSubscription, getAllSubscriptions, getSpecificSubscription, deleteSubscription, getActiveSubscriptionsOfUser, searchSubscriptions, getAllSubscriptionsForDownload, getCoursesBySubscription } = require('../controller/subscriptionController');
 const { isUser } = require("../middleware/authMiddleware");
 const router = express.Router()
 
@@ -12,5 +12,6 @@ router.delete('/delete', isUser, deleteSubscription)
 router.get('/get-all-active-subscriptions-of-user', getActiveSubscriptionsOfUser)
 router.get('/search-subscriptions', searchSubscriptions)
 router.get('/get-all-subscriptions-for-download', getAllSubscriptionsForDownload)
+router.get('/get-courses-by-subscription', getCoursesBySubscription)
 
 module.exports = router;

@@ -3,6 +3,8 @@ const { Subscription } = require('../models/subscriptionModel')
 const asyncHandler = require('express-async-handler')
 const User = require("../models/userModel")
 const { Plan } = require('../models/planModel')
+const Course = require("../models/coursesModel");
+const LiveCourse = require("../models/liveCourseModel");
 
 const createSubscription = asyncHandler(async (req, res) => {
     let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId } = req.body;
@@ -256,6 +258,49 @@ const getActiveSubscriptionsOfUser = asyncHandler(async (req, res) => {
   res.status(200).send({ subscriptions })
 })
 
+
+const getCoursesBySubscription = asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+
+  const subscription = await Subscription.findOne({ user: userId, status: 'active' }).populate('plan');
+
+  if (!subscription) {
+    return res.status(400).json({ message: "Subscription not found" });
+  }
+
+  const subscriptionLevel = subscription.plan.level;
+
+  const plans = await Plan.find({ level: { $gte: subscriptionLevel } })
+    .populate('courses')
+    .populate('liveCourses');
+
+  const courseSet = new Set();
+  const liveCourseSet = new Set();
+
+  for (const plan of plans) {
+    plan.courses.forEach(course => {
+      if (course) courseSet.add(course._id.toString());
+    });
+
+    plan.liveCourses.forEach(liveCourse => {
+      if (liveCourse) liveCourseSet.add(liveCourse._id.toString());
+    });
+  }
+
+  const courses = await Course.find({ '_id': { $in: Array.from(courseSet) } });
+  const liveCourses = await LiveCourse.find({ '_id': { $in: Array.from(liveCourseSet) } });
+
+  return res.status(200).json({
+    message: "Courses fetched successfully based on subscription level",
+    subscriptionLevel,
+    courses,
+    liveCourses
+  });
+});
+
+
+
+
 module.exports = {
     getAllSubscriptions,
     getSpecificSubscription,
@@ -266,5 +311,6 @@ module.exports = {
     checkAndUpdateSubscriptions,
     getActiveSubscriptionsOfUser,
     searchSubscriptions,
-    getAllSubscriptionsForDownload
+    getAllSubscriptionsForDownload,
+    getCoursesBySubscription
 }

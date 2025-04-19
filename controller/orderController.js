@@ -169,7 +169,15 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     });
   }
   
-
+  const fullBatchSizeCourseExists = await LiveCourse.exists({
+    _id: { $in: orderedCourseIds },
+    bookedStatus: true
+  });
+  
+  if (fullBatchSizeCourseExists) {
+    return res.status(400).send({ message: "One or More Courses have batch size limit reached" });
+  }
+  
   const order = await Order.create({
     orderCourses,
     user: userId,
@@ -212,9 +220,13 @@ const createCourseOrder = asyncHandler(async (req, res) => {
         }
       } else if (courseType === 'LiveCourse') {
         const foundLiveCourse = await LiveCourse.findById(course);
+      
         if (foundLiveCourse) {
           foundLiveCourse.enrolledStudents.push(userId);
           foundLiveCourse.enrolledStudentsCount = foundLiveCourse.enrolledStudents.length;
+          if(foundLiveCourse.enrolledStudentsCount >= foundLiveCourse.batchSize) {
+            foundLiveCourse.bookedStatus = true
+          }
           await foundLiveCourse.save();
     
           const expiresAt = foundLiveCourse.endDate || null;

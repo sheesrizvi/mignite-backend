@@ -80,12 +80,10 @@ mongoose
 
 const PORT = process.env.PORT || 8000;
 
-
 cron.schedule('0 0 * * *', () => {
   console.log('Running the Subscription expiry check')
   checkAndUpdateSubscriptions()
 })
-
 
 app.listen(PORT, () => {
   console.log(`Successfully served on this port: ${PORT}.`);
@@ -93,3 +91,14 @@ app.listen(PORT, () => {
 
 
 
+// getCoursesBySubscription
+// batch size wala
+// ghumavdaar wala har course me plan hoga 
+// private course one on one 
+// transfer kar dia ek aisa document admin panel, android apps, ios, packages install, android, ios technical document 
+// package run 
+// folder structure
+// src me kya hai
+// screens me kya hai
+// server.js entry file
+// wetalk 

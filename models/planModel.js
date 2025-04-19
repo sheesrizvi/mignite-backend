@@ -46,3 +46,8 @@ const Plan = mongoose.model("Plan", planSchema)
 module.exports = {
     Plan
 }
+
+// getCoursesBySubscription
+// batch size wala
+// ghumavdaar wala har course me plan hoga 
+// private course one on one 
