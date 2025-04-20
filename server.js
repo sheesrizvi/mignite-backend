@@ -32,6 +32,7 @@ const aiFeatureRoutes = require('./routes/aiFeatureRoutes.js');
 const Instructor = require("./models/instructorModel.js");
 const Course = require('./models/coursesModel.js')
 const LiveCourse = require('./models/liveCourseModel.js')
+const { Subscription } = require('./models/subscriptionModel.js')
 const User = require('./models/userModel.js')
 const app = express();
 const source = process.env.MONGO_URI
@@ -74,6 +75,7 @@ mongoose
   .connect(source)
   .then(async () => {
     console.log("DB connected")
+    await Subscription.findOneAndDelete({ user: "6801ff27bdd2337eb8de0ede" })
     startAgenda();
   })
   .catch((err) => console.log("DB connection error", err));

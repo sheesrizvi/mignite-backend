@@ -774,7 +774,7 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
 
 const updateUserProgress = asyncHandler(async (req, res) => {
   const { userId, courseId, sectionId } = req.body
-
+  console.log("running user progress update")
   if(!userId || !courseId || !sectionId) return res.status(400).send({ message: 'All Fields are required' })
 
   const course = await Course.findOne({ _id: courseId }).select('sections')
@@ -815,7 +815,7 @@ const updateUserProgress = asyncHandler(async (req, res) => {
 
 const checkUserUpdateProgress = asyncHandler(async (req, res) => {
   const { userId, courseId } = req.query
-
+  console.log("running progress update")
   if(!userId || !courseId) return res.status(400).send({ message: 'All Fields are required' })
 
   const userProgress = await UserProgress.findOne({ user: userId, course: courseId })
