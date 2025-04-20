@@ -789,7 +789,7 @@ const updateUserProgress = asyncHandler(async (req, res) => {
 
   const userProgress = await UserProgress.findOneAndUpdate({ user: userId, course: courseId }, {$addToSet: {
     viewedSections: { section: sectionId,  viewedAt: new Date() }
-  }}, { new: true })
+  }}, { new: true, upsert: true })
 
 
   if(!userProgress) return res.status(400).send({ message: 'User Progress Details not found' })

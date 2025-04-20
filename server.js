@@ -75,7 +75,6 @@ mongoose
   .connect(source)
   .then(async () => {
     console.log("DB connected")
-    await Subscription.findOneAndDelete({ user: "6801ff27bdd2337eb8de0ede" })
     startAgenda();
   })
   .catch((err) => console.log("DB connection error", err));
