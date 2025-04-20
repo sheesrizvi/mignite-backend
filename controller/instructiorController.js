@@ -438,8 +438,7 @@ const getInstructorSalesData = asyncHandler(async (req, res) => {
     .limit(pageSize)
     .skip(pageSize * (page - 1))
     .populate("user", "name")
-    .populate("orderCourses.course")
-    .populate("orderCourses.livecourse");
+    .populate("orderCourses.courseInfo.course")
 
   const monthlySalesRevenue = monthlySales.reduce((total, order) => {
     const instructorRevenue = order.orderCourses
@@ -459,8 +458,7 @@ const getInstructorSalesData = asyncHandler(async (req, res) => {
     .limit(pageSize)
     .skip(pageSize * (page - 1))
     .populate("user", "name")
-    .populate("orderCourses.course")
-    .populate("orderCourses.livecourse");
+    .populate("orderCourses.courseInfo.course")
 
   const totalSalesRevenue = totalSales.reduce((total, order) => {
     const instructorRevenue = order.orderCourses
@@ -492,8 +490,7 @@ const getSalesHistory = asyncHandler(async (req, res) => {
     createdAt: { $gte: startOfYear, $lte: now },
   })
     .populate("user", "name")
-    .populate("orderCourses.course")
-    .populate("orderCourses.livecourse");
+    .populate("orderCourses.courseInfo.course")
 
   let monthlySalesHistory = {};
 
