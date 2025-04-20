@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const { Plan } = require('./planModel')
 const courseSchema = mongoose.Schema(
   {
     category: {
@@ -96,6 +96,13 @@ const courseSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+
+courseSchema.pre('remove', async function (next) {
+  await Plan.updateMany({}, { $pull: { courses: this._id } });
+  next();
+});
+
 
 const Course = mongoose.model("Course", courseSchema);
 
