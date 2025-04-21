@@ -2,6 +2,8 @@ const asyncHandler = require("express-async-handler");
 const Category = require("../models/category");
 const Course = require("../models/coursesModel");
 const LiveCourse = require("../models/liveCourseModel");
+const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
+
 
 const createCategory = asyncHandler(async (req, res) => {
   const { name, type, image } = req.body;
