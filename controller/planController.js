@@ -235,6 +235,42 @@ const searchPlan = asyncHandler(async (req, res) => {
   res.status(200).send({ plans, pageCount })
 })
 
+const getCoursesByPlan = asyncHandler(async (req, res) => {
+  const { planId } = req.query
+
+  const plan = await Plan.findById(planId)
+  if(!plan || !plan.level) {
+    return res.status(400).send({ message: "Plan not found" })
+  }
+  const plans = await Plan.find({ level: { $gte: plan.level } })
+    .populate('courses')
+    .populate('liveCourses');
+
+  const courseSet = new Set();
+  const liveCourseSet = new Set();
+
+  for (const plan of plans) {
+    plan.courses.forEach(course => {
+      if (course) courseSet.add(course._id.toString());
+    });
+
+    plan.liveCourses.forEach(liveCourse => {
+      if (liveCourse) liveCourseSet.add(liveCourse._id.toString());
+    });
+  }
+
+  const courses = await Course.find({ '_id': { $in: Array.from(courseSet) } });
+  const liveCourses = await LiveCourse.find({ '_id': { $in: Array.from(liveCourseSet) } });
+  const allCourses = [...courses, ...liveCourses]
+  return res.status(200).json({
+    message: "Courses fetched successfully based on plan level",
+    planLevel: plan.level,
+    allCourses,
+    courses,
+    liveCourses,
+  });
+})
+
 module.exports = {
   createPlan,
   deletePlan,
@@ -242,5 +278,6 @@ module.exports = {
   getAllPlans,
   getPlanByLevels,
   getSpecificPlan,
-  searchPlan
+  searchPlan,
+  getCoursesByPlan
 }
