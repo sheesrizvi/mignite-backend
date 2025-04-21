@@ -70,7 +70,7 @@ const getAllCategory = asyncHandler(async (req, res) => {
   const totalDocuments = await Category.countDocuments({})
   const pageCount = Math.ceil(totalDocuments/pageSize)
 
-  if (category) {
+  if (categories) {
     res.status(201).json({ categories, pageCount });
   } else {
     res.status(404);
