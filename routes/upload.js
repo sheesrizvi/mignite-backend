@@ -48,7 +48,6 @@ router.post("/uploadMultiple", upload.array("image", 150), async (req, res) => {
 
 router.post(
   "/uploadSingleImage",
-  isAdminorInstructor,
   upload.single("image"),
   async (req, res) => {
     const result = req.file;
@@ -67,7 +66,7 @@ router.post(
   }
 );
 
-router.delete("/deleteImage", isAdminorInstructor, async (req, res) => {
+router.delete("/deleteImage", async (req, res) => {
   const image = req.query.image;
   // console.log(image);
 
