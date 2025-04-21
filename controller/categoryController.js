@@ -59,6 +59,25 @@ const getCategory = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+
+const getAllCategory = asyncHandler(async (req, res) => {
+  const { pageNumber = 1, pageSize = 20 } = req.query
+  const categories = await Category.find({}).sort({ createdAt: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+  if(!categories || categories.length === 0) {
+    return res.status(400).send({ message: "No Categories Found" })
+  }
+  const totalDocuments = await Category.countDocuments({})
+  const pageCount = Math.ceil(totalDocuments/pageSize)
+
+  if (category) {
+    res.status(201).json({ categories, pageCount });
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
 const deleteCategory = asyncHandler(async (req, res) => {
 
   const subid = req.query.id;
@@ -105,6 +124,7 @@ const updateCategory = asyncHandler(async (req, res) => {
 module.exports = {
   createCategory,
   getCategory,
+  getAllCategory,
   getCategoryByType,
   updateCategory,
   deleteCategory
