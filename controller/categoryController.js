@@ -61,7 +61,7 @@ const getCategory = asyncHandler(async (req, res) => {
 });
 
 const getAllCategory = asyncHandler(async (req, res) => {
-  const { pageNumber = 1, pageSize = 20 } = req.query
+  const { pageNumber = 1, pageSize = 5 } = req.query
   const categories = await Category.find({}).sort({ createdAt: -1 }).skip((pageNumber - 1) * pageSize).limit(pageSize)
 
   if(!categories || categories.length === 0) {
