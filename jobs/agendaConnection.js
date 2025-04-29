@@ -3,20 +3,19 @@ const { sendNotificationsInsideApplicationToMultipleUser } = require('../control
 const LiveCourse = require('../models/liveCourseModel');
 const mongoConnectionString = process.env.MONGO_URI; 
 
-sendNotificationsInsideApplicationToMultipleUser
 const agenda = new Agenda({ db: { address: mongoConnectionString, collection: 'jobs' } });
 
 
 agenda.define('send notification', async (job) => {
     const { sectionId, msg } = job.attrs.data;
     const  jobId  = job.attrs._id
-    const livecourse = await LiveCourse.findOne({liveSections: sectionId}).populate('enrolledStudents')
+    const livecourse = await LiveCourse.findOne({ liveSections: { $in: [sectionId] } }).populate('enrolledStudents')
     if(!livecourse || livecourse.enrolledStudents?.length === 0) {  
        return
     }
     const users = livecourse.enrolledStudents
     console.log(`Sending notification for section ID: ${sectionId}`);
-    sendNotificationsInsideApplicationToMultipleUser(users, msg)
+    await sendNotificationsInsideApplicationToMultipleUser(users, msg)
     await agenda.cancel({ _id: jobId });
   });
 
@@ -30,7 +29,7 @@ agenda.define('send notification', async (job) => {
      const users = livecourse.enrolledStudents
      console.log(`Sending notification for course ID: ${courseId}`);
 
-     sendNotificationsInsideApplicationToMultipleUser(users, msg)
+     await sendNotificationsInsideApplicationToMultipleUser(users, msg)
      await agenda.cancel({ _id: jobId });
   })
 

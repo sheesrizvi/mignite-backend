@@ -3,8 +3,6 @@ const { createPlan, updatePlan, deletePlan, getAllPlans, getSpecificPlan, getPla
 const { admin, isAdminorInstructor } = require('../middleware/authMiddleware');
 const router = express.Router()
 
-
-
 router.post('/create', isAdminorInstructor , createPlan)
 router.patch('/update/:planId', admin, updatePlan)
 router.delete('/delete/:planId', admin, deletePlan)
