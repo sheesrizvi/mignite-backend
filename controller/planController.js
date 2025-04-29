@@ -11,9 +11,9 @@ const createPlan = asyncHandler(async (req, res) => {
     return res.status(400).send({ status: true, message: 'All Fields are required' });
   }
 
-  if(!courses || courses.length <= 0) {
-    return res.status(400).send({ message: "No Course added in Plan" })
-  }
+  // if(!courses || courses.length <= 0) {
+  //   return res.status(400).send({ message: "No Course added in Plan" })
+  // }
 
   let courseIds = [];
   let liveCourseIds = [];
@@ -169,6 +169,42 @@ const getAllPlans = asyncHandler(async (req, res) => {
     pageCount,
   });
 });
+
+
+// const getAllPlans = asyncHandler(async (req, res) => {
+//   const { pageNumber = 1, pageSize = 20, userId } = req.query;
+
+//   const plans = await Plan.find({})
+//     .populate('courses')
+//     .populate('liveCourses')
+//     .sort({ createdAt: -1 })
+//     .skip((pageNumber - 1) * pageSize)
+//     .limit(pageSize);
+
+//   if (plans.length === 0) {
+//     return res.status(400).send({ status: false, message: 'No plans found' });
+//   }
+
+//   const totalDocuments = await Plan.countDocuments({});
+//   const pageCount = Math.ceil(totalDocuments / pageSize);
+
+//   const subscriptions = await Subscription.find({ user: userId, status: 'active' }).populate('user');
+//   const subscribedPlanIds = subscriptions.map((subscription) => subscription.plan.toString());
+
+//   const plansWithSubscriptionFlag = plans.map((plan) => {
+//     return {
+//       ...plan.toObject(),
+//       hasSubscribed: subscribedPlanIds.includes(plan._id.toString())
+//     };
+//   });
+
+//   res.status(200).send({
+//     status: true,
+//     message: 'Your Plans',
+//     plans: plansWithSubscriptionFlag,
+//     pageCount,
+//   });
+// });
 
 
 const getMyPlans = asyncHandler(async (req, res) => {

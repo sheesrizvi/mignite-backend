@@ -152,7 +152,7 @@ const deleteSubscription = asyncHandler(async (req, res) => {
 
 const getAllSubscriptions = async (req, res) => {
     let { pageNumber = 1, pageSize = 20 } = req.query
-   
+    console.log('running')
     const subscriptions = await Subscription.find()
       .populate('user')
       .populate({
@@ -298,7 +298,93 @@ const getCoursesBySubscription = asyncHandler(async (req, res) => {
   });
 });
 
+const getUpgradeSubscriptionDetails = asyncHandler(async (req, res) => {
+  const { userId, planId, duration } = req.query; // duration is optional parameter 
 
+  const subscription = await Subscription.findOne({ user: userId, status: 'active' });
+  if (!subscription) {
+    throw new Error('Active subscription not found');
+  }
+
+  const now = new Date();
+  const endDate = new Date(subscription.endDate);
+  const startDate = new Date(subscription.startDate);
+
+  const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+  const remainingDays = Math.max(Math.ceil((endDate - now) / (1000 * 60 * 60 * 24)), 0);
+
+  const perDayPrice = subscription.totalPrice / totalDays;
+  const unusedValue = perDayPrice * remainingDays;
+
+  const plan = await Plan.findById(planId);
+  if (!plan) {
+    throw new Error('Target plan not found');
+  }
+
+  const durationInMonths = duration ? parseInt(duration, 10) : plan.durationInMonths;
+
+  const totalPlanPrice = (plan.price / plan.durationInMonths) * durationInMonths;
+
+  const payableAmount = Math.max(totalPlanPrice - unusedValue, 0);
+
+  const billingStartDate = new Date();
+  const billingEndDate = new Date(billingStartDate);
+  billingEndDate.setMonth(billingEndDate.getMonth() + durationInMonths);
+
+  res.status(200).json({
+    currentPlan: subscription.plan,
+    currentPlanEndsOn: subscription.endDate,
+    newPlan: planId,
+    originalNewPlanPrice: totalPlanPrice,
+    unusedBalanceFromCurrentPlan: unusedValue,
+    finalAmountToPay: Math.round(payableAmount),
+    billingStartDate,
+    billingEndDate,
+    durationInMonths
+  });
+});
+
+
+const upgradeSubscription = asyncHandler(async (req, res) => {
+  let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId } = req.body;
+
+  const user = await User.findById(userId);
+  
+  if (!user) {
+    return res.status(400).send({ status: false, message: 'User does not exist' });
+  }
+
+  let plan = await Plan.findById(planId);
+  if (!plan) {
+    return res.status(400).json({ status: false, message: 'Plan not found' });
+  }
+  const existingSubscription = await Subscription.find({user: userId, status: "active"})
+  
+  if(existingSubscription && existingSubscription.length > 0) {
+      await Subscription.updateMany({ }, { status: 'inactive' })
+  }
+  
+  let endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + duration);
+
+  let subscription = new Subscription({
+    user: userId,
+    plan: planId,
+    startDate,
+    endDate,
+    duration,
+    paymentStatus,
+    paymentMethod,
+    totalPrice,
+    discount,
+    invoiceId
+  });
+
+  
+  await subscription.save();
+  subscription = await Subscription.findById(subscription._id).populate('user').populate('plan')
+  res.status(201).json({ status: true, message: 'Subscription created Successfully', subscription });
+})
 
 
 module.exports = {
@@ -312,5 +398,7 @@ module.exports = {
     getActiveSubscriptionsOfUser,
     searchSubscriptions,
     getAllSubscriptionsForDownload,
-    getCoursesBySubscription
+    getCoursesBySubscription,
+    getUpgradeSubscriptionDetails,
+    upgradeSubscription
 }
