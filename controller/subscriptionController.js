@@ -361,7 +361,7 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   const existingSubscription = await Subscription.find({user: userId, status: "active"})
   
   if(existingSubscription && existingSubscription.length > 0) {
-      await Subscription.updateMany({ }, { status: 'inactive' })
+      await Subscription.updateMany({ user: userId }, { status: 'inactive' })
   }
   
   let endDate = new Date(startDate);
