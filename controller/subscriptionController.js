@@ -364,7 +364,17 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
       await Subscription.updateMany({ user: userId }, { status: 'inactive' })
   }
   
-  let endDate = new Date(startDate);
+  let start = new Date(startDate);
+
+  if (isNaN(start)) {
+    return res.status(400).send({ status: false, message: 'Invalid start date' });
+  }
+
+  if (isNaN(duration) || duration <= 0) {
+    return res.status(400).send({ status: false, message: 'Invalid duration' });
+  }
+
+  let endDate = new Date(start);
   endDate.setMonth(endDate.getMonth() + duration);
 
   let subscription = new Subscription({
