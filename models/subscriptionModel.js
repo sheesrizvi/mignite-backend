@@ -49,7 +49,8 @@ const subscriptionSchema = new mongoose.Schema({
       },
     autoRenew: { type: Boolean, default: true },
     trialPeriod: { type: Boolean, default: false },
-
+    paypalOrderId: { type: String },  
+    paypalCaptureId: { type: String }, 
 }, { timestamps: true })
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema)

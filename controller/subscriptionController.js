@@ -5,10 +5,18 @@ const User = require("../models/userModel")
 const { Plan } = require('../models/planModel')
 const Course = require("../models/coursesModel");
 const LiveCourse = require("../models/liveCourseModel");
+const { getAccessToken, validateAndCapturePaypalOrder } = require('../middleware/paypalMiddleware.js')
+const axios = require('axios')
 
 const createSubscription = asyncHandler(async (req, res) => {
-    let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId } = req.body;
-  
+    let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId, token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "PayPal token is required." });
+    }
+
+    const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
+
     const user = await User.findById(userId);
   
     if (!user) {
@@ -38,7 +46,9 @@ const createSubscription = asyncHandler(async (req, res) => {
       paymentMethod,
       totalPrice,
       discount,
-      invoiceId
+      invoiceId,
+      paypalOrderId,
+      paypalCaptureId
     });
   
     
@@ -346,7 +356,14 @@ const getUpgradeSubscriptionDetails = asyncHandler(async (req, res) => {
 
 
 const upgradeSubscription = asyncHandler(async (req, res) => {
-  let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId } = req.body;
+  let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId, token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: "PayPal token is required." });
+  }
+
+
+  const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
 
   const user = await User.findById(userId);
   
@@ -387,7 +404,8 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
     paymentMethod,
     totalPrice,
     discount,
-    invoiceId
+    invoiceId,
+    paypalOrderId, paypalCaptureId 
   });
 
   
@@ -412,3 +430,5 @@ module.exports = {
     getUpgradeSubscriptionDetails,
     upgradeSubscription
 }
+
+

@@ -63,7 +63,9 @@ const orderSchema = mongoose.Schema(
       coupon: {
         id: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon"  },
         discount: { type: Number }
-      }
+      },
+      paypalOrderId: { type: String },  
+      paypalCaptureId: { type: String }, 
     },
     {
       timestamps: true,

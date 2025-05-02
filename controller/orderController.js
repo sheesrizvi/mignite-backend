@@ -6,6 +6,7 @@ const User = require('../models/userModel');
 const Coupon = require('../models/couponModel');
 const { options, search } = require('../routes/adminRoutes');
 const UserProgress = require('../models/userProgressModel');
+const { validateAndCapturePaypalOrder } = require('../middleware/paypalMiddleware.js')
 
 // const createCourseOrder = asyncHandler(async (req, res) => {
 //     const {
@@ -143,8 +144,16 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     notes,
     discountedValue,
     coupon,
+    token
   } = req.body;
 
+  if (!token) {
+    return res.status(400).json({ message: "PayPal token is required." });
+  }
+
+
+  const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
+  
   if (!orderCourses || orderCourses.length === 0) {
     return res.status(400).json({ message: "No order courses" });
   }
@@ -190,6 +199,8 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     notes,
     coupon,
     isPaid: true,
+    paypalOrderId,
+    paypalCaptureId
   });
 
   if (order) {
