@@ -15,8 +15,8 @@ const createSubscription = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "PayPal token is required." });
     }
 
-    const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
-
+    const { paypalOrderId, paypalCaptureId, paidAmount } = await validateAndCapturePaypalOrder(token)
+    console.log(paidAmount)
     const user = await User.findById(userId);
   
     if (!user) {
@@ -164,6 +164,7 @@ const getAllSubscriptions = async (req, res) => {
     let { pageNumber = 1, pageSize = 20 } = req.query
     console.log('running')
     const subscriptions = await Subscription.find()
+      .sort({ createdAt: -1 })
       .populate('user')
       .populate({
         path: 'plan',
@@ -363,7 +364,7 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   }
 
 
-  const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
+  const { paypalOrderId, paypalCaptureId, paidAmount } = await validateAndCapturePaypalOrder(token)
 
   const user = await User.findById(userId);
   
@@ -378,7 +379,8 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   const existingSubscription = await Subscription.find({user: userId, status: "active"})
   
   if(existingSubscription && existingSubscription.length > 0) {
-      await Subscription.updateMany({ user: userId }, { status: 'inactive' })
+    const result =  await Subscription.updateMany({ user: userId }, { status: 'inactive' })
+    console.log(result)
   }
   
   let start = new Date(startDate);

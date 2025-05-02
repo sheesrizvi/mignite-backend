@@ -13,4 +13,5 @@ router.route('/get-orders-for-download').get(getAllOrdersForDownload)
 
 router.post('/create-paypal-order', createPaypalOrder)
 router.get('/capture-order', captureOrder)
+
 module.exports = router;

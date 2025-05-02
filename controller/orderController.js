@@ -152,8 +152,8 @@ const createCourseOrder = asyncHandler(async (req, res) => {
   }
 
 
-  const { paypalOrderId, paypalCaptureId } = await validateAndCapturePaypalOrder(token)
-  
+  const { paypalOrderId, paypalCaptureId, paidAmount } = await validateAndCapturePaypalOrder(token)
+
   if (!orderCourses || orderCourses.length === 0) {
     return res.status(400).json({ message: "No order courses" });
   }

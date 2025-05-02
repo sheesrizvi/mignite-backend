@@ -497,9 +497,9 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
 });
 
 const deleteAllLiveCourses = asyncHandler(async (req, res) => {
-  const result = await LiveCourse.deleteMany({})
-                 await LiveSection.deleteMany({})
-  res.status(200).send(result)
+  // const result = await LiveCourse.deleteMany({})
+  //                await LiveSection.deleteMany({})
+  res.status(200).send('Result')
 })
 
 const updateLiveCourse = asyncHandler(async (req, res) => {

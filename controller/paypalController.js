@@ -10,8 +10,8 @@ const createPaypalOrder = asyncHandler(async (req, res) => {
     const order = await axios.post(`${process.env.PAYPAL_API}/v2/checkout/orders`, {
       intent: 'CAPTURE',
       application_context: {
-        return_url: 'https://localhost:5000/api/paypal/success',  
-        cancel_url: 'https://localhost:5000/api/paypal/cancel',   
+        return_url: 'https://mignite.net/paypal/success',  
+        cancel_url: 'https://mignite.net/paypal/cancel',   
       },
       purchase_units: [{
         amount: {

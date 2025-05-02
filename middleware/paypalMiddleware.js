@@ -52,10 +52,15 @@ const validateAndCapturePaypalOrder = async (paypalToken) => {
 
     const orderStatus = orderDetails.data.status;
     if (orderStatus === 'COMPLETED') {
-      return {
-        status: 'already_completed',
-        paypalOrderId: orderDetails.data.id,
-      };
+        const captureInfo = orderDetails.data.purchase_units?.[0]?.payments?.captures?.[0];
+        const paidAmount = parseFloat(captureInfo?.amount?.value || '0.00');
+      
+        return {
+          status: 'already_completed',
+          paypalOrderId: orderDetails.data.id,
+          paypalCaptureId: captureInfo?.id,
+          paidAmount,
+        };
     }
   
     if (orderStatus !== 'APPROVED') {
@@ -75,6 +80,7 @@ const validateAndCapturePaypalOrder = async (paypalToken) => {
     );
   
     const captureId = capture.data.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+    const paidAmount = parseFloat(orderDetails.data.purchase_units?.[0]?.amount?.value || '0.00');
     const paypalOrderId = capture.data.id;
     const captureStatus = capture.data.status;
   
@@ -86,6 +92,7 @@ const validateAndCapturePaypalOrder = async (paypalToken) => {
       status: 'captured',
       paypalOrderId,
       paypalCaptureId: captureId,
+      paidAmount
     };
   };
   

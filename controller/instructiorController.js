@@ -259,10 +259,14 @@ const deleteInstructor = asyncHandler(async (req, res) => {
   
   const id = req.query.id
   const instructor = await Instructor.findById(id)
-  if(instructor.courses.length > 0) {
-    return res.status(400).send({success: false, message: "Delete courses first"})
+  // if(instructor.courses.length > 0) {
+  //   return res.status(400).send({success: false, message: "Delete courses first"})
+  // }
+  
+  if(instructor.livecourses.length > 0) {
+    return res.status(400).send({success: false, message: "Delete live courses first"})
   }
-  await Instructor.findOneAndDelete({ _id: id }, { isDeleted: true, active: false })
+  await Instructor.findOneAndUpdate({ _id: id }, { isDeleted: true, active: false })
   res.status(200).send({status: true, message: 'Instructor Deleted successfully'})
 })
 
