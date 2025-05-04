@@ -307,6 +307,24 @@ const getCoursesByPlan = asyncHandler(async (req, res) => {
   });
 })
 
+
+const getPlanByCourseId = asyncHandler(async (req, res) => {
+  const { courseId } = req.query
+
+  const plans = await Plan.find({ 
+    $or: [
+      { courses: { $in: courseId } },
+      { liveCourses: { $in: courseId } }
+    ]
+   })
+
+   if(!plans || plans.length === 0) {
+    return res.status(400).send({ message: "No Plans found for this course" })
+   }
+   
+   res.status(200).send({ plans })
+})
+
 module.exports = {
   createPlan,
   deletePlan,
@@ -315,5 +333,6 @@ module.exports = {
   getPlanByLevels,
   getSpecificPlan,
   searchPlan,
-  getCoursesByPlan
+  getCoursesByPlan,
+  getPlanByCourseId
 }
