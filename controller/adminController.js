@@ -72,14 +72,25 @@ const updateInstructorStatus = asyncHandler(async (req, res) => {
   const validStatus = ['approved', 'pending', 'rejected']
   if(!validStatus.includes(status)) return res.status(400).send({message: 'Invalid status'})
 
-  if(status === 'pending') {
-    instructor.status = status
-  } else {
-    instructor.status = status
-    instructor.active = true
-    instructor.rejectedAt = Date.now()
-  }
+  // if(status === 'pending') {
+  //   instructor.status = status
+  // } else {
+  //   instructor.status = status
+  //   instructor.active = true
+  //   // instructor.rejectedAt = Date.now()
+  // }
   
+  if (status === 'pending') {
+    instructor.status = status;
+  } else if (status === 'approved') {
+      instructor.status = status;
+      instructor.active = true;
+  } else if (status === 'rejected') {
+      instructor.status = status;
+      instructor.rejectedAt = Date.now();
+      instructor.active = false;
+  }
+
   await instructor.save()
   return res.status(200).send({message: `Instructor got ${status}`, instructor})
 
