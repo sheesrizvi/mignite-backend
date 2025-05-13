@@ -208,6 +208,7 @@ const sendNotificationsInsideApplicationToMultipleUser = asyncHandler(async (use
   };
    
     const response = await firebaseAdmin.messaging().sendEachForMulticast(message);
+    console.log("firebase response", response)
     const unNotifiedUsers = [];
     const notifiedUsers = []
     response.responses.forEach((resp, index) => {
