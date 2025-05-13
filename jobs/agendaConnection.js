@@ -8,16 +8,16 @@ const agenda = new Agenda({ db: { address: mongoConnectionString, collection: 'j
 
 agenda.define('send notification', async (job) => {
     const { sectionId, msg } = job.attrs.data;
-    console.log(sectionId, msg)
+   
     const  jobId  = job.attrs._id
-    console.log("jobId", jobId)
+ 
     const livecourse = await LiveCourse.findOne({ liveSections: { $in: [sectionId] } }).populate('enrolledStudents')
-    console.log("livecourse", livecourse)
+   
     if(!livecourse || livecourse.enrolledStudents?.length === 0) {  
        return
     }
     const users = livecourse.enrolledStudents
-    console.log("users")
+
     console.log(`Sending notification for section ID: ${sectionId}`);
     await sendNotificationsInsideApplicationToMultipleUser(users, msg)
     await agenda.cancel({ _id: jobId });
