@@ -24,7 +24,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
     endTime, instructor
   } = req.body;
 
- 
+  console.log("Section Body", req.body)
   if (!instructor || !liveCourse) {
     return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
   }
@@ -76,6 +76,7 @@ const createLiveSection = asyncHandler(async (req, res) => {
         body: `Your ${section.name} section will start in 15 minutes!! Attach Link: ${section.link}`
       }
       //const afterOneMin = new Date(now.getTime() + 1 * 60 * 1000)
+      console.log("notificationTime", notificationTime)
       await agenda.schedule(notificationTime, 'send notification', { sectionId: section._id, msg })
       res.status(201).json(section);
     } else {
