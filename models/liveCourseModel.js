@@ -30,7 +30,6 @@ const livecourseSchema = mongoose.Schema(
     },
     price: {
       type: Number,
-      required: true
     },
     discount: {
       type: Number,
