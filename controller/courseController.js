@@ -43,9 +43,9 @@ const createCourse = asyncHandler(async (req, res) => {
   
   if(plan) {
     const coursePlan = await Plan.findById(plan)
-   
+    console.log("coursePlan", coursePlan)
     const allPlans = await Plan.find({ level: { $gte: coursePlan.level  }})
-  
+    console.log("allPlans", allPlans)
     allPlanIds = allPlans.map(plan => plan._id)
   }
 
