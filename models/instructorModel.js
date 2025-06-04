@@ -27,7 +27,7 @@ const instructorSchema = mongoose.Schema(
       type: String,
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending'
-  },
+    },
       rejectedAt: {
         type: Date,
         default: null,

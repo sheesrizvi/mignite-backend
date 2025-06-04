@@ -38,7 +38,7 @@ const createCourse = asyncHandler(async (req, res) => {
   } = req.body;
 
 
-
+  console.log("Create Course running")
   let allPlanIds
   
   if(plan) {
