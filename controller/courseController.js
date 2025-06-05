@@ -880,7 +880,67 @@ const syncInstructorCourses = asyncHandler(async (req, res) => {
   });
 });
 
+const mongoose = require('mongoose')
 
+const getEnrolledStudentsByCourse = asyncHandler(async (req, res) => {
+  const { courseId, courseType, pageNumber = 1, pageSize = 20 } = req.query;
+
+  if (!courseId || !courseType) {
+    return res.status(400).json({ message: "courseId and courseType are required" });
+  }
+
+  const page = Number(pageNumber);
+  const size = Number(pageSize);
+
+  const matchQuery = {
+    "orderCourses.courseInfo.course": new mongoose.Types.ObjectId(courseId),
+    "orderCourses.courseInfo.courseType": courseType,
+    isPaid: true,
+  };
+
+  const aggregate = Order.aggregate([
+    { $match: matchQuery },
+    {
+      $group: {
+        _id: "$user",
+      }
+    },
+    {
+      $lookup: {
+        from: "users", 
+        localField: "_id",
+        foreignField: "_id",
+        as: "user",
+      }
+    },
+    { $unwind: "$user" },
+    // {
+    //   $project: {
+    //     _id: "$user._id",
+    //     name: "$user.name",
+    //     email: "$user.email",
+    //   }
+    // },
+    { $sort: { name: 1 } },
+    { $skip: (page - 1) * size },
+    { $limit: size },
+  ]);
+
+  const enrolledStudents = await aggregate;
+
+  const countAggregation = await Order.aggregate([
+    { $match: matchQuery },
+    { $group: { _id: "$user" } },
+    { $count: "total" }
+  ]);
+
+  const totalCount = countAggregation[0]?.total || 0;
+
+  res.status(200).json({
+    students: enrolledStudents,
+    pageCount: Math.ceil(totalCount / size),
+  });
+});
 
 
 module.exports = {
@@ -903,5 +963,6 @@ module.exports = {
   updateUserProgress,
   checkUserUpdateProgress,
   searchAllPendingCourses,
-  syncInstructorCourses
+  syncInstructorCourses,
+  getEnrolledStudentsByCourse
 };

@@ -20,6 +20,7 @@ const {
   checkUserUpdateProgress,
   searchAllPendingCourses,
   syncInstructorCourses,
+  getEnrolledStudentsByCourse,
 } = require("../controller/courseController");
 const router = express.Router();
 //need to create a middleware for admin and instructor both
@@ -44,6 +45,7 @@ router.route("/update-user-progress").post(updateUserProgress)
 router.route("/check-user-update-progress").get(checkUserUpdateProgress)
 
 router.get('/sync-instructor-courses', syncInstructorCourses)
+router.get('/get-enrolled-students-by-course', getEnrolledStudentsByCourse)
 
 module.exports = router;
 
