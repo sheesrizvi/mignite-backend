@@ -12,6 +12,7 @@ const Order = require("../models/orderModel");
 const UserProgress = require("../models/userProgressModel");
 const User = require("../models/userModel");
 const Review = require('../models/reviewModel.js')
+const { Subscription } = require('../models/subscriptionModel.js')
 
 const config = {
   region: process.env.AWS_BUCKET_REGION,
@@ -882,6 +883,67 @@ const syncInstructorCourses = asyncHandler(async (req, res) => {
 
 const mongoose = require('mongoose')
 
+// const getEnrolledStudentsByCourse = asyncHandler(async (req, res) => {
+//   const { courseId, courseType, pageNumber = 1, pageSize = 20 } = req.query;
+
+//   if (!courseId || !courseType) {
+//     return res.status(400).json({ message: "courseId and courseType are required" });
+//   }
+
+//   const page = Number(pageNumber);
+//   const size = Number(pageSize);
+
+//   const matchQuery = {
+//     "orderCourses.courseInfo.course": new mongoose.Types.ObjectId(courseId),
+//     "orderCourses.courseInfo.courseType": courseType,
+//     isPaid: true,
+//   };
+
+//   const aggregate = Order.aggregate([
+//     { $match: matchQuery },
+//     {
+//       $group: {
+//         _id: "$user",
+//       }
+//     },
+//     {
+//       $lookup: {
+//         from: "users", 
+//         localField: "_id",
+//         foreignField: "_id",
+//         as: "user",
+//       }
+//     },
+//     { $unwind: "$user" },
+//     // {
+//     //   $project: {
+//     //     _id: "$user._id",
+//     //     name: "$user.name",
+//     //     email: "$user.email",
+//     //   }
+//     // },
+//     { $sort: { name: 1 } },
+//     { $skip: (page - 1) * size },
+//     { $limit: size },
+//   ]);
+
+//   const enrolledStudents = await aggregate;
+
+//   const countAggregation = await Order.aggregate([
+//     { $match: matchQuery },
+//     { $group: { _id: "$user" } },
+//     { $count: "total" }
+//   ]);
+
+//   const totalCount = countAggregation[0]?.total || 0;
+
+//   res.status(200).json({
+//     students: enrolledStudents,
+//     pageCount: Math.ceil(totalCount / size),
+//   });
+// });
+
+
 const getEnrolledStudentsByCourse = asyncHandler(async (req, res) => {
   const { courseId, courseType, pageNumber = 1, pageSize = 20 } = req.query;
 
@@ -891,54 +953,60 @@ const getEnrolledStudentsByCourse = asyncHandler(async (req, res) => {
 
   const page = Number(pageNumber);
   const size = Number(pageSize);
+  const objectCourseId = new mongoose.Types.ObjectId(courseId);
 
-  const matchQuery = {
-    "orderCourses.courseInfo.course": new mongoose.Types.ObjectId(courseId),
-    "orderCourses.courseInfo.courseType": courseType,
-    isPaid: true,
-  };
-
-  const aggregate = Order.aggregate([
-    { $match: matchQuery },
+  const orderUsersAggregation = await Order.aggregate([
+    {
+      $match: {
+        orderCourses: {
+          $elemMatch: {
+            "courseInfo.course": objectCourseId,
+            "courseInfo.courseType": courseType,
+          },
+        },
+        isPaid: true,
+      },
+    },
     {
       $group: {
-        _id: "$user",
+        _id: "$user"
       }
-    },
-    {
-      $lookup: {
-        from: "users", 
-        localField: "_id",
-        foreignField: "_id",
-        as: "user",
-      }
-    },
-    { $unwind: "$user" },
-    // {
-    //   $project: {
-    //     _id: "$user._id",
-    //     name: "$user.name",
-    //     email: "$user.email",
-    //   }
-    // },
-    { $sort: { name: 1 } },
-    { $skip: (page - 1) * size },
-    { $limit: size },
+    }
   ]);
 
-  const enrolledStudents = await aggregate;
+  const orderUserIds = orderUsersAggregation.map(u => u._id.toString());
 
-  const countAggregation = await Order.aggregate([
-    { $match: matchQuery },
-    { $group: { _id: "$user" } },
-    { $count: "total" }
-  ]);
+  const plansWithCourse = await Plan.find({
+    [courseType === "Course" ? "courses" : "liveCourses"]: objectCourseId,
+  }).select("_id");
 
-  const totalCount = countAggregation[0]?.total || 0;
+  const planIds = plansWithCourse.map(plan => plan._id);
+  console.log(planIds)
+  const now = new Date();
+
+  const subscriptions = await Subscription.find({
+    plan: { $in: planIds },
+    status: "active",
+    paymentStatus: "paid",
+    startDate: { $lte: now },
+    endDate: { $gte: now },
+  }).select("user");
+
+  const subscriptionUserIds = subscriptions.map(s => s.user.toString());
+
+
+  const allUserIdsSet = new Set([...orderUserIds, ...subscriptionUserIds]);
+  const allUserIds = Array.from(allUserIdsSet);
+
+  const total = allUserIds.length;
+  const paginatedUserIds = allUserIds.slice((page - 1) * size, page * size);
+
+  const users = await User.find({ _id: { $in: paginatedUserIds } })
+    .sort({ name: 1 });
 
   res.status(200).json({
-    students: enrolledStudents,
-    pageCount: Math.ceil(totalCount / size),
+    students: users,
+    pageCount: Math.ceil(total / size),
   });
 });
 
