@@ -22,6 +22,7 @@ const { startAgenda } = require("./jobs/agendaConnection.js");
 const upload = require("./routes/upload");
 const userRoutes = require("./routes/userRoutes");
 const bannerRoutes = require('./routes/bannerRoutes.js')
+const bannerSecondRoutes = require('./routes/bannerSecondRoutes.js')
 const doubtRoutes = require('./routes/doubtRoutes.js')
 const cron = require('node-cron')
 const cors = require("cors");
@@ -65,6 +66,7 @@ app.use("/api/rnPushTokens", rnPushTokenRoutes)
 app.use("/api/analytics", dashboardRoutes)
 app.use("/api/aifeature", aiFeatureRoutes)
 app.use('/api/banner', bannerRoutes)
+app.use('/api/bannersecond', bannerSecondRoutes)
 app.use("/api/doubt", doubtRoutes)
 app.use(notFound)
 app.use(errorHandler)

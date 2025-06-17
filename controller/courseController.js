@@ -118,7 +118,7 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
 
 
 const getCoursesByInstructor = asyncHandler(async (req, res) => {
-  const { instructor } = req.query;
+  const { instructor, pageNumber = 1, pageSize = 20 } = req.query;
   
 
   const courses = await Course.find({ instructor: instructor, status: 'approved'  }).populate({
@@ -139,10 +139,56 @@ const getCoursesByInstructor = asyncHandler(async (req, res) => {
       path: 'user',
       model: 'User'
     }
-  })
-  ;
+  }).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+  if(!courses || courses.length === 0) {
+    return res.status(400).send({ message: "No Course found" })
+  }
+
+  // const totalDocuments = await Course.countDocuments({ instructor: instructor, status: 'approved' })
+  // const pageCount = Math.ceil(totalDocuments/pageSize)
+  
   if (courses) {
     res.status(201).json(courses);
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
+const getCoursesByInstructorForInstructorPanel = asyncHandler(async (req, res) => {
+  const { instructor, pageNumber = 1, pageSize = 20 } = req.query;
+  
+
+  const courses = await Course.find({ instructor: instructor, status: 'approved'  }).populate({
+    path: "sections",
+    populate: [
+      {
+        path: "assignment",
+      },
+    ],
+  })
+  .populate('instructor')
+  .populate('plan')
+  .populate('category')
+  .populate({
+    path: 'reviews',
+    model: 'Review',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  }).skip((pageNumber - 1) * pageSize).limit(pageSize)
+
+  if(!courses || courses.length === 0) {
+    return res.status(400).send({ message: "No Course found" })
+  }
+
+  const totalDocuments = await Course.countDocuments({ instructor: instructor, status: 'approved' })
+  const pageCount = Math.ceil(totalDocuments/pageSize)
+  
+  if (courses) {
+    res.status(201).json({courses, pageCount});
   } else {
     res.status(404);
     throw new Error("Error");
@@ -993,7 +1039,7 @@ const getEnrolledStudentsByCourse = asyncHandler(async (req, res) => {
   }).select("user");
 
   const subscriptionUserIds = subscriptions.map(s => s.user.toString());
-
+  console.log(subscriptionUserIds)
 
   const allUserIdsSet = new Set([...orderUserIds, ...subscriptionUserIds]);
   const allUserIds = Array.from(allUserIdsSet);
@@ -1016,6 +1062,7 @@ module.exports = {
   getCourses,
   getCoursesByInstructor,
   getCoursesByCategory,
+  getCoursesByInstructorForInstructorPanel,
   updateCourse,
   deleteCourse,
   getAllCoursesOfInstructorForAdmin,

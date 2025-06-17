@@ -21,6 +21,7 @@ const {
   searchAllPendingCourses,
   syncInstructorCourses,
   getEnrolledStudentsByCourse,
+  getCoursesByInstructorForInstructorPanel
 } = require("../controller/courseController");
 const router = express.Router();
 //need to create a middleware for admin and instructor both
@@ -34,7 +35,8 @@ router.route("/by-instructor-for-admin").get(getAllCoursesOfInstructorForAdmin)
 router.route("/search-by-instructor-for-admin").get(searchCoursesWithinInstructor)
 router.route("/search-courses").get(searchCourses)
 router.route("/by-category").get(getCoursesByCategory);
-router.route("/by-instructor").get(getCoursesByInstructor);
+router.route("/by-instructor").get(getCoursesByInstructor); 
+router.route("/by-instructor-for-instructor-panel").get(getCoursesByInstructorForInstructorPanel);// pagination
 router.route("/delete").delete(deleteCourse);
 router.route("/get-courses-by-category-type").get(getAllCoursesByType)
 router.route("/search-all-courses").get(searchAllCourses)

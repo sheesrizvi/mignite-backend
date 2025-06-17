@@ -503,7 +503,7 @@ const deleteAllLiveCourses = asyncHandler(async (req, res) => {
 })
 
 const updateLiveCourse = asyncHandler(async (req, res) => {
-  const id = req.params.id
+  const id = req.params.id // image pending
   let {
     name,
     category,
@@ -517,7 +517,8 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
     endDate,
     liveSections,
     instructor,
-    plan
+    plan,
+    image
   } = req.body;
   
   const liveCourse = await LiveCourse.findById(id);
@@ -542,6 +543,8 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   liveCourse.endDate = endDate || liveCourse.endDate;
   liveCourse.liveSections = liveSections || liveCourse.liveSections;
   liveCourse.instructor = instructor || liveCourse.instructor
+  liveCourse.image = image || liveCourse.image
+
   let newPlans
   if(plan) {
 
@@ -565,7 +568,8 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
 });
 
 const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
-  const {instructor} = req.query
+  const { instructor, pageNumber = 1, pageSize = 20 } = req.query
+
   const courses = await LiveCourse.find({instructor, status: 'approved'}).populate('category instructor plan')
   .populate({
     path: 'liveSections',
@@ -590,13 +594,58 @@ const getLiveCoursesByInstructor = asyncHandler(async (req, res) => {
       path: 'user',
       model: 'User'
     }
-  });
+  }).skip((pageNumber - 1) * pageSize).limit(pageSize);
 
-  if(courses.length === 0) {
+  if(!courses || courses.length === 0) {
     return res.status(400).send({status: true, message: "Courses not exist"})
   }
 
-  res.status(200).send(courses)
+  //  const totalDocuments = await LiveCourse.countDocuments({instructor, status: 'approved'})
+  //  const pageCount = Math.ceil(totalDocuments/pageSize)
+   
+
+   res.status(200).send(courses)
+})
+
+
+const getLiveCoursesByInstructorForInstructorPanel = asyncHandler(async (req, res) => {
+  const { instructor, pageNumber = 1, pageSize = 20 } = req.query
+
+  const courses = await LiveCourse.find({instructor, status: 'approved'}).populate('category instructor plan')
+  .populate({
+    path: 'liveSections',
+    populate: [
+      {
+        path: 'instructor',
+        model: 'Instructor'
+      },
+      {
+        path: 'liveCourse',
+        model: 'LiveCourse'
+      },
+      {
+        path: 'assignment',
+        model: 'Assignment'
+      }
+    ]
+  })
+  .populate({
+    path: 'reviews',
+    populate: {
+      path: 'user',
+      model: 'User'
+    }
+  }).skip((pageNumber - 1) * pageSize).limit(pageSize);
+
+  if(!courses || courses.length === 0) {
+    return res.status(400).send({status: true, message: "Courses not exist"})
+  }
+
+   const totalDocuments = await LiveCourse.countDocuments({instructor, status: 'approved'})
+   const pageCount = Math.ceil(totalDocuments/pageSize)
+   
+
+   res.status(200).send({courses, pageCount})
 })
 
 module.exports = {
@@ -613,5 +662,6 @@ module.exports = {
   getAllPendingLiveCoursesForAdmin,
   getAllLiveCoursesOfInstructorForAdmin,
   searchLiveCoursesWithinInstructor,
-  searchPendingLiveCourse
+  searchPendingLiveCourse,
+  getLiveCoursesByInstructorForInstructorPanel
 };

@@ -13,7 +13,8 @@ const {
     getAllLiveCoursesOfInstructorForAdmin,
     getLiveCourseById,
     getAllPendingLiveCoursesForAdmin,
-    searchPendingLiveCourse
+    searchPendingLiveCourse,
+    getLiveCoursesByInstructorForInstructorPanel
 } = require("../controller/liveCourseController");
 const { instructor, admin } = require("../middleware/authMiddleware.js");
 
@@ -32,6 +33,7 @@ router.route("/by-instructor-for-admin").get(getAllLiveCoursesOfInstructorForAdm
 router.route("/search-by-instructor-for-admin").get(searchLiveCoursesWithinInstructor)
 router.route("/by-category").get(getLiveCoursesByCategory);
 router.route("/by-instructor").get(getLiveCoursesByInstructor);
+router.route("/by-instructor-for-instructor-panel").get(getLiveCoursesByInstructorForInstructorPanel);
 router.route("/delete").delete(deleteLiveCourse);
 router.route("/delete-all").delete(admin, deleteAllLiveCourses)
 module.exports = router;
