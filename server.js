@@ -79,7 +79,7 @@ mongoose
     console.log("DB connected")
     startAgenda();
   })
-  .catch((err) => console.log("DB connection error", err));
+  .catch((err) => console.log("DB connections error", err));
 
 const PORT = process.env.PORT || 8000;
 
