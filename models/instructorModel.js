@@ -58,6 +58,9 @@ const instructorSchema = mongoose.Schema(
     otp: {
       type: String
     },
+    resume: {
+      type: String
+    },
     profileImage: {
       type: String
     },

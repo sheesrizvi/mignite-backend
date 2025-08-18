@@ -61,7 +61,7 @@ const authInstructor = asyncHandler(async (req, res) => {
 //@access   Public
 
 const registerInstructor = asyncHandler(async (req, res) => {
-  const { name, email, password, description, phone , profileImage} = req.body;
+  const { name, email, password, description, phone , profileImage, resume} = req.body;
 
   const userExists = await Instructor.findOne({ email });
   if(userExists && !userExists.isDeleted) {
@@ -81,6 +81,8 @@ const registerInstructor = asyncHandler(async (req, res) => {
     userExists.phone = phone
     userExists.profileImage = profileImage
     userExists.otp = otp
+    userExists.resume = resume
+
     await userExists.save()
 
     sendVerificationEmail(userExists.otp, userExists.email)
@@ -102,7 +104,8 @@ const registerInstructor = asyncHandler(async (req, res) => {
     phone,
     description,
     otp,
-    profileImage
+    profileImage,
+    resume
   });
 
   if (instructor) {
@@ -123,7 +126,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
 
 
 const updateInstructor = asyncHandler(async (req, res) => {
-  const { instructorId, name, email, description, phone, profileImage, active } = req.body;
+  const { instructorId, name, email, description, phone, profileImage, active, resume } = req.body;
 
   const instructor = await Instructor.findById(instructorId);
 
@@ -144,6 +147,8 @@ const updateInstructor = asyncHandler(async (req, res) => {
   instructor.phone = phone || instructor.phone;
   instructor.active = active || instructor.active
   instructor.profileImage = profileImage || instructor.profileImage
+  instructor.resume = resume || instructor.resume
+
   const updatedInstructor = await instructor.save();
 
   if (updatedInstructor) {
@@ -403,7 +408,7 @@ const getInstructorData = asyncHandler(async (req, res) => {
 
 const getInstructorById = asyncHandler(async (req, res) => {
   const instructor = req.query.instructor 
-  
+  console.log(req.query)
   const instructorDetails = await Instructor.findById(instructor)
 
   if(!instructorDetails) return res.status(400).send({message: "Instructor not found"})

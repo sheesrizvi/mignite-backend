@@ -64,7 +64,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
 
 const updateInstructorStatus = asyncHandler(async (req, res) => {
   const { status, instructorId } = req.body
-
+  
   const instructor = await Instructor.findById(instructorId)
 
   if(!instructor) return res.status(400).send({message: "Instructor not found"})

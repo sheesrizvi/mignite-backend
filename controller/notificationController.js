@@ -115,6 +115,7 @@ const sendNotificationToAllUsers = asyncHandler(async (req, res) => {
 const sendNotificationToOneUser = asyncHandler(async (req, res) => {
     const { id, title, body, image } = req.body;
     const user = await User.findOne({ _id: id, pushToken: { $exists: true, $ne: null } });
+    console.log(user)
     if (!user) return res.status(400).send({ message: 'User not found' });
     const token = user.pushToken;
 
