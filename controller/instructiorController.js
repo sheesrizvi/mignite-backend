@@ -37,7 +37,7 @@ const authInstructor = asyncHandler(async (req, res) => {
       sendVerificationEmail(instructor.otp, instructor.email)
       instructor.otp = otp
       await instructor.save()
-      return res.status(400).send({ message: 'OTP Sent. Please verify your profile first' })
+      return res.status(400).send({ profileNotVerified: true, message: 'OTP Sent. Please verify your profile first' })
     }
 
     if(instructor.status === 'pending' || instructor.status === 'rejected') {
