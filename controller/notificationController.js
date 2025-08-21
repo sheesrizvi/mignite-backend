@@ -250,7 +250,14 @@ const getNotificationByUserId = asyncHandler(async (req, res) => {
   const { userId } = req.query;
 
   const notification = await Notification.find({'users.user': userId}).populate('users.user');
-  if (!notification) return res.status(400).send({ message: "No Notification Found" });
+  if (!notification) {
+    return res.status(400).send({
+      message: {
+        en: "No notification found",
+        ar: "لم يتم العثور على أي إشعار"
+      }
+    })
+  }
 
   res.status(200).send({notification});
 });
@@ -278,9 +285,25 @@ const deleteNotification = asyncHandler(async (req, res) => {
   
   const notification = await Notification.findOne({ _id: notificationId })
   
-  if(!notification) return res.status(400).send({message: "Notification deleted successfully"})
+  if(!notification) {
+    return res.status(400).send({
+      message: {
+        en: "Notification not found",
+        ar: "الإشعار غير موجود"
+      }
+    })
+
+  }
   await Notification.findByIdAndDelete(notification._id)
-  res.status(200).send({message: "Notification deleted successfully", notification})
+    res.status(200).send({
+      message: {
+        en: "Notification deleted successfully",
+        ar: "تم حذف الإشعار بنجاح"
+      },
+      notification
+    })
+
+
 })
 
 module.exports = {

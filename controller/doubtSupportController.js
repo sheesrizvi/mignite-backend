@@ -123,15 +123,36 @@ const getMessagesByThread = asyncHandler(async (req, res) => {
 
   if (threadId) {
     thread = await AskYourDoubt.findById(threadId);
-    if (!thread) return res.status(404).json({ message: 'Thread not found' });
+    if (!thread) {
+      return res.status(404).json({
+        message: {
+          en: "Thread not found",
+          ar: "الموضوع غير موجود"
+        }
+})
+
+     }
   } else if (studentId && sectionId) {
     thread = await AskYourDoubt.findOne({
       student: studentId,
       'sectionInfo.section': sectionId
     });
-    if (!thread) return res.status(404).json({ message: 'No thread found for this student and section' });
+    if (!thread) {
+      return res.status(404).json({
+        message: {
+          en: "No thread found for this student and section",
+          ar: "لم يتم العثور على موضوع لهذا الطالب وهذا القسم"
+        }
+      })
+
+    }
   } else {
-    return res.status(400).json({ message: 'Please provide either threadId or both studentId and sectionId' });
+    return res.status(400).json({
+        message: {
+          en: "Please provide either threadId or both studentId and sectionId",
+          ar: "يرجى تقديم threadId أو كل من studentId و sectionId"
+        }
+      })
   }
 
   const skip = (parseInt(pageNumber) - 1) * parseInt(limit);

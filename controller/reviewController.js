@@ -9,16 +9,34 @@ const addReview = asyncHandler(async (req, res) => {
     const { userId, courseId, courseType, rating, review } = req.body;
   
     if (!rating && !review) {
-      return res.status(400).send({ status: false, message: 'Either Review or Rating is required' });
+      return res.status(400).send({
+        status: false,
+        message: {
+          en: "Either review or rating is required",
+          ar: "إما المراجعة أو التقييم مطلوب"
+        }
+      })
     }
   
     if (!mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({ status: false, message: 'Invalid Course Id' });
+      return res.status(400).json({
+        status: false,
+        message: {
+          en: "Invalid course ID",
+          ar: "معرّف المقرر غير صالح"
+        }
+      })
     }
   
     const existingReview = await Review.findOne({ course: courseId, user: userId });
     if (existingReview) {
-      return res.status(400).send({ status: false, message: 'You have already reviewed this course' });
+     return res.status(400).send({
+      status: false,
+      message: {
+        en: "You have already reviewed this course",
+        ar: "لقد قمت بمراجعة هذا المقرر بالفعل"
+      }
+    })
     }
   
     const newReview = new Review({ course: courseId, user: userId, rating, review, courseType });
@@ -35,7 +53,14 @@ const addReview = asyncHandler(async (req, res) => {
     const Model = courseType === 'LiveCourse' ? LiveCourse : Course;
     await Model.findByIdAndUpdate(courseId, { averageRating, totalReviews, $push: { reviews: newReview._id } });
   
-    return res.status(201).send({ status: true, message: 'Review created successfully', review: newReview });
+    return res.status(201).send({ 
+      status: true, 
+      message: {
+        en: "Review created successfully",
+        ar: "تم إنشاء المراجعة بنجاح"
+      },
+      review: newReview
+     });
   });
   
   const updateReview = asyncHandler(async (req, res) => {

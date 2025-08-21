@@ -149,7 +149,14 @@ const getAllPlans = asyncHandler(async (req, res) => {
     .limit(pageSize);
 
   if (plans.length === 0) {
-    return res.status(400).send({ status: false, message: 'No plans found' });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "No plans found",
+        ar: "لم يتم العثور على أي خطط"
+      }
+    })
+
   }
 
   const totalDocuments = await Plan.countDocuments({});
@@ -164,7 +171,10 @@ const getAllPlans = asyncHandler(async (req, res) => {
 
   res.status(200).send({
     status: true,
-    message: 'Your Plans',
+    message: {
+      en: "Your plans",
+      ar: "خططك"
+    },
     plans: notSubscribedPlans,
     pageCount,
   });
@@ -276,7 +286,13 @@ const getCoursesByPlan = asyncHandler(async (req, res) => {
 
   const plan = await Plan.findById(planId)
   if(!plan || !plan.level) {
-    return res.status(400).send({ message: "Plan not found" })
+    return res.status(400).send({
+      message: {
+        en: "Plan not found",
+        ar: "الخطة غير موجودة"
+      }
+    })
+
   }
   const plans = await Plan.find({ level: { $gte: plan.level } })
     .populate('courses')
@@ -299,7 +315,10 @@ const getCoursesByPlan = asyncHandler(async (req, res) => {
   const liveCourses = await LiveCourse.find({ '_id': { $in: Array.from(liveCourseSet) } });
   const allCourses = [...courses, ...liveCourses]
   return res.status(200).json({
-    message: "Courses fetched successfully based on plan level",
+   message: {
+      en: "Courses fetched successfully based on plan level",
+      ar: "تم جلب الدورات التدريبية بنجاح بناءً على مستوى الخطة"
+    },
     planLevel: plan.level,
     allCourses,
     courses,

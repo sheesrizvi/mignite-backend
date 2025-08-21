@@ -111,8 +111,12 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
   if (courses) {
     res.status(201).json(courses);
   } else {
-    res.status(404);
-    throw new Error("Error");
+   return res.status(404).send({
+      message: {
+        en: "Error",
+        ar: "خطأ"
+      }
+    })
   }
 });
 
@@ -256,8 +260,13 @@ const getCourses = asyncHandler(async (req, res) => {
   if (courses) {
     res.status(201).json(courses);
   } else {
-    res.status(404);
-    throw new Error("Error");
+    return res.status(404).json({
+        message: {
+          en: "Error",
+          ar: "خطأ"
+        }
+      })
+
   }
 });
 
@@ -575,7 +584,14 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
  
   
   if (!categories.length) {
-    return res.status(400).send({ status: false, message: 'No categories found' });
+   return res.status(400).send({
+      status: false,
+      message: {
+        en: "No categories found",
+        ar: "لم يتم العثور على أي فئات"
+      }
+    })
+
   }
   const categoryIds = categories.map(category => category._id);
   
@@ -632,7 +648,13 @@ const searchAllCourses = asyncHandler(async (req, res) => {
   const pageSize = 20;
   
   if (!query) {
-    return res.status(400).send({ status: false, message: 'Query cannot be empty.' });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Query cannot be empty",
+        ar: "لا يمكن أن يكون الاستعلام فارغًا"
+      }
+    })
   }
   
   const searchCriteria = {
@@ -699,7 +721,10 @@ const searchAllCourses = asyncHandler(async (req, res) => {
 
   return res.status(200).send({
     status: true,
-    message: 'Search Successful',
+    message: {
+      en: "Search successful",
+      ar: "تم البحث بنجاح"
+    },
     courses,
     liveCourses,
     allCourses,
@@ -822,24 +847,47 @@ const topPickCoursesByCategory = asyncHandler(async (req, res) => {
 const updateUserProgress = asyncHandler(async (req, res) => {
   const { userId, courseId, sectionId } = req.body
   console.log("running user progress update")
-  if(!userId || !courseId || !sectionId) return res.status(400).send({ message: 'All Fields are required' })
+  if(!userId || !courseId || !sectionId){
+    return res.status(400).send({
+      message: {
+        en: "All fields are required",
+        ar: "جميع الحقول مطلوبة"
+      }
+    })
+  }
 
   const course = await Course.findOne({ _id: courseId }).select('sections')
 
   if (!course || course.sections.length === 0) {
-    return res.status(400).send({ message: 'Course or Course Sections not found' });
+   return res.status(400).send({
+      message: {
+        en: "Course or course sections not found",
+        ar: "المقرر أو أقسام المقرر غير موجودة"
+      }
+    })
+
   }
 
 
   const userProgressExist = await UserProgress.findOne({ user: userId, course: courseId, 'viewedSections.section': sectionId })
-  if(userProgressExist) return res.status(400).send({ message: 'Section Already Viewed' })
+  if(userProgressExist) return res.status(400).send({ 
+    message: {
+      en: "Section already viewed",
+      ar: "تمت مشاهدة القسم بالفعل"
+    }
+    })
 
   const userProgress = await UserProgress.findOneAndUpdate({ user: userId, course: courseId }, {$addToSet: {
     viewedSections: { section: sectionId,  viewedAt: new Date() }
   }}, { new: true, upsert: true })
 
 
-  if(!userProgress) return res.status(400).send({ message: 'User Progress Details not found' })
+  if(!userProgress) return res.status(400).send({
+    message: {
+      en: "User progress details not found",
+      ar: "تفاصيل تقدم المستخدم غير موجودة"
+    }
+   })
 
   
   const totalSections = course.sections.length

@@ -152,8 +152,13 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   if (liveCourses.length) {
     res.status(200).json({ liveCourses });
   } else {
-    res.status(404);
-    throw new Error("No live courses available");
+   return res.status(404).json({
+      message: {
+        en: "No live courses available",
+        ar: "لا توجد دورات مباشرة متاحة"
+      }
+    })
+
   }
 });
 

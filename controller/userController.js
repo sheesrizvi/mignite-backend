@@ -18,7 +18,13 @@ const authUser = asyncHandler(async (req, res) => {
  
   if (user && (await user.matchPassword(password))) {
     if(!user || user.isDeleted) {
-      return res.status(400).send({ message: 'User not found' })
+      return res.status(400).send({
+        message: {
+          en: "User not found",
+          ar: "المستخدم غير موجود"
+        }
+      })
+
     }
 
    
@@ -29,7 +35,13 @@ const authUser = asyncHandler(async (req, res) => {
       sendVerificationEmail(otp, user.email)
       user.otp = otp
       await user.save()
-      return res.status(400).send({ message: 'OTP Sent. Please verified profile first for login', active: false })
+     return res.status(400).send({
+        message: {
+          en: "OTP sent. Please verify profile first for login",
+          ar: "تم إرسال رمز التحقق. يرجى التحقق من الملف الشخصي أولاً لتسجيل الدخول"
+        },
+        active: false
+      })
     }
 
     res.json({
@@ -40,8 +52,13 @@ const authUser = asyncHandler(async (req, res) => {
       token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
     });
   } else {
-    res.status(401);
-    throw new Error("Invalid email or password");
+   return res.status(400).send({
+      message: {
+        en: "Invalid email or password",
+        ar: "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+      }
+    })
+
   }
 });
 
@@ -70,8 +87,13 @@ const registerUser = asyncHandler(async (req, res) => {
   const userExists = await User.findOne({ email });
  
   if (userExists && !userExists.isDeleted) {
-    res.status(404);
-    throw new Error("User already exists");
+   return res.status(404).send({
+      message: {
+        en: "User already exists",
+        ar: "المستخدم موجود بالفعل"
+      }
+    })
+
   }
 
   let otp = Math.floor(1000000000 + Math.random() * 9000000000);
@@ -100,7 +122,10 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       // token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
-      message: 'Verification OTP sent to your email. Please verify your email for login'
+       message: {
+        en: "Verification OTP sent to your email. Please verify your email for login",
+        ar: "تم إرسال رمز التحقق إلى بريدك الإلكتروني. يرجى التحقق من بريدك الإلكتروني لتسجيل الدخول"
+      }
     })
  }
 
@@ -130,11 +155,19 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       // token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
-      message: 'Verification OTP sent to your email. Please verify your email for login'
+      message: {
+        en: "Verification OTP sent to your email. Please verify your email for login",
+        ar: "تم إرسال رمز التحقق إلى بريدك الإلكتروني. يرجى التحقق من بريدك الإلكتروني لتسجيل الدخول"
+      }
     });
   } else {
-    res.status(404);
-    throw new Error("Invalid user data");
+    return res.status(404).send({
+      message: {
+        en: "Invalid user data",
+        ar: "بيانات المستخدم غير صالحة"
+      }
+    })
+
   }
 });
 
@@ -162,15 +195,25 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
 
   if (!user) {
-    res.status(404);
-    throw new Error("User not found");
+   return res.status(404).send({
+      message: {
+        en: "User not found",
+        ar: "المستخدم غير موجود"
+      }
+    })
+
   }
 
   const userExists = await User.findOne({ email, _id: { $ne: userId } });
 
   if (userExists) {
-    res.status(400);
-    throw new Error("Email already in use");
+    return res.status(400).send({
+      message: {
+        en: "Email already in use",
+        ar: "البريد الإلكتروني مستخدم بالفعل"
+      }
+    })
+
   }
 
   user.name = name || user.name;
@@ -208,9 +251,24 @@ const getUserDetails = asyncHandler(async (req, res) => {
                      })
 
                      if (!user) {
-                      return res.status(404).json({ status: false, message: 'User not found' });
+                      return res.status(404).json({
+                          status: false,
+                          message: {
+                            en: "User not found",
+                            ar: "المستخدم غير موجود"
+                          }
+                        })
                     }
-                    res.status(200).json({status: true, message: 'User Found', user});
+
+                    res.status(200).json({
+                      status: true,
+                      message: {
+                        en: "User found",
+                        ar: "تم العثور على المستخدم"
+                      },
+                      user
+                    })
+
 })
 
 
@@ -371,7 +429,13 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
     });
 
   if (!user) {
-    return res.status(404).json({ status: false, message: 'User not found' });
+    return res.status(404).json({
+      status: false,
+      message: {
+        en: "User not found",
+        ar: "المستخدم غير موجود"
+      }
+    })
   }
 
   let purchasedCourses = user.purchasedCourses.filter(item => item.course).map(item => item.course);
@@ -465,8 +529,11 @@ const getCoursesBoughtByUser = asyncHandler(async (req, res) => {
   const allCourses = [...updatedPurchasedCourses, ...livecourses, ...subscribedCourses, ...subscribedLiveCourses];
 
   res.status(200).json({
-    status: true,
-    message: 'User Courses Found',
+   status: true,
+   message: {
+      en: "User courses found",
+      ar: "تم العثور على دورات المستخدم"
+    },
     courses: updatedPurchasedCourses,
     livecourses,
     subscribedCourses,
@@ -506,15 +573,32 @@ const verifyUserProfile = asyncHandler(async (req, res) => {
   const { email, otp } = req.body
 
   const user = await User.findOne({ email })
-  if(!user) return res.status(400).send({message: 'User not found'})
+  if(!user) return res.status(400).send({
+    message: {
+      en: "User not found",
+      ar: "المستخدم غير موجود"
+    }
+  })
+
   console.log("otp", otp)
   console.log("user otp", user.otp)
-  if(user.otp?.toString() !== otp?.toString()) return res.status(400).send({ message: 'OTP not valid' })
+  if(user.otp?.toString() !== otp?.toString()) {
+    return res.status(400).send({
+      message: {
+        en: "OTP not valid",
+        ar: "رمز التحقق غير صالح"
+      }
+    })
+  }
   user.active = true
   user.otp = ""
   await user.save()
 
-  res.status(200).send({ message: 'User verified successfully', user, token: generateTokenUser(user._id, user.name, user.email, user.age, user.type) })
+  res.status(200).send({
+    message: {
+    en: "User verified successfully",
+    ar: "تم التحقق من المستخدم بنجاح"
+  }, user, token: generateTokenUser(user._id, user.name, user.email, user.age, user.type) })
 })
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -523,10 +607,22 @@ const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findOneAndUpdate({ _id: userId }, { active: false, isDeleted: true })
   
   if(!user) {
-    return res.status(400).send({ message: 'User not found' })
+    return res.status(400).send({
+      message: {
+        en: "User not found",
+        ar: "المستخدم غير موجود"
+      }
+    })
+
   }
 
-  res.status(200).send({ message: 'User deleted successfully' })
+ res.status(200).send({
+  message: {
+    en: "User deleted successfully",
+    ar: "تم حذف المستخدم بنجاح"
+  }
+})
+
   
 })
 

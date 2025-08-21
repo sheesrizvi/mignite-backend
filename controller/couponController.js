@@ -173,29 +173,54 @@ const applyCouponToOrders = asyncHandler(async (req, res) => {
     })
 
     if(!coupon) {
-        return res.status(400).send({message: 'coupon not found or inactive'})
+        return res.status(400).send({
+            message: {
+                en: "Coupon not found or inactive",
+                ar: "القسيمة غير موجودة أو غير نشطة"
+            }
+            })
+
     }
 
     if (!userId || coupon.user.toString().includes(userId)) {
-        return res.status(400).send({message: 'Coupon already used by user or user id not provided'})
+       return res.status(400).send({
+            message: {
+                en: "Coupon already used by user or user ID not provided",
+                ar: "تم استخدام القسيمة بالفعل من قبل المستخدم أو لم يتم تقديم معرف المستخدم"
+            }
+        })
+
     }
    
    
     if(!coupon.courses || coupon.courses.length === 0) {
         const couponCode = coupon.code
         const discount = coupon.discount 
-        return res.status(200).send({message: 'Coupon Details found', discount, couponCode, coupon, platformCoupon: true})
+        return res.status(200).send({ message: {
+            en: "Coupon details found",
+            ar: "تم العثور على تفاصيل القسيمة"
+        }, discount, couponCode, coupon, platformCoupon: true})
     }
 
     const courseArray = Array.isArray(courses) ? courses: [courses]
     const matchingCourses = courseArray.filter(course => coupon.courses.some(c => c.course && c.course.equals(course)))
 
-    if(matchingCourses.length === 0) return res.status(400).send({message: "Coupon not valid with these courses"})
+    if(matchingCourses.length === 0) {
+        return res.status(400).send({
+            message: {
+                en: "Coupon not valid with these courses",
+                ar: "القسيمة غير صالحة مع هذه الدورات"
+            }
+            })
+    }
     
     const couponCode = coupon.code
     const discount = coupon.discount
 
-    res.status(200).send({message: 'Coupon Details found', courseCoupon: true, discount, couponCode, coupon, matchingCourses})
+    res.status(200).send({message: {
+        en: "Coupon details found",
+        ar: "تم العثور على تفاصيل القسيمة"
+    }, courseCoupon: true, discount, couponCode, coupon, matchingCourses})
 })
 
 

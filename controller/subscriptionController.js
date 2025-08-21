@@ -314,7 +314,13 @@ const getUpgradeSubscriptionDetails = asyncHandler(async (req, res) => {
 
   const subscription = await Subscription.findOne({ user: userId, status: 'active' });
   if (!subscription) {
-    throw new Error('Active subscription not found');
+    return res.status(404).send({
+      message: {
+        en: "Active subscription not found",
+        ar: "لم يتم العثور على اشتراك نشط"
+      }
+    })
+
   }
 
   const now = new Date();
@@ -329,7 +335,13 @@ const getUpgradeSubscriptionDetails = asyncHandler(async (req, res) => {
 
   const plan = await Plan.findById(planId);
   if (!plan) {
-    throw new Error('Target plan not found');
+    return res.status(404).send({
+      message: {
+        en: "Target plan not found",
+        ar: "الخطة المستهدفة غير موجودة"
+      }
+    })  
+
   }
 
   const durationInMonths = duration ? parseInt(duration, 10) : plan.durationInMonths;

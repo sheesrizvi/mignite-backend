@@ -58,9 +58,21 @@ const listBanners = asyncHandler(async (req, res) => {
     const { type = "Banner" } = req.query
     const banners = await BannerSecond.find({ type })
     if (!banners || banners.length === 0) {
-        return res.status(400).send({ message: 'Banner not found' })
+      return res.status(400).send({
+        message: {
+            en: "Banner not found",
+            ar: "لا يوجد إعلان"
+        }
+        })
     }
-    res.status(200).send({ message: 'Banner found successfully', banners })
+        res.status(200).send({
+            message: {
+                en: "Banner found successfully",
+                ar: "تم العثور على الإعلان بنجاح"
+            },
+            banners
+        })
+
 })
 
 const deleteBanner = asyncHandler(async (req, res) => {

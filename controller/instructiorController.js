@@ -176,7 +176,10 @@ const getAllInstructor = asyncHandler(async (req, res) => {
     const instructors = await Instructor.find({status: 'approved'}).sort({ createdAt: -1 })
     return res.status(200).json({
       status: true,
-      message: 'All Instructors List',
+      message: {
+        en: "All instructors list",
+        ar: "قائمة جميع المدربين"
+      },
       instructors,
       pageCount,
     });
@@ -184,10 +187,26 @@ const getAllInstructor = asyncHandler(async (req, res) => {
 
   const instructors = await Instructor.find({status: 'approved'}).sort({ createdAt: -1 }).skip((pageNumber -1) * pageSize).limit(pageSize)
   if(instructors.length === 0) {
-    return res.status(400).send({success: false, message: 'Instructor Not Found'})
+   return res.status(400).send({
+      success: false,
+      message: {
+        en: "Instructor not found",
+        ar: "لم يتم العثور على المدرب"
+      }
+    })
+
   }
 
-  res.status(200).send({status: true, message: 'Instructor List', instructors, pageCount})
+  res.status(200).send({
+      status: true,
+      message: {
+        en: "Instructor list",
+        ar: "قائمة المدربين"
+      },
+      instructors,
+      pageCount
+  })
+
 })
 
 const getAllInstructorForDownload = asyncHandler(async (req, res) => {
@@ -843,11 +862,20 @@ const getInstructorDataById = asyncHandler(async (req, res) => {
     });
 
   if (!instructorDetails) {
-    return res.status(400).send({ message: 'No Instructor found' });
+    return res.status(400).send({
+      message: {
+        en: "No instructor found",
+        ar: "لم يتم العثور على أي مدرب"
+      }
+    })
+
   }
 
   res.status(200).send({
-    message: 'Instructor',
+   message: {
+    en: "Instructor",
+    ar: "المدرب"
+  },
     instructor: instructorDetails
   });
 });

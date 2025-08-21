@@ -38,7 +38,13 @@ const getCategoryByType = asyncHandler(async (req, res) => {
 
 
   if (typeof type !== 'string') {
-    return res.status(400).json({ error: 'Invalid type format' });
+    return res.status(400).json({
+      message: {
+        en: "Invalid type format",
+        ar: "تنسيق النوع غير صالح"
+      }
+    })
+
   }
 
   const categories = await Category.find({ type });
@@ -46,7 +52,13 @@ const getCategoryByType = asyncHandler(async (req, res) => {
   if (categories.length > 0) {
     res.status(200).json(categories);
   } else {
-    res.status(404).json({ error: 'Category not found' });
+    res.status(404).json({
+      message: {
+        en: "Category not found",
+        ar: "الفئة غير موجودة"
+      }
+    })
+
   }
 });
 
