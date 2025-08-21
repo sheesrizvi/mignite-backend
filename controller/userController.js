@@ -549,7 +549,7 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
     .populate('user')
     .populate('plan');
 
-  res.status(200).json({status: true, subscriptions});
+  res.status(200).json({status: true,  subscriptions});
 });
 
 const resetPassword = asyncHandler(async(req, res) => {
