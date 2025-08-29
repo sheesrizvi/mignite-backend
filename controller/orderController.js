@@ -148,19 +148,37 @@ const createCourseOrder = asyncHandler(async (req, res) => {
   } = req.body;
 
   if (!token) {
-    return res.status(400).json({ message: "PayPal token is required." });
+    return res.status(400).json({
+      status: false,
+      message: {
+        en: "PayPal token is required.",
+        ar: "مطلوب رمز PayPal."
+      }
+    });
   }
 
 
   const { paypalOrderId, paypalCaptureId, paidAmount } = await validateAndCapturePaypalOrder(token)
 
   if (!orderCourses || orderCourses.length === 0) {
-    return res.status(400).json({ message: "No order courses" });
+    return res.status(400).json({
+      status: false,
+      message: {
+        en: "No order courses",
+        ar: "لا توجد دورات في الطلب"
+      }
+    });
   }
 
   const user = await User.findById(userId);
   if (!user) {
-    return res.status(400).send({ status: false, message: 'User not Found' });
+     return res.status(400).send({
+      status: false,
+      message: {
+        en: "User not found",
+        ar: "المستخدم غير موجود"
+      }
+    });
   }
 
  
@@ -174,7 +192,10 @@ const createCourseOrder = asyncHandler(async (req, res) => {
   if (existingOrders.length > 0) {
     return res.status(400).json({
       status: false,
-      message: "You have already purchased one or more of these courses.",
+      message: {
+        en: "You have already purchased one or more of these courses.",
+        ar: "لقد قمت بالفعل بشراء دورة أو أكثر من هذه الدورات."
+      }
     });
   }
   
@@ -184,7 +205,13 @@ const createCourseOrder = asyncHandler(async (req, res) => {
   });
   
   if (fullBatchSizeCourseExists) {
-    return res.status(400).send({ message: "One or More Courses have batch size limit reached" });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "One or more courses have reached the batch size limit.",
+        ar: "وصلت دورة أو أكثر إلى الحد الأقصى لحجم الدفعة."
+      }
+    });
   }
   
   const order = await Order.create({
@@ -271,7 +298,10 @@ const createCourseOrder = asyncHandler(async (req, res) => {
     }
 
     res.status(201).json({
-      message: "Course purchased successfully",
+      message: {
+        en: "Course purchased successfully",
+        ar: "تم شراء الدورة بنجاح"
+      },
       course: order,
     });
   }

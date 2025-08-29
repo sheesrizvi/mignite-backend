@@ -12,7 +12,14 @@ const createSubscription = asyncHandler(async (req, res) => {
     let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId, token } = req.body;
 
     if (!token) {
-      return res.status(400).json({ message: "PayPal token is required." });
+     return res.status(400).json({
+      status: false,
+      message: {
+        en: "PayPal token is required.",
+        ar: "مطلوب رمز PayPal."
+      }
+    });
+
     }
 
     const { paypalOrderId, paypalCaptureId, paidAmount } = await validateAndCapturePaypalOrder(token)
@@ -20,17 +27,36 @@ const createSubscription = asyncHandler(async (req, res) => {
     const user = await User.findById(userId);
   
     if (!user) {
-      return res.status(400).send({ status: false, message: 'User does not exist' });
+      return res.status(400).send({
+        status: false,
+        message: {
+          en: "User does not exist",
+          ar: "المستخدم غير موجود"
+        }
+      });
     }
   
     let plan = await Plan.findById(planId);
     if (!plan) {
-      return res.status(400).json({ status: false, message: 'Plan not found' });
+     return res.status(400).json({
+        status: false,
+        message: {
+          en: "Plan not found",
+          ar: "الخطة غير موجودة"
+        }
+      });
     }
     const existingSubscription = await Subscription.find({user: userId, status: "active"})
     
     if(existingSubscription && existingSubscription.length > 0) {
-        return res.status(400).send({message: 'User has already subscribed to existing plan', existingSubscription})
+       return res.status(400).send({
+        status: false,
+        message: {
+          en: "User has already subscribed to an existing plan",
+          ar: "المستخدم مشترك بالفعل في خطة حالية"
+        },
+        existingSubscription
+      });
     }
     
     let endDate = new Date(startDate);
@@ -54,7 +80,14 @@ const createSubscription = asyncHandler(async (req, res) => {
     
     await subscription.save();
     subscription = await Subscription.findById(subscription._id).populate('user').populate('plan')
-    res.status(201).json({ status: true, message: 'Subscription created Successfully', subscription });
+    return res.status(201).json({
+      status: true,
+      message: {
+        en: "Subscription created successfully",
+        ar: "تم إنشاء الاشتراك بنجاح"
+      },
+      subscription
+    });
   });
   
 const editSubscription = asyncHandler(async (req, res) => {
@@ -372,7 +405,13 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   let { planId, duration, startDate, totalPrice, userId, paymentStatus, paymentMethod, discount, invoiceId, token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ message: "PayPal token is required." });
+    return res.status(400).json({
+      status: false,
+      message: {
+        en: "PayPal token is required.",
+        ar: "مطلوب رمز PayPal."
+      }
+    });
   }
 
 
@@ -381,13 +420,26 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   const user = await User.findById(userId);
   
   if (!user) {
-    return res.status(400).send({ status: false, message: 'User does not exist' });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "User does not exist",
+        ar: "المستخدم غير موجود"
+      }
+    });
   }
 
   let plan = await Plan.findById(planId);
   if (!plan) {
-    return res.status(400).json({ status: false, message: 'Plan not found' });
+    return res.status(400).json({
+      status: false,
+      message: {
+        en: "Plan not found",
+        ar: "الخطة غير موجودة"
+      }
+    });
   }
+  
   const existingSubscription = await Subscription.find({user: userId, status: "active"})
   
   if(existingSubscription && existingSubscription.length > 0) {
@@ -398,11 +450,24 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   let start = new Date(startDate);
 
   if (isNaN(start)) {
-    return res.status(400).send({ status: false, message: 'Invalid start date' });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Invalid start date",
+        ar: "تاريخ البدء غير صالح"
+      }
+    });
   }
 
   if (isNaN(duration) || duration <= 0) {
-    return res.status(400).send({ status: false, message: 'Invalid duration' });
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Invalid duration",
+        ar: "المدة غير صالحة"
+      }
+    });
+
   }
 
   let endDate = new Date(start);
@@ -425,7 +490,15 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   
   await subscription.save();
   subscription = await Subscription.findById(subscription._id).populate('user').populate('plan')
-  res.status(201).json({ status: true, message: 'Subscription created Successfully', subscription });
+  
+  return res.status(201).json({
+  status: true,
+    message: {
+      en: "Subscription created successfully",
+      ar: "تم إنشاء الاشتراك بنجاح"
+    },
+    subscription
+  });
 })
 
 
