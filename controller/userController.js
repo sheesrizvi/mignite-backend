@@ -234,6 +234,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   const updatedUser = await user.save();
 
   res.status(200).json({
+   message: {
+        en: "User profile Updated",
+        ar: "تم تحديث ملف المستخدم"
+    },
     user: updatedUser,
     token: generateTokenUser(updatedUser._id, updatedUser.name, updatedUser.email, updatedUser.age, updatedUser.type),
   });
@@ -552,22 +556,62 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
   res.status(200).json({status: true,  subscriptions});
 });
 
-const resetPassword = asyncHandler(async(req, res) => {
-  const {  email } = req.body
-  if(!email) {
-      return res.status(400).send({status:true, message: 'Email not Found'})
-  }
-  const existedUser = await User.findOne({email})
-  if(!existedUser) {
-      return res.status(400).send({status: false, message: 'Email not exist'})
-  }
+// const resetPassword = asyncHandler(async(req, res) => {
+//   const {  email } = req.body
+//   if(!email) {
+//       return res.status(400).send({status:true, message: 'Email not Found'})
+//   }
+//   const existedUser = await User.findOne({email})
+//   if(!existedUser) {
+//       return res.status(400).send({status: false, message: 'Email not exist'})
+//   }
   
-  const randomPassword = await sendResetEmail(existedUser.email)
-  console.log(randomPassword)
-  existedUser.password = randomPassword
-  await existedUser.save()
-  res.status(200).send({status: true, message: 'OTP sent to your email. Please check for passwrod reset'})
-})
+//   const randomPassword = await sendResetEmail(existedUser.email)
+//   console.log(randomPassword)
+//   existedUser.password = randomPassword
+//   await existedUser.save()
+//   res.status(200).send({status: true, message: 'OTP sent to your email. Please check for passwrod reset'})
+// })
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: 'Email not Found',
+        ar: 'البريد الإلكتروني غير موجود'
+      }
+    });
+  }
+
+  const existedUser = await User.findOne({ email });
+  if (!existedUser) {
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: 'Email does not exist',
+        ar: 'البريد الإلكتروني غير مسجل'
+      }
+    });
+  }
+
+  const randomPassword = await sendResetEmail(existedUser.email);
+  console.log(randomPassword);
+
+  existedUser.password = randomPassword;
+  await existedUser.save();
+
+  res.status(200).send({
+    status: true,
+    message: {
+      en: 'OTP sent to your email. Please check for password reset',
+      ar: 'تم إرسال رمز التحقق إلى بريدك الإلكتروني. يرجى التحقق لإعادة تعيين كلمة المرور'
+    }
+  });
+});
+
 
 const verifyUserProfile = asyncHandler(async (req, res) => {
   const { email, otp } = req.body
