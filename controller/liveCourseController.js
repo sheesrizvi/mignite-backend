@@ -150,7 +150,13 @@ const getLiveCourses = asyncHandler(async (req, res) => {
   });
 
   if (liveCourses.length) {
-    res.status(200).json({ liveCourses });
+    res.status(200).json({
+      message: {
+        en: "LiveCourses found",
+        ar: "تم العثور على دورات مباشرة"
+      },
+      liveCourses 
+    });
   } else {
    return res.status(404).json({
       message: {

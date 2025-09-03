@@ -388,6 +388,10 @@ const getUpgradeSubscriptionDetails = asyncHandler(async (req, res) => {
   billingEndDate.setMonth(billingEndDate.getMonth() + durationInMonths);
 
   res.status(200).json({
+    message: {
+      en: "Subscription Details",
+      ar: "تفاصيل الاشتراك"
+    },
     currentPlan: subscription.plan,
     currentPlanEndsOn: subscription.endDate,
     newPlan: planId,
@@ -492,7 +496,7 @@ const upgradeSubscription = asyncHandler(async (req, res) => {
   subscription = await Subscription.findById(subscription._id).populate('user').populate('plan')
   
   return res.status(201).json({
-  status: true,
+   status: true,
     message: {
       en: "Subscription created successfully",
       ar: "تم إنشاء الاشتراك بنجاح"

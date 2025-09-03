@@ -27,7 +27,12 @@ const createPaypalOrder = asyncHandler(async (req, res) => {
     });
   
     const approvalUrl = order.data.links.find(link => link.rel === 'approve').href;
-    res.json({ approvalUrl });
+    res.json({
+      message: {
+          en: "Created",
+          ar: "تم الإنشاء"
+        },
+      approvalUrl });
   })
 
 

@@ -70,7 +70,13 @@ const callIdStatus = asyncHandler(async (req, res) => {
   });
   
   
-  res.status(200).send({ result })
+  res.status(200).send({ 
+    message: {
+        en: "Meeting checked",
+        ar: "تم التحقق من الاجتماع"
+      }, 
+    result
+   })
 })
 
 module.exports = {

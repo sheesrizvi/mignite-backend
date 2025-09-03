@@ -259,7 +259,13 @@ const getNotificationByUserId = asyncHandler(async (req, res) => {
     })
   }
 
-  res.status(200).send({notification});
+  res.status(200).send({ 
+    message: {
+      en: "Notification found",
+      ar: "تم العثور على الإشعارات"
+    },
+    notification
+    });
 });
 
 const getNotifications = asyncHandler(async (req, res) => {

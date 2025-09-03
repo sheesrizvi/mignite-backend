@@ -167,6 +167,10 @@ const getMessagesByThread = asyncHandler(async (req, res) => {
   const totalMessages = await Message.countDocuments({ thread: thread._id });
   const pageCount = Math.ceil(totalMessages/limit)
   res.json({
+    message: {
+        en: "Thread message",
+        ar: "رسالة الموضوع"
+      },
     thread: {
       ...thread.toObject(),
       messages

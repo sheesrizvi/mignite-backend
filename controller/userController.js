@@ -45,6 +45,10 @@ const authUser = asyncHandler(async (req, res) => {
     }
 
     res.json({
+       message: {
+        en: "Login Success",
+        ar: "تم تسجيل الدخول بنجاح"
+      },
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -553,7 +557,10 @@ const getSubscriptionByUser = asyncHandler(async (req, res) => {
     .populate('user')
     .populate('plan');
 
-  res.status(200).json({status: true,  subscriptions});
+  res.status(200).json({ 
+    message: { en: 'Subscriptions found', ar: 'تم العثور على الاشتراكات' }, 
+    status: true,
+    subscriptions});
 });
 
 // const resetPassword = asyncHandler(async(req, res) => {

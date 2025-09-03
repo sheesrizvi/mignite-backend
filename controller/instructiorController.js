@@ -712,6 +712,10 @@ const getTopInstructors = async (req, res) => {
   ]);
 
   res.status(200).send({
+    message: {
+      en: "Top Instructors",
+      ar: "كبار المدربين"
+    },
     success: true,
     data: topInstructors,
   });

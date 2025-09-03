@@ -637,7 +637,12 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
     })
 
   const allCourses = [...courses, ...livecourses]
-  res.status(200).send({status: true, courses, livecourses, allCourses})
+  res.status(200).send({
+    message: {
+        en: "Courses found",
+        ar: "تم العثور على الدورات"
+      },
+    status: true, courses, livecourses, allCourses})
 
 })
 
@@ -904,7 +909,16 @@ const updateUserProgress = asyncHandler(async (req, res) => {
   const totalSectionsCount = course.sections.length || 0
   
 
-  res.status(200).send({ userProgress, courseCompletePercentage: progressPercentage, viewedSectionCount, totalSectionsCount  })
+  res.status(200).send({ 
+    message: {
+      en: "User progress Details",
+      ar: "تفاصيل تقدم المستخدم"
+    },
+    userProgress, 
+    courseCompletePercentage: progressPercentage,
+    viewedSectionCount, 
+    totalSectionsCount 
+   })
   
 })
 
