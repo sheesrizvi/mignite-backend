@@ -45,8 +45,14 @@ const createSection = asyncHandler(async (req, res) => {
       );
       res.status(201).json(section);
     } else {
-      res.status(404);
-      throw new Error("Error");
+        return res.status(404).send({
+        status: false,
+        message: {
+          en: "Error Creating Section",
+          ar: "خطأ"
+        }
+      });
+
     }
   } else {
 
@@ -74,11 +80,19 @@ const createSection = asyncHandler(async (req, res) => {
       );
       res.status(201).json(section);
     } else {
-      res.status(404);
-      throw new Error("Error");
+      return res.status(404).send({
+        status: false,
+        message: {
+          en: "Error Creating Section",
+          ar: "خطأ"
+        }
+      });
+
     }
   }
 });
+
+
 const getSectionsByCourse = asyncHandler(async (req, res) => {
   const { course } = req.query;
   
@@ -120,7 +134,13 @@ const deleteSection = asyncHandler(async (req, res) => {
   );
 
 
-  res.status(200).json("deleted");
+  return res.status(200).send({
+    message: {
+      en: "Section deleted successfully",
+      ar: "تم حذف القسم بنجاح"
+    }
+  });
+
 });
 
 module.exports = {

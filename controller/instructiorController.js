@@ -25,7 +25,14 @@ const authInstructor = asyncHandler(async (req, res) => {
   if (instructor && (await instructor.matchPassword(password))) {
     
     if(!instructor || instructor.isDeleted) {
-      return res.status(400).send({ message: "Instructor not found" })
+     return res.status(400).send({
+        status: false,
+        message: {
+          en: "Instructor not found",
+          ar: "لم يتم العثور على المدرس"
+        }
+      });
+
     }
 
     
@@ -37,22 +44,45 @@ const authInstructor = asyncHandler(async (req, res) => {
       sendVerificationEmail(instructor.otp, instructor.email)
       instructor.otp = otp
       await instructor.save()
-      return res.status(400).send({ profileNotVerified: true, message: 'OTP Sent. Please verify your profile first' })
+      return res.status(400).send({
+        status: false,
+        profileNotVerified: true,
+        message: {
+          en: "OTP sent. Please verify your profile first",
+          ar: "تم إرسال رمز التحقق. يرجى التحقق من ملفك الشخصي أولاً"
+        }
+      });
+
     }
 
     if(instructor.status === 'pending' || instructor.status === 'rejected') {
-      return res.status(400).send({message: 'Instructor status not approved yet. Please wait till admin approval'})
+      return res.status(400).send({
+        message: {
+          en: "Instructor status not approved yet. Please wait till admin approval",
+          ar: "لم تتم الموافقة على حالة المدرس بعد. يرجى الانتظار حتى موافقة المسؤول"
+        }
+      });
+
     }
 
     res.json({
+       message: {
+          en: "Login successful",
+          ar: "تم تسجيل الدخول بنجاح"
+        },
       _id: instructor._id,
       name: instructor.name,
       email: instructor.email,
       token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type ),
     });
   } else {
-    res.status(401);
-    throw new Error("Invalid Email or Password");
+    return res.status(400).send({
+        status: false,
+        message: {
+          en: "Invalid email or password",
+          ar: "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+        }
+      });
   }
 });
 
@@ -65,8 +95,13 @@ const registerInstructor = asyncHandler(async (req, res) => {
 
   const userExists = await Instructor.findOne({ email });
   if(userExists && !userExists.isDeleted) {
-    res.status(404);
-    throw new Error("Instructor already exists");
+    return res.status(404).send({
+      message: {
+        en: "Instructor already exists",
+        ar: "المدرس موجود بالفعل"
+      }
+    });
+
   }
 
   
@@ -91,7 +126,11 @@ const registerInstructor = asyncHandler(async (req, res) => {
       name: instructor.name,
       email: instructor.email,
       //token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
-      message:'Instructor created succesfully, Please wait till admin approval and verification email sent'
+      message: {
+        en: "Instructor created successfully. Please wait till admin approval and a verification email has been sent",
+        ar: "تم إنشاء حساب المدرس بنجاح. يرجى الانتظار حتى موافقة المسؤول وتم إرسال بريد إلكتروني للتحقق"
+      }
+
     });
 
   }
@@ -116,11 +155,19 @@ const registerInstructor = asyncHandler(async (req, res) => {
         name: instructor.name,
         email: instructor.email,
         //token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type),
-        message:'Instructor created succesfully, Please wait till admin approval and verification email sent'
+        message: {
+          en: "Instructor created successfully. Please wait till admin approval and verification email has been sent",
+          ar: "تم إنشاء حساب المدرس بنجاح. يرجى الانتظار حتى موافقة المسؤول وتم إرسال بريد إلكتروني للتحقق"
+        }
       });
   } else {
-    res.status(404);
-    throw new Error("Invalid instructor data");
+     return res.status(404).send({
+      status: false,
+      message: {
+        en: "Invalid instructor data",
+        ar: "بيانات المدرس غير صالحة"
+      }
+    });
   }
 });
 
@@ -131,13 +178,25 @@ const updateInstructor = asyncHandler(async (req, res) => {
   const instructor = await Instructor.findById(instructorId);
 
   if (!instructor) {
-    return res.status(404).send({ status: false, message: 'Instructor not found' });
+    return res.status(404).send({
+      status: false,
+      message: {
+        en: "Instructor not found",
+        ar: "لم يتم العثور على المدرس"
+      }
+    });
   }
 
   if (email && email !== instructor.email) {
     const userExists = await Instructor.findOne({ email });
     if (userExists) {
-      return res.status(400).send({ status: false, message: 'Email already exists' });
+       return res.status(400).send({
+        status: false,
+        message: {
+          en: "Email already exists",
+          ar: "البريد الإلكتروني موجود بالفعل"
+        }
+      });
     }
   }
 
@@ -153,13 +212,23 @@ const updateInstructor = asyncHandler(async (req, res) => {
 
   if (updatedInstructor) {
     res.status(200).json({
+       message: {
+          en: "Instructor profile updated successfully",
+          ar: "تم تحديث ملف المدرس بنجاح"
+        },
       _id: updatedInstructor._id,
       name: updatedInstructor.name,
       email: updatedInstructor.email,
       token: generateTokenInstructor(updatedInstructor._id, updatedInstructor.name, updatedInstructor.email, updatedInstructor.type),
     });
   } else {
-    res.status(500).send({ status: false, message: 'Error updating instructor' });
+     return res.status(500).send({
+        status: false,
+        message: {
+          en: "Error updating instructor",
+          ar: "حدث خطأ أثناء تحديث بيانات المدرس"
+        }
+    });
   }
 });
 
@@ -1051,29 +1120,74 @@ const verifyInstructorProfile = asyncHandler(async (req, res) => {
   const { email, otp } = req.body
 
   const instructor = await Instructor.findOne({ email })
-  if(!instructor) return res.status(400).send({message: 'Instructor not found'})
+  if(!instructor) {
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Instructor not found",
+        ar: "لم يتم العثور على المدرس"
+      }
+    });
 
-  if(instructor.otp?.toString() !== otp?.toString()) return res.status(400).send({ message: 'OTP not valid' })
+  }
+
+  if(instructor.otp?.toString() !== otp?.toString()) {
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "OTP not valid",
+        ar: "رمز التحقق غير صالح"
+      }
+    });
+
+  }
   instructor.active = true
   instructor.otp = ""
   await instructor.save()
-  res.status(200).send({ message: 'Instructor verified successfully', instructor, token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type ), })
+
+  res.status(200).send({  
+    message: {
+    en: "Instructor verified successfully",
+    ar: "تم التحقق من المدرس بنجاح"
+  },
+   instructor,
+   token: generateTokenInstructor(instructor._id, instructor.name, instructor.email, instructor.type ), })
 })
 
 const resetPassword = asyncHandler(async(req, res) => {
   const {  email } = req.body
   if(!email) {
-      return res.status(400).send({status:true, message: 'Email not Found'})
+      return res.status(400).send({
+        status: false,
+        message: {
+          en: "Email not found",
+          ar: "البريد الإلكتروني غير موجود"
+        }
+      });
   }
   const existedInstructor = await Instructor.findOne({email})
   if(!existedInstructor) {
-      return res.status(400).send({status: false, message: 'Email not exist'})
+     return res.status(400).send({
+      status: false,
+      message: {
+        en: "Email does not exist",
+        ar: "البريد الإلكتروني غير موجود"
+      }
+    });
   }
   
   const randomPassword = await sendResetEmail(existedInstructor.email)
   existedInstructor.password = randomPassword
   await existedInstructor.save()
-  res.status(200).send({status: true, message: 'Check Your Email for Password Reset'})
+
+  return res.status(200).send({
+      status: true,
+      message: {
+        en: "Check your email for password reset",
+        ar: "تحقق من بريدك الإلكتروني لإعادة تعيين كلمة المرور"
+      }
+    });
+
 })
 
 

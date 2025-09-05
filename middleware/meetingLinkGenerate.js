@@ -11,7 +11,13 @@ const generateLiveStreamToken = asyncHandler(async (req, res) => {
   const { id } = req.query
  // const streamToken = client.createToken(id)
   const streamToken = client.generateUserToken({ user_id:  id, validity_in_seconds: 60 * 60 })
-  return res.send({ streamToken })
+  return res.send({ 
+     message: {
+        en: "Token generated successfully",
+        ar: "تم إنشاء الرمز بنجاح"
+      },
+    streamToken
+   })
 })
 
 

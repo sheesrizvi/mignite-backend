@@ -26,13 +26,25 @@ const createLiveSection = asyncHandler(async (req, res) => {
 
   console.log("Section Body", req.body)
   if (!instructor || !liveCourse) {
-    return res.status(400).send({ message: 'Either Instructor or LiveCourse Field is invalid' })
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Either instructor or live course field is invalid",
+        ar: "إما أن حقل المدرس أو الدورة المباشرة غير صالح"
+      }
+    });
   }
 
 
   const courseExistByInstructor = await LiveCourse.findOne({ _id: liveCourse, instructor })
   if (!courseExistByInstructor) {
-    return res.status(400).send({ status: false, message: 'Course not exist by Instructor' })
+     return res.status(400).send({
+        status: false,
+        message: {
+          en: "Course does not exist for this instructor",
+          ar: "لا توجد دورة لهذا المدرس"
+        }
+      });
   }
 
   if (type == "live") {
@@ -40,8 +52,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
   const startMeetingTime = new Date(startTime);
   const endMeetingTime = new Date(endTime);
   if (isNaN(startMeetingTime.getTime()) || isNaN(endMeetingTime.getTime())) {
-    console.error("Invalid Time(s)");
-    throw new Error("Invalid Time")
+     return res.status(400).send({
+        status: false,
+        message: {
+          en: "Invalid time",
+          ar: "وقت غير صالح"
+        }
+      });
   }
 
   const differenceInMilliseconds = endMeetingTime - startMeetingTime;
@@ -80,8 +97,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
       await agenda.schedule(notificationTime, 'send notification', { sectionId: section._id, msg })
       res.status(201).json(section);
     } else {
-      res.status(404);
-      throw new Error("Error");
+       return res.status(404).send({
+          status: false,
+          message: {
+            en: "Error",
+            ar: "خطأ"
+          }
+        });
     }
   } else {
    
@@ -109,8 +131,13 @@ const createLiveSection = asyncHandler(async (req, res) => {
       
       res.status(201).json(section);
     } else {
-      res.status(404);
-      throw new Error("Error");
+       return res.status(404).send({
+        status: false,
+        message: {
+          en: "Error",
+          ar: "خطأ"
+        }
+      });
     }
   }
 });
@@ -137,12 +164,24 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
   const { sectionId, instructor } = req.query
  
   if (!sectionId) {
-    return res.status(400).send({ status: false, message: 'Please provide sectionId' })
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Please provide sectionId",
+        ar: "يرجى تقديم معرف القسم"
+      }
+    });
   }
   const liveSectionDetails = await LiveSection.findById(sectionId)
   
   if (!liveSectionDetails) {
-    return res.status(400).send({ status: false, message: 'No Live Section Found ' })
+     return res.status(400).send({
+      status: false,
+      message: {
+        en: "No live section found",
+        ar: "لم يتم العثور على قسم مباشر"
+      }
+    });
   }
 
   
@@ -151,7 +190,14 @@ const deleteLiveSection = asyncHandler(async (req, res) => {
     { _id: liveSectionDetails.liveCourse },
     { $pull: { liveSections: sectionId } }
   );
-  return res.status(200).send({ status: true, message: 'Section deleted successfully' })
+
+  return res.status(200).send({
+    status: true,
+    message: {
+      en: "Section deleted successfully",
+      ar: "تم حذف القسم بنجاح"
+    }
+  });
 })
 
 const editLiveSection = asyncHandler(async (req, res) => {

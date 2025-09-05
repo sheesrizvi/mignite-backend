@@ -81,8 +81,14 @@ const createCourse = asyncHandler(async (req, res) => {
 
     res.status(201).json(course);
   } else {
-    res.status(404);
-    throw new Error("Error");
+    return res.status(404).send({
+      status: false,
+      message: {
+        en: "Something went wrong",
+        ar: "حدث خطأ ما"
+      }
+    });
+
   }
 });
 
@@ -483,14 +489,25 @@ const deleteCourse = asyncHandler(async (req, res) => {
 
   const sub = await Course.findById(subid);
   if(!sub) {
-    return res.status(400).send({message: "Course not found"})
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Course not found",
+        ar: "لم يتم العثور على الدورة"
+      }
+    });
   }
   
 
   if (sub.sections.length !== 0) {
    
-    res.status(404).json("Delete all sections of this course first")
-
+    return res.status(404).send({
+        status: false,
+        message: {
+          en: "Delete all sections of this course first",
+          ar: "يرجى حذف جميع أقسام هذه الدورة أولاً"
+        }
+      });
   } else {
     const f1 = sub.image;
 
@@ -516,7 +533,13 @@ const deleteCourse = asyncHandler(async (req, res) => {
         })
       }
     }
-    res.status(200).json("deleted");
+    return res.status(200).send({
+      status: true,
+      message: {
+        en: "Course deleted successfully",
+        ar: "تم حذف الدورة بنجاح"
+      }
+    });
   }
 
 });
@@ -572,8 +595,14 @@ const updateCourse = asyncHandler(async (req, res) => {
    
     res.json(updatedCourse);
   } else {
-    res.status(404);
-    throw new Error("Error");
+     return res.status(400).send({
+      status: false,
+      message: {
+        en: "Error in updating course",
+        ar: "حدث خطأ أثناء تحديث الدورة"
+      }
+    });
+
   }
 });
 

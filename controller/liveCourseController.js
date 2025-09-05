@@ -78,8 +78,14 @@ const createLiveCourse = asyncHandler(async (req, res) => {
 
     res.status(201).json(liveCourse);
   } else {
-    res.status(400);
-    throw new Error("Unable to create live course");
+   return res.status(400).send({
+    status: false,
+    message: {
+      en: "Unable to create live course",
+      ar: "غير قادر على إنشاء الدورة المباشرة"
+    }
+  });
+
   }
 });
 
@@ -479,16 +485,34 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
   const liveCourse = await LiveCourse.findById(id);
 
   if (!liveCourse) {
-    res.status(404);
-    throw new Error("Live course not found");
+   return res.status(404).send({
+    status: false,
+    message: {
+      en: "Live course not found",
+      ar: "لم يتم العثور على الدورة المباشرة"
+    }
+  });
+
   }
 
 
   if (liveCourse.instructor.toString() !== instructor?.toString()) {
-    return res.status(400).send({ status: false, message: 'Instructor not authorized to delete this course' })
+    return res.status(400).send({
+      status: false,
+      message: {
+        en: "Instructor not authorized to delete this course",
+        ar: "المدرس غير مصرح له بحذف هذه الدورة"
+      }
+    });
   }
   if (liveCourse.liveSections.length !== 0) {
-    res.status(400).json({ message: "Delete all sections first" });
+   return res.status(400).send({
+      status: false,
+      message: {
+        en: "Delete all sections first",
+        ar: "يرجى حذف جميع الأقسام أولاً"
+      }
+    });
   } else {
     await LiveCourse.deleteOne({ _id: id });
 
@@ -503,7 +527,13 @@ const deleteLiveCourse = asyncHandler(async (req, res) => {
         })
       }
     }
-    res.json({ message: "Live course deleted" });
+    return res.status(200).send({
+        status: true,
+        message: {
+          en: "Live course deleted successfully",
+          ar: "تم حذف الدورة المباشرة بنجاح"
+        }
+      });
   }
 });
 
@@ -535,13 +565,25 @@ const updateLiveCourse = asyncHandler(async (req, res) => {
   const liveCourse = await LiveCourse.findById(id);
 
   if (!liveCourse) {
-    res.status(404);
-    throw new Error("Live course not found");
-  }
+    return res.status(404).send({
+        status: false,
+        message: {
+          en: "Live course not found",
+          ar: "لم يتم العثور على الدورة المباشرة"
+        }
+      });   
+    }
   
   if (liveCourse.instructor.toString() !== instructor?.toString()) {
-    return res.status(400).send({ status: false, message: 'Instructor not authorized to update this course' })
+    return res.status(400).send({
+        status: false,
+        message: {
+          en: "Instructor not authorized to update this course",
+          ar: "المدرس غير مصرح له بتحديث هذه الدورة"
+        }
+      });
   }
+  
   liveCourse.name = name || liveCourse.name;
   liveCourse.category = category || liveCourse.category;
   liveCourse.details = details || liveCourse.details;
@@ -649,14 +691,27 @@ const getLiveCoursesByInstructorForInstructorPanel = asyncHandler(async (req, re
   }).skip((pageNumber - 1) * pageSize).limit(pageSize);
 
   if(!courses || courses.length === 0) {
-    return res.status(400).send({status: true, message: "Courses not exist"})
+    return res.status(404).send({
+      message: {
+        en: "No courses found",
+        ar: "لم يتم العثور على أي دورات"
+      }
+    });
+
   }
 
    const totalDocuments = await LiveCourse.countDocuments({instructor, status: 'approved'})
    const pageCount = Math.ceil(totalDocuments/pageSize)
    
 
-   res.status(200).send({courses, pageCount})
+   res.status(200).send({ 
+    message: {
+      en: "Courses found successfully",
+      ar: "تم العثور على الدورات بنجاح"
+    },
+    courses, pageCount
+  })
+
 })
 
 module.exports = {
