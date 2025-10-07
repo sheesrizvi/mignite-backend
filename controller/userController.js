@@ -13,7 +13,7 @@ const { Plan } = require('../models/planModel')
 
 const authUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
+ 
   const user = await User.findOne({ email });
  
   if (user && (await user.matchPassword(password))) {
@@ -88,6 +88,8 @@ const registerUser = asyncHandler(async (req, res) => {
     pushToken,
   } = req.body;
 
+  console.log("req.body", req.body)
+
   const userExists = await User.findOne({ email });
  
   if (userExists && !userExists.isDeleted) {
@@ -133,6 +135,7 @@ const registerUser = asyncHandler(async (req, res) => {
     })
  }
 
+
   const user = await User.create({
     name,
     email,
@@ -152,7 +155,7 @@ const registerUser = asyncHandler(async (req, res) => {
   });
   
   if (user) {
-  
+    console.log("verification email sent")
     sendVerificationEmail(user.otp, user.email)
     res.status(201).json({
       _id: user._id,

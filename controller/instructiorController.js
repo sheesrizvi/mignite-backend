@@ -352,9 +352,10 @@ const deleteInstructor = asyncHandler(async (req, res) => {
   
   const id = req.query.id
   const instructor = await Instructor.findById(id)
-  // if(instructor.courses.length > 0) {
-  //   return res.status(400).send({success: false, message: "Delete courses first"})
-  // }
+
+  if(instructor.courses.length > 0) {
+    return res.status(400).send({success: false, message: "Delete courses first"})
+  }
   
   if(instructor.livecourses.length > 0) {
     return res.status(400).send({success: false, message: "Delete live courses first"})
@@ -665,7 +666,8 @@ const getInstructorPendingData = asyncHandler(async (req, res) => {
 })
 
 const getTopInstructors = async (req, res) => {
-  const topInstructors = await Instructor.aggregate([
+  let topInstructors = await Instructor.aggregate([
+    { $match: { isDeleted: false, active: true }  },
     {
       $lookup: {
         from: 'courses',
@@ -779,6 +781,8 @@ const getTopInstructors = async (req, res) => {
       },
     },
   ]);
+
+  topInstructors = topInstructors.filter((instructor) => instructor?.courses?.length > 0 || instructor?.livecourses?.length > 0)
 
   res.status(200).send({
     message: {

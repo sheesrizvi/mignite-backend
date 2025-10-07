@@ -90,8 +90,6 @@ cron.schedule('0 0 * * *', () => {
 
 app.listen(PORT, async () => {
   console.log(`Successfully served on this ports: ${PORT}.`);
-  await User.findOneAndUpdate({ email: "testusermignite@gmail.com" }, { active: true, isDeleted: false })
-  
 });
 
 
