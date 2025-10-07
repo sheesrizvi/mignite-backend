@@ -41,7 +41,7 @@ const authInstructor = asyncHandler(async (req, res) => {
   
 
     if(!instructor.active) {
-      sendVerificationEmail(instructor.otp, instructor.email)
+      sendVerificationEmail(otp, instructor.email)
       instructor.otp = otp
       await instructor.save()
       return res.status(400).send({
@@ -242,7 +242,7 @@ const getAllInstructor = asyncHandler(async (req, res) => {
   const pageCount = Math.ceil(totalInstructors / pageSize);
 
   if (!req.query.pageNumber) {
-    const instructors = await Instructor.find({status: 'approved'}).sort({ createdAt: -1 })
+    const instructors = await Instructor.find({}).sort({ createdAt: -1 })
     return res.status(200).json({
       status: true,
       message: {
