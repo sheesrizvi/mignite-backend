@@ -120,6 +120,7 @@ const registerUser = asyncHandler(async (req, res) => {
     userExists.profile = profile
     userExists.pushToken = pushToken
     userExists.otp = otp
+    userExists.isDeleted = false
 
     await userExists.save()
 
