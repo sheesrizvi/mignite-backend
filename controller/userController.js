@@ -124,9 +124,9 @@ const registerUser = asyncHandler(async (req, res) => {
     await userExists.save()
 
     return res.status(200).send({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
+      _id: userExists._id,
+      name: userExists.name,
+      email: userExists.email,
       // token: generateTokenUser(user._id, user.name, user.email, user.age, user.type),
        message: {
         en: "Verification OTP sent to your email. Please verify your email for login",
