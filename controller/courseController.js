@@ -96,7 +96,7 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
 
   const { category } = req.query;
 
-  const courses = await Course.find({ category: category, status: 'approved' }).populate({
+  const normalCourses = await Course.find({ category: category, status: 'approved' }).populate({
     path: "sections",
     populate: [
       {
@@ -113,6 +113,25 @@ const getCoursesByCategory = asyncHandler(async (req, res) => {
         model: 'User'
       }
     })
+
+  const liveCourses = await LiveCourse.find({ category, status: 'approved' })
+    .populate({
+      path: "liveSections",
+      model: 'LiveSection',
+      populate: [{ path: "assignment" }],
+    })
+    .populate('instructor')
+    .populate('plan')
+    .populate({
+      path: 'reviews',
+      model: 'Review',
+      populate: { path: 'user', model: 'User' }
+    });
+
+
+    
+  const courses = [...normalCourses, ...liveCourses];
+
     
   if (courses) {
     res.status(201).json(courses);
@@ -626,7 +645,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
   
 
 
-  const courses = await Course.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
+  let courses = await Course.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
     path: "sections",
     model: 'Section',
     populate: [
@@ -645,7 +664,7 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
         model: 'User'
       }
     })
-  const livecourses = await LiveCourse.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
+  let livecourses = await LiveCourse.find({ category: { $in: categoryIds }, status: 'approved' }).populate({
     path: "liveSections",
     model: 'LiveSection',
     populate: [
@@ -665,7 +684,14 @@ const getAllCoursesByType = asyncHandler(async (req, res) => {
       }
     })
 
-  const allCourses = [...courses, ...livecourses]
+  courses = courses.slice(0, 6);
+  livecourses = livecourses.slice(0, 6);
+
+  let allCourses = [...courses, ...livecourses]
+  allCourses = allCourses.sort(() => Math.random() - 0.5);
+
+  allCourses = allCourses.slice(0, 6);
+
   res.status(200).send({
     message: {
         en: "Courses found",
