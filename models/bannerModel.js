@@ -12,6 +12,10 @@ const BannerSchema = new mongoose.Schema({
     type: {
         type: String,
         default: 'Banner'
+    },
+    bannerType: {
+        type: String,
+        enum: ["academic", "professional", "language", "home"]
     }
 })
 

@@ -15,7 +15,7 @@ const config = {
   
 
 const createBanner = asyncHandler(async (req, res) => {
-    const { title, images, type } = req.body
+    const { title, images, type, bannerType } = req.body
     
     if (!title || !images || images.length === 0) {
         return res.status(400).send({ message: 'Title and Images are required' })
@@ -25,7 +25,8 @@ const createBanner = asyncHandler(async (req, res) => {
     const newBanner = await Banner.create({
         title,
         images,
-        type
+        type,
+        bannerType
     })
 
     res.status(200).send({ message: 'Banner created successfully', banner: newBanner })
@@ -33,7 +34,7 @@ const createBanner = asyncHandler(async (req, res) => {
 
 const updateBanner = asyncHandler(async (req, res) => {
   
-    const { id, title, images, type } = req.body
+    const { id, title, images, type, bannerType } = req.body
 
     if (!title || !images || images.length === 0) {
         return res.status(400).send({ message: 'Title and Images are required' })
@@ -48,6 +49,7 @@ const updateBanner = asyncHandler(async (req, res) => {
     banner.title = title || banner.title
     banner.images = images || banner.images
     banner.type = type || banner.type
+    banner.bannerType = bannerType || banner.bannerType
 
     const updatedBanner = await banner.save()
 
@@ -55,8 +57,8 @@ const updateBanner = asyncHandler(async (req, res) => {
 })
 
 const listBanners = asyncHandler(async (req, res) => {
-    const { type = "Banner" } = req.query
-    const banners = await Banner.find({ type })
+    const { type = "Banner", bannerType="home" } = req.query
+    const banners = await Banner.find({ type, bannerType })
     if (!banners || banners.length === 0) {
          return res.status(400).send({
             message: {

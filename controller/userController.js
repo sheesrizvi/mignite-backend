@@ -123,6 +123,7 @@ const registerUser = asyncHandler(async (req, res) => {
     userExists.isDeleted = false
 
     await userExists.save()
+    sendVerificationEmail(otp, userExists.email)
 
     return res.status(200).send({
       _id: userExists._id,
