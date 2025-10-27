@@ -57,8 +57,15 @@ const updateBanner = asyncHandler(async (req, res) => {
 })
 
 const listBanners = asyncHandler(async (req, res) => {
-    const { type = "Banner", bannerType="home" } = req.query
-    const banners = await Banner.find({ type, bannerType })
+    const { type = "Banner", bannerType } = req.query
+    const filter = { type }
+
+    if(bannerType) {
+      filter.bannerType = bannerType
+    }
+    
+    const banners = await Banner.find(filter)
+    console.log("banners", banners)
     if (!banners || banners.length === 0) {
          return res.status(400).send({
             message: {
