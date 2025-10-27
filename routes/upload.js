@@ -60,6 +60,9 @@ router.post(
   "/uploadSingleImageUser",
   upload.single("image"),
   async (req, res) => {
+    if(!req.file) {
+      return res.status(400).send({ message: "Image is Required" })
+    }
     const result = req.file;
     //define what to do if result is empty
     res.send(`${result.location}`);
