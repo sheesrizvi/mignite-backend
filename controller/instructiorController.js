@@ -36,7 +36,7 @@ const authInstructor = asyncHandler(async (req, res) => {
     }
 
     
-  let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+  let otp = Math.floor(100000 + Math.random() * 900000);
   console.log(otp);
   
 
@@ -105,7 +105,7 @@ const registerInstructor = asyncHandler(async (req, res) => {
   }
 
   
-  let otp = Math.floor(1000000000 + Math.random() * 9000000000);
+  let otp = Math.floor(100000 + Math.random() * 900000);
   console.log(otp);
 
 
